@@ -1,5 +1,6 @@
-<aside class="fixed left-4 top-24 bottom-4 w-64 bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl z-40 overflow-y-auto hidden lg:block shadow-2xl transition-all duration-300">
+<aside id="sidebar" class="fixed w-64 bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl z-40 overflow-y-auto shadow-2xl transition-all duration-300 hidden">
     <div class="p-6 space-y-8">
+
         <!-- Main Navigation -->
         <div>
             <p class="text-[10px] font-black text-blue-300/40 uppercase tracking-[0.2em] mb-4 px-4">Menu Principal</p>
@@ -70,9 +71,5 @@
                 </a>
             </nav>
         </div>
-
     </div>
 </aside>
-
-<!-- Mobile Content Spacer (Mobile Navbar can be added here if needed) -->
-<div class="lg:hidden h-16"></div>

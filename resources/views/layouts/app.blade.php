@@ -42,6 +42,20 @@
         }, true);
     </script>
 
+    <style>
+        /* Custom Breakpoint Logic for 1400px (Covers iPad Pro Landscape) */
+        @media (min-width: 1400px) {
+            #sidebar {
+                display: block !important;
+                left: 1rem; /* equivalent to left-4 */
+                top: 6rem;  /* equivalent to top-24 */
+                bottom: 1rem; /* equivalent to bottom-4 */
+            }
+            #main-content {
+                margin-left: 18rem; /* equivalent to ml-72 */
+            }
+        }
+    </style>
     @stack('styles')
 </head>
 <body class="antialiased text-white">
@@ -56,7 +70,7 @@
                 <!-- Sidebar (Only if not dashboard) -->
                 @if(!Route::is('dashboard'))
                     @include('partials.sidebar')
-                    <main class="flex-grow transition-all duration-300 lg:ml-72 w-full">
+                    <main id="main-content" class="flex-grow transition-all duration-300 w-full">
                         <div class="p-4 sm:p-6 lg:p-8">
                             @yield('content')
                         </div>
