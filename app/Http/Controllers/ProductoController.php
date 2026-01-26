@@ -126,4 +126,42 @@ class ProductoController extends Controller
         
         return $pdf->stream('pedimento_inventario_' . date('Y-m-d') . '.pdf');
     }
+
+    public function inventario(Request $request)
+    {
+        $marca = $request->input('marca');
+
+        if (!$marca) {
+            return redirect()->route('productos.index')->with('error', 'Debes seleccionar una marca para realizar el inventario.');
+        }
+
+        $productos = Producto::where('marca', $marca)
+                            ->orderBy('nombre')
+                            ->paginate(25)
+                            ->appends(['marca' => $marca]);
+
+        return view('productos.inventario', compact('productos', 'marca'));
+    }
+
+    public function updateInventario(Request $request)
+    {
+        $stocks = $request->input('stocks', []);
+        $updatedCount = 0;
+
+        foreach ($stocks as $id => $cantidad) {
+            // Lógica estricta:
+            // Si es NULL o cadena vacía ("") -> IGNORAR
+            // Si es "0" o cualquier número -> ACTUALIZAR
+            
+            if ($cantidad !== null && $cantidad !== '') {
+                $producto = Producto::find($id);
+                if ($producto) {
+                    $producto->update(['stock' => $cantidad]);
+                    $updatedCount++;
+                }
+            }
+        }
+
+        return redirect()->route('productos.index')->with('success', "Inventario actualizado correctamente. Se modificaron {$updatedCount} productos.");
+    }
 }

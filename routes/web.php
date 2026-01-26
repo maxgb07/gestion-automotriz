@@ -39,6 +39,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('vehiculos/{vehiculo}', [VehiculoController::class, 'destroy'])->name('vehiculos.destroy');
 
     // Inventario - Productos
+    Route::get('productos/inventario', [ProductoController::class, 'inventario'])->name('productos.inventario');
+    Route::post('productos/inventario/update', [ProductoController::class, 'updateInventario'])->name('productos.inventario.update');
     Route::get('productos/pedimento', [ProductoController::class, 'pedimento'])->name('productos.pedimento');
     Route::resource('productos', ProductoController::class);
 

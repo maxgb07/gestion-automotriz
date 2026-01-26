@@ -9,6 +9,12 @@
             <p class="text-blue-200">Gestión de existencias, precios y aplicaciones</p>
         </div>
         <div class="flex flex-wrap items-center gap-3">
+            <button onclick="abrirModalInventario()" class="w-fit inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-lg shadow-lg shadow-indigo-900/40 transition-all text-sm uppercase tracking-widest cursor-pointer" style="background-color: #4f46e5;">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01"></path>
+                </svg>
+                Inventariar
+            </button>
             <button onclick="abrirModalPedimento()" class="w-fit inline-flex items-center px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-black rounded-lg shadow-lg shadow-amber-900/40 transition-all text-sm uppercase tracking-widest" style="background-color: #d97706;">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
@@ -305,6 +311,60 @@
                     url += '?marca=' + encodeURIComponent(marca);
                 }
                 window.open(url, '_blank');
+            }
+        });
+    }
+
+    function abrirModalInventario() {
+        const marcas = @json($marcas);
+        let options = '<option value="">SELECCIONAR MARCA...</option>';
+        marcas.forEach(marca => {
+            options += `<option value="${marca}">${marca}</option>`;
+        });
+
+        Swal.fire({
+            title: 'INVENTARIO FÍSICO',
+            html: `
+                <div class="text-left">
+                    <p class="text-blue-200 text-sm mb-2 uppercase font-bold">Selecciona la marca a inventariar</p>
+                    <select id="swal-marca-inv" class="w-full">
+                        ${options}
+                    </select>
+                    <p class="text-blue-200/50 text-xs mt-4 uppercase">Se mostrarán todos los productos de la marca seleccionada para captura de existencias.</p>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'COMENZAR',
+            cancelButtonText: 'CANCELAR',
+            confirmButtonColor: '#4f46e5',
+            cancelButtonColor: '#475569',
+            background: '#1e293b',
+            color: '#fff',
+            customClass: {
+                popup: 'rounded-3xl border border-white/20 shadow-2xl overflow-visible',
+                title: 'text-xl font-black uppercase tracking-tighter'
+            },
+            didOpen: () => {
+                $('#swal-marca-inv').select2({
+                    width: '100%',
+                    dropdownParent: Swal.getPopup(),
+                    placeholder: 'BUSCAR MARCA...',
+                    allowClear: true
+                });
+            },
+            preConfirm: () => {
+                const marca = $('#swal-marca-inv').val();
+                if (!marca) {
+                    Swal.showValidationMessage('DEBES SELECCIONAR UNA MARCA');
+                }
+                return marca;
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                const marca = result.value;
+                let url = '{{ route("productos.inventario") }}';
+                url += '?marca=' + encodeURIComponent(marca);
+                window.location.href = url;
             }
         });
     }
