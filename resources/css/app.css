@@ -8,6 +8,11 @@
     --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
 }
 
+/* Alpine.js Cloak */
+[x-cloak] {
+    display: none !important;
+}
+
 /* Fallback classes for compatibility */
 .bg-brand {
     background-color: #3b82f6 !important;

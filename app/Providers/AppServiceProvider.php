@@ -21,8 +21,13 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         //
-        //if (app()->environment('production')) {
+        /* //if (app()->environment('production')) {
             URL::forceScheme('https');
-        //}
+       // } */
+
+        // Compartir alertas con el navbar
+        \Illuminate\Support\Facades\View::composer('partials.navbar', function ($view) {
+            $view->with('alerts', app(\App\Services\NotificationService::class)->getAlerts());
+        });
     }
 }

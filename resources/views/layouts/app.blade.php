@@ -67,6 +67,7 @@
 
             <!-- Layout Shell -->
             <div class="w-full flex pt-16">
+
                 <!-- Sidebar (Only if not dashboard) -->
                 @if(!Route::is('dashboard'))
                     @include('partials.sidebar')
