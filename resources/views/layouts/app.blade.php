@@ -119,6 +119,7 @@
             });
         </script>
     @endif
+    @include('partials.eom-alert')
     @stack('scripts')
 </body>
 </html>

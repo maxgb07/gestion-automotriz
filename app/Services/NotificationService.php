@@ -139,4 +139,31 @@ class NotificationService
             ]);
         }
     }
+
+    /**
+     * Obtiene órdenes en reparación de >= 3 días si es el penúltimo o último día del mes.
+     */
+    public function getEndOfMonthRepairs(): ?array
+    {
+        $hoy = Carbon::now();
+        $ultimoDiaMes = (clone $hoy)->endOfMonth();
+        $penultimoDiaMes = (clone $ultimoDiaMes)->subDay();
+
+        // Verificar si es penúltimo o último día
+        if (!$hoy->isSameDay($ultimoDiaMes) && !$hoy->isSameDay($penultimoDiaMes)) {
+            return null;
+        }
+
+        $orders = OrdenServicio::where('estado', 'REPARACION')
+            ->get();
+
+        if ($orders->isEmpty()) {
+            return null;
+        }
+
+        return [
+            'count' => $orders->count(),
+            'folios' => $orders->pluck('folio')->implode(', ')
+        ];
+    }
 }

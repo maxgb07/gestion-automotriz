@@ -29,5 +29,10 @@ class AppServiceProvider extends ServiceProvider
         \Illuminate\Support\Facades\View::composer('partials.navbar', function ($view) {
             $view->with('alerts', app(\App\Services\NotificationService::class)->getAlerts());
         });
+
+        // Compartir alerta de fin de mes con el dashboard y el index de órdenes
+        \Illuminate\Support\Facades\View::composer(['dashboard', 'ordenes.index'], function ($view) {
+            $view->with('eomAlert', app(\App\Services\NotificationService::class)->getEndOfMonthRepairs());
+        });
     }
 }
