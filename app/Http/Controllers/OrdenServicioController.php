@@ -269,20 +269,47 @@ class OrdenServicioController extends Controller
 
     public function subirImagen(Request $request, OrdenServicio $orden)
     {
-        $request->validate([
-            'imagen' => 'required|image|mimes:jpeg,png,jpg,gif|max:2048',
-            'descripcion' => 'nullable|string|max:255',
-        ]);
-
-        if ($request->hasFile('imagen')) {
-            $path = $request->file('imagen')->store('ordenes/' . $orden->id, 'public');
-            $orden->imagenes()->create([
-                'ruta' => $path,
-                'descripcion' => mb_strtoupper($request->descripcion, 'UTF-8'),
-            ]);
+        // Si el POST llega vacío pero es una petición POST, usualmente es porque se superó post_max_size
+        if ($request->isMethod('post') && empty($request->all()) && empty($request->file())) {
+            return response()->json([
+                'success' => false, 
+                'message' => 'El tamaño total de los archivos supera el límite permitido por el servidor (8MB). Por favor, sube menos imágenes o archivos más pequeños.'
+            ], 422);
         }
 
-        return redirect()->back()->with('success', 'Imagen subida correctamente');
+        $request->validate([
+            'imagenes' => 'required|array',
+            'imagenes.*' => 'image|mimes:jpeg,png,jpg,gif|uploaded',
+            'descripcion' => 'nullable|string|max:255',
+        ], [
+            'imagenes.*.image' => 'El archivo debe ser una imagen.',
+            'imagenes.*.mimes' => 'La imagen debe ser jpeg, png, jpg o gif.',
+            'imagenes.*.uploaded' => 'La imagen es demasiado grande (Límite servidor: 2MB). Intenta comprimirla o subirla desde una PC.',
+        ]);
+
+        try {
+            if ($request->hasFile('imagenes')) {
+                foreach ($request->file('imagenes') as $file) {
+                    $path = $file->store('ordenes/' . $orden->id, 'public');
+                    $orden->imagenes()->create([
+                        'ruta' => $path,
+                        'descripcion' => $request->descripcion ? mb_strtoupper($request->descripcion, 'UTF-8') : null,
+                    ]);
+                }
+            }
+
+            if ($request->ajax()) {
+                return response()->json(['success' => true, 'message' => 'Imágenes subidas correctamente']);
+            }
+
+            return redirect()->back()->with('success', 'Imágenes subidas correctamente');
+
+        } catch (\Exception $e) {
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => 'Error al subir imágenes: ' . $e->getMessage()], 500);
+            }
+            return redirect()->back()->with('error', 'Error al subir imágenes: ' . $e->getMessage());
+        }
     }
 
     public function eliminarImagen(OrdenServicio $orden, OrdenServicioImagen $imagen)

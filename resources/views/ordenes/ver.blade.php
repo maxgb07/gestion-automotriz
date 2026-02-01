@@ -772,8 +772,8 @@
                 html: `
                     <div class="space-y-4 text-left p-2">
                         <div>
-                            <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">Imagen (JPG, PNG) *</label>
-                            <input type="file" id="swal-imagen" accept="image/*" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                            <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">Imágenes (JPG, PNG) *</label>
+                            <input type="file" id="swal-imagen" accept="image/*" multiple class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all">
                         </div>
                         <div>
                             <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">Descripción corta</label>
@@ -785,20 +785,28 @@
                 confirmButtonText: 'SUBIR',
                 confirmButtonColor: '#3b82f6',
                 preConfirm: () => {
-                    const file = document.getElementById('swal-imagen').files[0];
+                    const files = document.getElementById('swal-imagen').files;
                     const desc = document.getElementById('swal-desc').value;
-                    if (!file) {
-                        Swal.showValidationMessage('Debes seleccionar una imagen');
+                    if (files.length === 0) {
+                        Swal.showValidationMessage('Debes seleccionar al menos una imagen');
                         return false;
                     }
-                    return { file, desc };
+                    return { files, desc };
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
                     const formData = new FormData();
                     formData.append('_token', '{{ csrf_token() }}');
-                    formData.append('imagen', result.value.file);
+                    
+                    for (let i = 0; i < result.value.files.length; i++) {
+                        formData.append('imagenes[]', result.value.files[i]);
+                    }
                     formData.append('descripcion', result.value.desc);
+
+                    Swal.fire({
+                        title: 'Subiendo...',
+                        didOpen: () => { Swal.showLoading(); }
+                    });
 
                     $.ajax({
                         url: '{{ route("ordenes.imagenes.store", $orden) }}',
@@ -810,7 +818,10 @@
                             isSubmitting = true;
                             location.reload();
                         },
-                        error: () => Swal.fire('Error', 'No se pudo subir la imagen', 'error')
+                        error: (xhr) => {
+                            const msg = xhr.responseJSON?.message || 'No se pudo subir la imagen';
+                            Swal.fire('Error', msg, 'error');
+                        }
                     });
                 }
             });
