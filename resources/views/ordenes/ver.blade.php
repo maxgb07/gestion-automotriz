@@ -203,10 +203,10 @@
                                             </span>
                                         </td>
                                         <td class="px-3 py-4">
-                                            <p class="text-white font-bold text-sm">{{ $detalle->producto->nombre ?? $detalle->servicio->nombre }}</p>
+                                            <p class="text-white font-bold text-sm">{{ $detalle->producto?->nombre ?? $detalle->servicio?->nombre ?? 'N/A' }}</p>
                                         </td>
                                         <td class="px-3 py-4">
-                                            <p class="text-white font-bold text-sm">{{ $detalle->producto->descripcion ?? $detalle->servicio->descripcion }}</p>
+                                            <p class="text-white font-bold text-sm">{{ $detalle->producto?->descripcion ?? $detalle->servicio?->descripcion ?? '---' }}</p>
                                         </td>
                                         <td class="px-3 py-4 text-center">
                                             <span class="text-blue-100 font-mono text-sm font-bold">${{ number_format($detalle->precio_unitario, 2) }}</span>

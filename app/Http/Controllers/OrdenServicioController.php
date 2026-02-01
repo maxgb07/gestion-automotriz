@@ -199,6 +199,8 @@ class OrdenServicioController extends Controller
             'items.*.cantidad' => 'required|numeric|min:0.1',
             'items.*.precio_unitario' => 'required|numeric|min:0',
             'items.*.descuento_porcentaje' => 'nullable|numeric|min:0|max:100',
+        ], [
+            'items.*.item_id.required' => 'Debe seleccionar un producto o servicio para cada fila.'
         ]);
 
         try {

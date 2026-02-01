@@ -62,6 +62,9 @@ class VentaController extends Controller
             'items.*.cantidad' => 'required|numeric|min:1',
             'items.*.precio_unitario' => 'required|numeric|min:0',
             'items.*.descuento_porcentaje' => 'nullable|numeric|min:0|max:100',
+        ], [
+            'items.*.id.required' => 'Debe seleccionar un producto o servicio para cada fila.',
+            'items.required' => 'Debe agregar al menos un ítem a la venta.'
         ]);
 
         try {

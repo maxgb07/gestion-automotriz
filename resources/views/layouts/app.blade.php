@@ -120,6 +120,7 @@
         </script>
     @endif
     @include('partials.eom-alert')
+    @include('partials.prev-month-alert')
     @stack('scripts')
 </body>
 </html>

@@ -121,15 +121,15 @@
                                         </td>
                                         <td class="px-6 py-5">
                                             <span class="text-white font-bold uppercase text-md font-mono">
-                                                {{ $detalle->producto ? $detalle->producto->nombre : $detalle->servicio->sku }}
+                                                {{ $detalle->producto?->nombre ?? $detalle->servicio?->sku ?? 'N/A' }}
                                             </span>
                                         </td>
                                         <td class="px-8 py-5">
                                             <span class="text-white font-bold uppercase text-md block">
-                                                {{ $detalle->producto ? $detalle->producto->nombre : $detalle->servicio->nombre }}
+                                                {{ $detalle->producto?->nombre ?? $detalle->servicio?->nombre ?? 'N/A' }}
                                             </span>
                                             <span class="text-md text-blue-200/40 uppercase tracking-widest mt-1 block line-clamp-1">
-                                                {{ $detalle->producto ? $detalle->producto->descripcion : $detalle->servicio->descripcion }}
+                                                {{ $detalle->producto?->descripcion ?? $detalle->servicio?->descripcion ?? '---' }}
                                             </span>
                                         </td>
                                         <td class="px-6 py-5 text-center">

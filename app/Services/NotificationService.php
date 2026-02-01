@@ -166,4 +166,24 @@ class NotificationService
             'folios' => $orders->pluck('folio')->implode(', ')
         ];
     }
+    /**
+     * Obtiene órdenes en reparación que son de meses anteriores al actual.
+     */
+    public function getPreviousMonthRepairs(): ?array
+    {
+        $inicioMesActual = Carbon::now()->startOfMonth();
+
+        $orders = OrdenServicio::where('estado', 'REPARACION')
+            ->where('fecha_entrada', '<', $inicioMesActual)
+            ->get();
+
+        if ($orders->isEmpty()) {
+            return null;
+        }
+
+        return [
+            'count' => $orders->count(),
+            'folios' => $orders->pluck('folio')->implode(', ')
+        ];
+    }
 }
