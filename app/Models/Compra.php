@@ -7,8 +7,11 @@ use Illuminate\Database\Eloquent\Model;
 use App\Models\Proveedor;
 use App\Models\DetalleCompra;
 
+use App\Traits\Auditable;
+
 class Compra extends Model
 {
+    use Auditable;
     use HasFactory;
 
     protected $fillable = [

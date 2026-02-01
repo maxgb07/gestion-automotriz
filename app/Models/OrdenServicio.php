@@ -6,8 +6,11 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
+use App\Traits\Auditable;
+
 class OrdenServicio extends Model
 {
+    use Auditable;
     use HasFactory, SoftDeletes;
 
     protected $table = 'ordenes_servicio';

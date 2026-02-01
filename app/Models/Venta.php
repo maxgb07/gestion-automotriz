@@ -4,8 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+use App\Traits\Auditable;
+
 class Venta extends Model
 {
+    use Auditable;
     protected $fillable = [
         'cliente_id',
         'folio',
