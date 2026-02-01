@@ -164,4 +164,21 @@ class ProductoController extends Controller
 
         return redirect()->route('productos.index')->with('success', "Inventario actualizado correctamente. Se modificaron {$updatedCount} productos.");
     }
+
+    public function exportarInventarioPDF(Request $request)
+    {
+        $marca = $request->input('marca');
+
+        if (!$marca) {
+            return redirect()->route('productos.index')->with('error', 'Debes seleccionar una marca para exportar el inventario.');
+        }
+
+        $productos = Producto::where('marca', $marca)
+                            ->orderBy('nombre')
+                            ->get();
+
+        $pdf = Pdf::loadView('productos.pdf_lista_inventario', compact('productos', 'marca'));
+        
+        return $pdf->stream('inventario_fisico_' . strtolower(str_replace(' ', '_', $marca)) . '_' . date('Y-m-d') . '.pdf');
+    }
 }

@@ -325,16 +325,24 @@
         Swal.fire({
             title: 'INVENTARIO FÍSICO',
             html: `
-                <div class="text-left">
-                    <p class="text-blue-200 text-sm mb-2 uppercase font-bold">Selecciona la marca a inventariar</p>
-                    <select id="swal-marca-inv" class="w-full">
-                        ${options}
-                    </select>
-                    <p class="text-blue-200/50 text-xs mt-4 uppercase">Se mostrarán todos los productos de la marca seleccionada para captura de existencias.</p>
+                <div class="text-left space-y-4">
+                    <div>
+                        <p class="text-blue-200 text-sm mb-2 uppercase font-bold">1. Selecciona la marca</p>
+                        <select id="swal-marca-inv" class="w-full">
+                            ${options}
+                        </select>
+                    </div>
+                    <div>
+                        <p class="text-blue-200 text-sm mb-2 uppercase font-bold">2. Forma de inventariar</p>
+                        <select id="swal-modo-inv" class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all uppercase">
+                            <option value="digital" class="bg-slate-800" selected>CAPTURA DIGITAL (SISTEMA)</option>
+                            <option value="imprimir" class="bg-slate-800">IMPRIMIR LISTA (PDF)</option>
+                        </select>
+                    </div>
                 </div>
             `,
             showCancelButton: true,
-            confirmButtonText: 'COMENZAR',
+            confirmButtonText: 'CONTINUAR',
             cancelButtonText: 'CANCELAR',
             confirmButtonColor: '#4f46e5',
             cancelButtonColor: '#475569',
@@ -354,17 +362,24 @@
             },
             preConfirm: () => {
                 const marca = $('#swal-marca-inv').val();
+                const modo = $('#swal-modo-inv').val();
                 if (!marca) {
                     Swal.showValidationMessage('DEBES SELECCIONAR UNA MARCA');
                 }
-                return marca;
+                return { marca, modo };
             }
         }).then((result) => {
             if (result.isConfirmed) {
-                const marca = result.value;
-                let url = '{{ route("productos.inventario") }}';
-                url += '?marca=' + encodeURIComponent(marca);
-                window.location.href = url;
+                const { marca, modo } = result.value;
+                if (modo === 'digital') {
+                    let url = '{{ route("productos.inventario") }}';
+                    url += '?marca=' + encodeURIComponent(marca);
+                    window.location.href = url;
+                } else {
+                    let url = '{{ route("productos.inventario.pdf") }}';
+                    url += '?marca=' + encodeURIComponent(marca);
+                    window.open(url, '_blank');
+                }
             }
         });
     }
