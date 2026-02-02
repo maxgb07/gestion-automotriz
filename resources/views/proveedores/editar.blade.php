@@ -26,23 +26,48 @@
                     </div>
 
                     <div>
-                        <label for="contacto" class="block text-sm font-medium text-blue-100 mb-2 uppercase">Nombre de Contacto</label>
+                        <label for="contacto" class="block text-sm font-medium text-blue-100 mb-2 uppercase">Nombre de Contacto 1</label>
                         <input type="text" name="contacto" id="contacto" value="{{ old('contacto', $proveedor->contacto) }}" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-200/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm uppercase">
                     </div>
 
                     <div>
-                        <label for="telefono" class="block text-sm font-medium text-blue-100 mb-2 uppercase">Teléfono</label>
+                        <label for="contacto_secundario" class="block text-sm font-medium text-blue-100 mb-2 uppercase">Nombre de Contacto 2</label>
+                        <input type="text" name="contacto_secundario" id="contacto_secundario" value="{{ old('contacto_secundario', $proveedor->contacto_secundario) }}" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-200/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm uppercase">
+                    </div>
+
+                    <div>
+                        <label for="telefono" class="block text-sm font-medium text-blue-100 mb-2 uppercase">Teléfono Contacto 1</label>
                         <input type="text" name="telefono" id="telefono" value="{{ old('telefono', $proveedor->telefono) }}" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-200/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm">
                     </div>
 
-                    <div class="md:col-span-2">
-                        <label for="email" class="block text-sm font-medium text-blue-100 mb-2 uppercase">Correo Electrónico</label>
+                    <div>
+                        <label for="telefono_secundario" class="block text-sm font-medium text-blue-100 mb-2 uppercase">Teléfono Contacto 2</label>
+                        <input type="text" name="telefono_secundario" id="telefono_secundario" value="{{ old('telefono_secundario', $proveedor->telefono_secundario) }}" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-200/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm">
+                    </div>
+
+                    <div>
+                        <label for="email" class="block text-sm font-medium text-blue-100 mb-2 uppercase">Email Contacto 1</label>
                         <input type="email" name="email" id="email" value="{{ old('email', $proveedor->email) }}" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-200/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm lowercase">
+                    </div>
+
+                    <div>
+                        <label for="email_secundario" class="block text-sm font-medium text-blue-100 mb-2 uppercase">Email Contacto 2</label>
+                        <input type="email" name="email_secundario" id="email_secundario" value="{{ old('email_secundario', $proveedor->email_secundario) }}" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-200/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm lowercase">
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label for="marcas_productos" class="block text-sm font-medium text-blue-100 mb-2 uppercase">Marcas / Productos que vende</label>
+                        <input type="text" name="marcas_productos" id="marcas_productos" value="{{ old('marcas_productos', $proveedor->marcas_productos) }}" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-200/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm uppercase">
                     </div>
 
                     <div class="md:col-span-2">
                         <label for="direccion" class="block text-sm font-medium text-blue-100 mb-2 uppercase">Dirección</label>
-                        <textarea name="direccion" id="direccion" rows="3" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-200/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm uppercase">{{ old('direccion', $proveedor->direccion) }}</textarea>
+                        <textarea name="direccion" id="direccion" rows="2" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-200/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm uppercase">{{ old('direccion', $proveedor->direccion) }}</textarea>
+                    </div>
+
+                    <div class="md:col-span-2">
+                        <label for="observaciones" class="block text-sm font-medium text-blue-100 mb-2 uppercase">Observaciones</label>
+                        <textarea name="observaciones" id="observaciones" rows="3" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-200/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm uppercase">{{ old('observaciones', $proveedor->observaciones) }}</textarea>
                     </div>
                 </div>
 

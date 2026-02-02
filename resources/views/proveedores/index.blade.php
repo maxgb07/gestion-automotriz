@@ -46,10 +46,10 @@
             <table class="w-full text-left border-collapse">
                 <thead class="bg-white/5 border-b border-white/10">
                     <tr>
-                        <th class="px-6 py-4 text-sm font-semibold text-blue-200 uppercase tracking-wider text-center">Nombre / Empresa</th>
-                        <th class="px-6 py-4 text-sm font-semibold text-blue-200 uppercase tracking-wider text-center">Contacto</th>
-                        <th class="px-6 py-4 text-sm font-semibold text-blue-200 uppercase tracking-wider text-center">Teléfono / Email</th>
-                        <th class="px-6 py-4 text-sm font-semibold text-blue-200 uppercase tracking-wider text-center">Dirección</th>
+                        <th class="px-6 py-4 text-sm font-semibold text-blue-200 uppercase tracking-wider text-center">Proveedor</th>
+                        <th class="px-6 py-4 text-sm font-semibold text-blue-200 uppercase tracking-wider text-center">Contacto 1</th>
+                        <th class="px-6 py-4 text-sm font-semibold text-blue-200 uppercase tracking-wider text-center">Contacto 2</th>
+                        <th class="px-6 py-4 text-sm font-semibold text-blue-200 uppercase tracking-wider text-center">Marcas / Productos</th>
                         <th class="px-6 py-4 text-sm font-semibold text-blue-200 uppercase tracking-wider text-center">Acciones</th>
                     </tr>
                 </thead>
@@ -57,27 +57,33 @@
                     @forelse($proveedores as $proveedor)
                         <tr class="hover:bg-white/5 transition-colors group">
                             <td class="px-6 py-4 text-center">
-                                <div class="flex items-center justify-center gap-3 text-center">
-                                    <!-- <div class="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-400 to-blue-600 flex items-center justify-center text-white font-bold shadow-lg shadow-blue-500/20">
-                                        {{ substr($proveedor->nombre, 0, 1) }}
-                                    </div> -->
-                                    <div class="text-white font-bold uppercase group-hover:text-blue-300 transition-colors">{{ $proveedor->nombre }}</div>
+                                <div class="text-white font-bold uppercase group-hover:text-blue-300 transition-colors">{{ $proveedor->nombre }}</div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                <div class="flex flex-col items-center">
+                                    <span class="text-blue-100 uppercase font-bold">{{ $proveedor->contacto ?? 'N/A' }}</span>
+                                    <span class="text-md ">{{ $proveedor->telefono ?? 'S/T' }}</span>
+                                    <span class="text-md lowercase">{{ $proveedor->email ?? '' }}</span>
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
-                                <span class="text-blue-100 uppercase">{{ $proveedor->contacto ?? 'N/A' }}</span>
-                            </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-blue-100 text-sm text-center font-medium text-white">
                                 <div class="flex flex-col items-center">
-                                    <span>{{ $proveedor->telefono ?? 'S/T' }}</span>
-                                    <span class="text-white text-sm text-blue-100 lowercase">{{ $proveedor->email ?? 'Sin email' }}</span>
+                                    <span class="text-blue-100 uppercase font-bold">{{ $proveedor->contacto_secundario ?? 'N/A' }}</span>
+                                    <span class="text-md ">{{ $proveedor->telefono_secundario ?? 'S/T' }}</span>
+                                    <span class="text-md lowercase">{{ $proveedor->email_secundario ?? '' }}</span>
                                 </div>
                             </td>
                             <td class="px-6 py-4 text-center">
-                                <span class="text-blue-100 text-xs uppercase line-clamp-1 mx-auto text-center">{{ $proveedor->direccion ?? 'N/A' }}</span>
+                                <span class="text-blue-100 text-md uppercase line-clamp-1 mx-auto text-center max-w-xs">{{ $proveedor->marcas_productos ?? 'N/A' }}</span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 <div class="flex justify-center items-center gap-2">
+                                    <button onclick='verProveedor(@json($proveedor))' class="p-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 rounded-xl transition-all" title="VER DETALLES">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                                        </svg>
+                                    </button>
                                     <a href="{{ route('proveedores.edit', $proveedor) }}" class="p-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded-xl transition-all" title="EDITAR">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
@@ -120,6 +126,59 @@
     </div>
 
 <script>
+    function verProveedor(proveedor) {
+        Swal.fire({
+            html: `
+                <div class="text-left">
+                    <div class="text-center mb-8">
+                        <h3 class="text-3xl font-black text-white uppercase mb-2 tracking-tighter">${proveedor.nombre}</h3>
+                        <div class="h-px w-20 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent mx-auto mb-4"></div>
+                        <p class="text-blue-100/80 text-sm uppercase px-6 leading-relaxed">DETALLE COMPLETO DEL PROVEEDOR</p>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4 bg-white/5 p-6 rounded-[2rem] border border-white/10 shadow-inner">
+                        <div class="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="space-y-1 p-3 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                                <p class="text-mdfont-black text-blue-300/40 uppercase tracking-widest">Contacto Primario</p>
+                                <p class="text-white font-bold uppercase text-sm">${proveedor.contacto || 'N/A'}</p>
+                                <p class="text-md ">${proveedor.telefono || 'S/T'}</p>
+                                <p class="text-md lowercase">${proveedor.email || ''}</p>
+                            </div>
+                            <div class="space-y-1 p-3 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                                <p class="text-mdfont-black text-blue-300/40 uppercase tracking-widest">Contacto Secundario</p>
+                                <p class="text-white font-bold uppercase text-sm">${proveedor.contacto_secundario || 'N/A'}</p>
+                                <p class="text-md ">${proveedor.telefono_secundario || 'S/T'}</p>
+                                <p class="text-md lowercase">${proveedor.email_secundario || ''}</p>
+                            </div>
+                        </div>
+                        <div class="col-span-2 space-y-1 p-3 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                            <p class="text-mdfont-black text-blue-300/40 uppercase tracking-widest">Marcas / Productos</p>
+                            <p class="text-white font-bold uppercase text-md leading-relaxed">${proveedor.marcas_productos || 'N/A'}</p>
+                        </div>
+                        <div class="col-span-2 space-y-1 p-3 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                            <p class="text-mdfont-black text-blue-300/40 uppercase tracking-widest">Dirección</p>
+                            <p class="text-white font-bold uppercase text-md leading-relaxed">${proveedor.direccion || 'N/A'}</p>
+                        </div>
+                        <div class="col-span-2 space-y-1 p-4 rounded-2xl bg-white/5 border border-white/10">
+                            <p class="text-mdfont-black text-blue-300/40 uppercase tracking-widest mb-2">Observaciones</p>
+                            <p class="text-white font-bold uppercase text-md leading-relaxed">${proveedor.observaciones || 'SIN COMENTARIOS ADICIONALES'}</p>
+                        </div>
+                    </div>
+                </div>
+            `,
+            showConfirmButton: true,
+            confirmButtonText: 'CERRAR',
+            confirmButtonColor: '#3b82f6',
+            background: 'rgba(15, 23, 42, 0.95)',
+            color: '#fff',
+            width: '600px',
+            customClass: {
+                popup: 'backdrop-blur-xl border border-white/20 rounded-[3rem] p-8',
+                confirmButton: 'px-8 py-3 rounded-2xl font-black uppercase tracking-widest text-md'
+            }
+        });
+    }
+
     function eliminarProveedor(id, nombre) {
         Swal.fire({
             title: '¿ELIMINAR PROVEEDOR?',

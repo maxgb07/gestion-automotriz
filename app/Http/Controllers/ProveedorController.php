@@ -16,8 +16,12 @@ class ProveedorController extends Controller
             $query->where(function($q) use ($buscar) {
                 $q->where('nombre', 'like', "%{$buscar}%")
                   ->orWhere('contacto', 'like', "%{$buscar}%")
+                  ->orWhere('contacto_secundario', 'like', "%{$buscar}%")
                   ->orWhere('telefono', 'like', "%{$buscar}%")
-                  ->orWhere('email', 'like', "%{$buscar}%");
+                  ->orWhere('telefono_secundario', 'like', "%{$buscar}%")
+                  ->orWhere('email', 'like', "%{$buscar}%")
+                  ->orWhere('email_secundario', 'like', "%{$buscar}%")
+                  ->orWhere('marcas_productos', 'like', "%{$buscar}%");
             });
         }
 
@@ -34,11 +38,16 @@ class ProveedorController extends Controller
     public function store(Request $request)
     {
         $request->validate([
-            'nombre' => 'nullable|string|max:255',
+            'nombre' => 'required|string|max:255',
             'contacto' => 'nullable|string|max:255',
+            'contacto_secundario' => 'nullable|string|max:255',
             'telefono' => 'nullable|string|max:20',
+            'telefono_secundario' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
+            'email_secundario' => 'nullable|email|max:255',
+            'marcas_productos' => 'nullable|string',
             'direccion' => 'nullable|string|max:255',
+            'observaciones' => 'nullable|string',
         ]);
 
         Proveedor::create($request->all());
@@ -54,11 +63,16 @@ class ProveedorController extends Controller
     public function update(Request $request, Proveedor $proveedor)
     {
         $request->validate([
-            'nombre' => 'nullable|string|max:255',
+            'nombre' => 'required|string|max:255',
             'contacto' => 'nullable|string|max:255',
+            'contacto_secundario' => 'nullable|string|max:255',
             'telefono' => 'nullable|string|max:20',
+            'telefono_secundario' => 'nullable|string|max:20',
             'email' => 'nullable|email|max:255',
+            'email_secundario' => 'nullable|email|max:255',
+            'marcas_productos' => 'nullable|string',
             'direccion' => 'nullable|string|max:255',
+            'observaciones' => 'nullable|string',
         ]);
 
         $proveedor->update($request->all());

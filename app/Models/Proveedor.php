@@ -17,9 +17,14 @@ class Proveedor extends Model
     protected $fillable = [
         'nombre',
         'contacto',
+        'contacto_secundario',
         'telefono',
+        'telefono_secundario',
         'email',
-        'direccion'
+        'email_secundario',
+        'marcas_productos',
+        'direccion',
+        'observaciones'
     ];
 
     protected function setNombreAttribute($value)
@@ -32,8 +37,23 @@ class Proveedor extends Model
         $this->attributes['contacto'] = mb_strtoupper($value);
     }
 
+    protected function setContactoSecundarioAttribute($value)
+    {
+        $this->attributes['contacto_secundario'] = mb_strtoupper($value);
+    }
+
+    protected function setMarcasProductosAttribute($value)
+    {
+        $this->attributes['marcas_productos'] = mb_strtoupper($value);
+    }
+
     protected function setDireccionAttribute($value)
     {
         $this->attributes['direccion'] = mb_strtoupper($value);
+    }
+
+    protected function setObservacionesAttribute($value)
+    {
+        $this->attributes['observaciones'] = mb_strtoupper($value);
     }
 }
