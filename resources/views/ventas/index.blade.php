@@ -175,7 +175,7 @@
                                     };
                                 @endphp
                                 <span class="px-3 py-1 rounded-full text-sm border {{ $color }}">
-                                    {{ $venta->estado }}
+                                    {{ $venta->estado == 'PENDIENTE' ? 'PENDIENTE DE PAGO' : $venta->estado }}
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">

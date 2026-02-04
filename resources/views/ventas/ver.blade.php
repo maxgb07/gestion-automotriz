@@ -40,7 +40,7 @@
                     };
                 @endphp
                 <span class="px-4 py-1.5 rounded-full text-xl font-black uppercase border {{ $color }}">
-                    {{ $venta->estado }}
+                    {{ $venta->estado == 'PENDIENTE' ? 'PENDIENTE DE PAGO' : $venta->estado }}
                 </span>
             </div>
         </div>
