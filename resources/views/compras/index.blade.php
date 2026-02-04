@@ -22,14 +22,14 @@
     <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 mb-8 shadow-xl">
         <form action="{{ route('compras.index') }}" method="GET" class="flex flex-col md:flex-row gap-4 items-end">
             <div class="md:flex-[3] relative w-full">
-                <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-2 ml-1">Buscar Factura</label>
+                <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-2 ml-1">Buscar OC / Factura</label>
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <svg class="h-5 w-5 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                         </svg>
                     </div>
-                    <input type="text" name="buscar" value="{{ request('buscar') }}" placeholder="BUSCAR POR NÚMERO DE FACTURA..." class="block w-full pl-12 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-200/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm uppercase">
+                    <input type="text" name="buscar" value="{{ request('buscar') }}" placeholder="BUSCAR POR FOLIO OC O NÚMERO DE FACTURA..." class="block w-full pl-12 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-200/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm uppercase">
                 </div>
             </div>
 
@@ -62,6 +62,7 @@
             <table class="w-full text-center border-collapse">
                 <thead class="bg-white/5 border-b border-white/10">
                     <tr>
+                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Folio</th>
                         <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Factura</th>
                         <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Fecha</th>
                         <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Proveedor</th>
@@ -73,8 +74,10 @@
                     @forelse($compras as $compra)
                         <tr class="hover:bg-white/5 transition-colors group">
                              <td class="px-6 py-4 whitespace-nowrap text-center">
+                                <span class="text-white font-bold font-medium uppercase">{{ $compra->folio ?? '---' }}</span>
+                            </td>
+                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 <div class="flex flex-col items-center">
-                                    <!-- <span class="text-blue-300 font-mono text-[10px]">#{{ str_pad($compra->id, 5, '0', STR_PAD_LEFT) }}</span> -->
                                     <span class="text-white font-bold font-medium uppercase">{{ $compra->factura ?? 'SIN FACTURA' }}</span>
                                 </div>
                             </td>
@@ -114,7 +117,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-6 py-20 text-center">
+                            <td colspan="6" class="px-6 py-20 text-center">
                                 <div class="flex flex-col items-center">
                                     <div class="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-4">
                                         <svg class="w-10 h-10 text-blue-300/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">

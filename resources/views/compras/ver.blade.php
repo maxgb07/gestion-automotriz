@@ -12,8 +12,8 @@
                     </svg>
                     VOLVER AL HISTORIAL
                 </a>
-                <h1 class="text-3xl font-bold text-white uppercase">DETALLE DE COMPRA #{{ str_pad($compra->id, 5, '0', STR_PAD_LEFT) }}</h1>
-                <p class="text-blue-200">Información detallada de la adquisición</p>
+                <h1 class="text-3xl font-bold text-white uppercase">{{ $compra->folio ?? 'DETALLE DE COMPRA' }}</h1>
+                <p class="text-blue-200">Factura: {{ $compra->factura ?? 'SIN FACTURA' }}</p>
             </div>
             <div class="bg-white/10 backdrop-blur-xl rounded-2xl px-6 py-3 border border-white/20">
                 <span class="text-xs text-blue-200 uppercase block">Total Factura</span>
@@ -40,7 +40,11 @@
                     <h3 class="text-xs font-bold text-blue-300 uppercase mb-3 tracking-widest">Datos de Registro</h3>
                     <div class="space-y-2">
                         <div class="flex justify-between">
-                            <span class="text-blue-200/60 uppercase text-xs">Factura / Folio:</span>
+                            <span class="text-blue-200/60 uppercase text-xs">Folio OC:</span>
+                            <span class="text-white font-bold uppercase text-xs">{{ $compra->folio ?? '---' }}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-blue-200/60 uppercase text-xs">Factura:</span>
                             <span class="text-white font-bold uppercase text-xs">{{ $compra->factura ?? 'SIN FACTURA' }}</span>
                         </div>
                         <div class="flex justify-between">

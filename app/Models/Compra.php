@@ -16,6 +16,7 @@ class Compra extends Model
 
     protected $fillable = [
         'proveedor_id',
+        'folio',
         'factura',
         'fecha_compra',
         'total'

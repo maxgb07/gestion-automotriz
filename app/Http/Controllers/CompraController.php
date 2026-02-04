@@ -17,7 +17,10 @@ class CompraController extends Controller
 
         if ($request->filled('buscar')) {
             $buscar = $request->get('buscar');
-            $query->where('factura', 'like', "%{$buscar}%");
+            $query->where(function($q) use ($buscar) {
+                $q->where('folio', 'like', "%{$buscar}%")
+                  ->orWhere('factura', 'like', "%{$buscar}%");
+            });
         }
 
         if ($request->filled('proveedor_id')) {
@@ -57,8 +60,13 @@ class CompraController extends Controller
                 $total += $p['cantidad'] * $p['precio_compra'];
             }
 
+            // Generar Folio Automático (OC-00000)
+            $ultimoId = Compra::max('id') ?? 0;
+            $folio = 'OC-' . str_pad($ultimoId + 1, 5, '0', STR_PAD_LEFT);
+
             $compra = Compra::create([
                 'proveedor_id' => $request->proveedor_id,
+                'folio' => $folio,
                 'factura' => $request->factura,
                 'fecha_compra' => $request->fecha_compra,
                 'total' => $total,
