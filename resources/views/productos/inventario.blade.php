@@ -80,11 +80,6 @@
             </table>
         </div>
 
-        @if($productos->hasPages())
-            <div class="px-6 py-4 bg-white/5 border-t border-white/10">
-                {{ $productos->links('vendor.pagination.custom') }}
-            </div>
-        @endif
 
         <div class="px-6 py-6 bg-white/5 border-t border-white/10 flex justify-end gap-4 sticky bottom-0 backdrop-blur-xl z-20">
             <a href="{{ route('productos.index') }}" class="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl transition-all uppercase tracking-wider text-sm flex items-center gap-2 shadow-lg shadow-red-900/20" style="background-color: #dc2626;">
@@ -102,25 +97,21 @@
 
 @push('scripts')
 <script>
-    let hasChanges = false;
-    let isSubmitting = false;
-
-    // Detect changes in inputs
-    document.querySelectorAll('.inventory-input').forEach(input => {
-        input.addEventListener('input', () => {
-            hasChanges = true;
-        });
-    });
+    function hasUnsavedChanges() {
+        return Array.from(document.querySelectorAll('.inventory-input')).some(input => input.value.trim() !== '');
+    }
 
     // Handle form submit to disable the warning
     document.getElementById('inventory-form').addEventListener('submit', () => {
         isSubmitting = true;
     });
 
-    // Validacion para enlaces internos con SweetAlert (simulando ventas.crear)
     document.addEventListener('click', function(e) {
         const link = e.target.closest('a');
-        if (link && !isSubmitting && hasChanges && !link.hasAttribute('download') && link.target !== '_blank') {
+        if (!link || isSubmitting) return;
+
+        // Si es un enlace de navegación (clic interno), avisamos
+        if (hasUnsavedChanges() && !link.hasAttribute('download') && link.target !== '_blank') {
             const href = link.href;
             if (href && href.startsWith(window.location.origin) && !href.includes('#')) {
                 e.preventDefault();
@@ -151,7 +142,7 @@
 
     // Warn user before leaving if there are changes (Native Browser Fallback)
     window.addEventListener('beforeunload', (e) => {
-        if (!isSubmitting && hasChanges) {
+        if (!isSubmitting && hasUnsavedChanges()) {
             e.preventDefault();
             e.returnValue = ''; // Standard for Chrome
         }

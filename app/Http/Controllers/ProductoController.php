@@ -137,8 +137,7 @@ class ProductoController extends Controller
 
         $productos = Producto::where('marca', $marca)
                             ->orderBy('nombre')
-                            ->paginate(25)
-                            ->appends(['marca' => $marca]);
+                            ->get();
 
         return view('productos.inventario', compact('productos', 'marca'));
     }
