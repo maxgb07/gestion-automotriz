@@ -55,6 +55,35 @@
                 @endif
             </div>
         </form>
+    <!-- Tabs de Filtrado -->
+    <div class="flex flex-wrap items-center gap-2 mb-4 mt-8">
+        @php
+            $currentPeriod = request('periodo');
+            // Si no hay periodo específico ni otros filtros, el activo es 'hoy'
+            if (!request()->filled('periodo') && !request()->filled('buscar') && !request()->filled('estado') && !request()->filled('cliente_id') && !request()->filled('vehiculo_id')) {
+                $currentPeriod = 'hoy';
+            } else {
+                $currentPeriod = $currentPeriod ?? 'todos';
+            }
+
+            $tabs = [
+                'todos' => 'Todos',
+                'mes' => 'Mes',
+                'semana' => 'Semana',
+                'hoy' => 'Hoy'
+            ];
+        @endphp
+
+        @foreach($tabs as $key => $label)
+            <a href="{{ request()->fullUrlWithQuery(['periodo' => $key]) }}" 
+               class="px-6 py-2 rounded-xl border transition-all duration-300 font-bold uppercase text-xs tracking-widest
+               {{ $currentPeriod == $key 
+                  ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-600/20 scale-105' 
+                  : 'bg-white/5 border-white/10 text-blue-200 hover:bg-white/10 hover:border-white/20' 
+               }}">
+                {{ $label }}
+            </a>
+        @endforeach
     </div>
 
     <!-- Ordenes Table -->

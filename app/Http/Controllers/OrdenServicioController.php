@@ -50,6 +50,31 @@ class OrdenServicioController extends Controller
             $query->where('vehiculo_id', $request->vehiculo_id);
         }
 
+        // Filtro por Periodo
+        $periodo = $request->get('periodo');
+        
+        // Si no hay ningún parámetro de búsqueda ni periodo, por defecto es HOY
+        // Si el periodo es 'todos', no aplicamos filtro de fecha
+        if (!$request->has('periodo') && !$request->filled('buscar') && !$request->filled('estado') && !$request->filled('cliente_id') && !$request->filled('vehiculo_id')) {
+            $periodo = 'hoy';
+        }
+
+        if ($periodo && $periodo !== 'todos') {
+            $now = now();
+            
+            if ($periodo == 'hoy') {
+                $query->whereDate('fecha_entrada', $now->toDateString());
+            } elseif ($periodo == 'semana') {
+                $query->whereBetween('fecha_entrada', [
+                    $now->startOfWeek()->toDateString(), 
+                    $now->endOfWeek()->toDateString()
+                ]);
+            } elseif ($periodo == 'mes') {
+                $query->whereYear('fecha_entrada', $now->year)
+                      ->whereMonth('fecha_entrada', $now->month);
+            }
+        }
+
         $ordenes = $query->latest()->paginate(10)->withQueryString();
 
         return view('ordenes.index', compact('ordenes'));

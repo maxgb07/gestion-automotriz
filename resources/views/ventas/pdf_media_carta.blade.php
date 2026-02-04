@@ -125,7 +125,7 @@
         <table class="sale-info">
             <tr>
                 <td style="width: 100%;">
-                    <span style="color: #6b7280; text-transform: uppercase; font-size: 8px;">Cliente:</span><br>
+                    <span style="color: #000000ff; text-transform: uppercase; font-size: 8px;">Cliente:</span><br>
                     <strong style="font-size: 11px;">{{ $venta->cliente->nombre }}</strong><br>
                     <!-- {{ $venta->cliente->telefono ?? '' }} -->
                 </td>

@@ -36,6 +36,31 @@ class VentaController extends Controller
             $query->where('metodo_pago', $request->metodo_pago);
         }
 
+        // Filtro por Periodo
+        $periodo = $request->get('periodo');
+        
+        // Si no hay ningún parámetro de búsqueda ni periodo, por defecto es HOY
+        // Si el periodo es 'todos', no aplicamos filtro de fecha
+        if (!$request->has('periodo') && !$request->filled('buscar') && !$request->filled('cliente_id') && !$request->filled('metodo_pago')) {
+            $periodo = 'hoy';
+        }
+
+        if ($periodo && $periodo !== 'todos') {
+            $now = now();
+            
+            if ($periodo == 'hoy') {
+                $query->whereDate('fecha', $now->toDateString());
+            } elseif ($periodo == 'semana') {
+                $query->whereBetween('fecha', [
+                    $now->startOfWeek()->toDateString(), 
+                    $now->endOfWeek()->toDateString()
+                ]);
+            } elseif ($periodo == 'mes') {
+                $query->whereYear('fecha', $now->year)
+                      ->whereMonth('fecha', $now->month);
+            }
+        }
+
         $ventas = $query->latest()->paginate(15)->withQueryString();
         return view('ventas.index', compact('ventas'));
     }
