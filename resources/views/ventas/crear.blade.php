@@ -35,7 +35,7 @@
 @endpush
 
 @section('content')
-    <div class="max-w-6xl mx-auto py-4">
+    <div class=" mx-auto py-4">
         <div class="mb-8 flex items-center justify-between">
             <a href="{{ route('ventas.index') }}" class="inline-flex items-center text-blue-200 hover:text-white transition-colors">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -233,10 +233,11 @@
                             data: form.serialize(),
                             success: function(response) {
                                 if (response.success) {
+                                    const isWarning = response.message.includes('ADVERTENCIA');
                                     Swal.fire({
-                                        title: '¡Venta Exitosa!',
+                                        title: isWarning ? '¡Venta Realizada con Advertencias!' : '¡Venta Exitosa!',
                                         text: response.message,
-                                        icon: 'success',
+                                        icon: isWarning ? 'warning' : 'success',
                                         confirmButtonColor: '#3b82f6',
                                     }).then(() => {
                                         // Abrir PDF en nueva pestaña

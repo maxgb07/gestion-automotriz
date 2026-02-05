@@ -749,12 +749,14 @@
                 url: '{{ route("ordenes.detalles.store", $orden) }}',
                 method: 'POST',
                 data: { _token: '{{ csrf_token() }}', items: items },
-                success: () => {
+                success: (response) => {
+                    const isWarning = response.message && response.message.includes('ADVERTENCIA');
                     Swal.fire({
-                        icon: 'success',
-                        title: 'Items agregados',
-                        showConfirmButton: false,
-                        timer: 1500
+                        icon: isWarning ? 'warning' : 'success',
+                        title: isWarning ? 'Items agregados con advertencias' : 'Items agregados',
+                        text: response.message || 'Items agregados correctamente',
+                        showConfirmButton: isWarning,
+                        timer: isWarning ? null : 1500
                     }).then(() => {
                         isSubmitting = true;
                         location.reload();

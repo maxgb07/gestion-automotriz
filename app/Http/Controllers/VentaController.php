@@ -9,7 +9,9 @@ use App\Models\VentaDetalle;
 use App\Models\Cliente;
 use App\Models\Producto;
 use App\Models\Servicio;
+use App\Models\StockAlerta;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class VentaController extends Controller
@@ -68,7 +70,7 @@ class VentaController extends Controller
     public function create()
     {
         $clientes = Cliente::where('activo', true)->orderBy('nombre')->get();
-        $productos = Producto::where('stock', '>', 0)->orderBy('nombre')->get();
+        $productos = Producto::/* where('stock', '>', 0)-> */orderBy('nombre')->get();
         $servicios = Servicio::orderBy('nombre')->get();
         $publicoGeneral = Cliente::where('nombre', 'PÚBLICO GENERAL')->first();
 
@@ -101,6 +103,7 @@ class VentaController extends Controller
 
             $totalVenta = 0;
             $totalDescuentoVenta = 0;
+            $productosSinStock = [];
 
             // Primero calculamos totales para la cabecera de la venta usando los subtotales enviados (permitiendo modificaciones manuales)
             foreach ($request->items as $item) {
@@ -148,26 +151,46 @@ class VentaController extends Controller
                 // Descontar Stock si es producto
                 if ($item['tipo'] === 'producto') {
                     $producto = Producto::find($item['id']);
+                    
                     if ($producto->stock < $item['cantidad']) {
-                        throw new \Exception("Stock insuficiente para el producto: {$producto->nombre}");
+                        // throw new \Exception("Stock insuficiente para el producto: {$producto->nombre}");
+                        
+                        // Registrar Incidencia de Stock
+                        StockAlerta::create([
+                            'producto_id' => $producto->id,
+                            'user_id' => Auth::id() ?? 1, // Fallback a ID 1 si no hay auth (ej. seeders o consola)
+                            'stock_previo' => $producto->stock,
+                            'cantidad_solicitada' => $item['cantidad'],
+                            'referencia_tipo' => 'VENTA',
+                            'referencia_id' => $venta->id,
+                            'fecha' => now(),
+                        ]);
+
+                        $productosSinStock[] = $producto->nombre;
                     }
-                    $producto->stock -= $item['cantidad'];
+
+                    $producto->stock = max(0, $producto->stock - $item['cantidad']);
                     $producto->save();
                 }
             }
 
             DB::commit();
 
+            $mensaje = "Venta {$folio} registrada correctamente.";
+            if (!empty($productosSinStock)) {
+                $mensaje .= " (ADVERTENCIA: Algunos productos quedaron con stock negativo: " . implode(', ', $productosSinStock) . ")";
+            }
+
             if ($request->ajax() || $request->wantsJson()) {
                 return response()->json([
                     'success' => true,
-                    'message' => "Venta {$folio} registrada correctamente.",
+                    'message' => $mensaje,
                     'folio' => $folio,
                     'pdf_url' => route('ventas.pdf', $venta)
                 ]);
             }
 
-            return redirect()->route('ventas.show', $venta)->with('success', "Venta {$folio} registrada correctamente.");
+            return redirect()->route('ventas.show', $venta)->with('success', $mensaje);
 
         } catch (\Exception $e) {
             DB::rollBack();

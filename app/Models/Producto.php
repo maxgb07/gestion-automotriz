@@ -61,4 +61,9 @@ class Producto extends Model
     {
         $this->attributes['observaciones'] = mb_strtoupper($value);
     }
+
+    public function alertasStock()
+    {
+        return $this->hasMany(StockAlerta::class);
+    }
 }

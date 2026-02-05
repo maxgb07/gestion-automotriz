@@ -9,9 +9,11 @@ use App\Models\Servicio;
 use App\Models\Producto;
 use App\Models\OrdenServicioPago;
 use App\Models\OrdenServicioDetalle;
-use App\Models\OrdenServicioImagen; // Added this line as it's used in eliminarImagen
+use App\Models\OrdenServicioImagen;
+use App\Models\StockAlerta;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Barryvdh\DomPDF\Facade\Pdf;
 
 class OrdenServicioController extends Controller
@@ -125,7 +127,7 @@ class OrdenServicioController extends Controller
     public function show(OrdenServicio $ordene)
     {
         $orden = $ordene->load(['cliente', 'vehiculo', 'detalles.producto', 'detalles.servicio', 'pagos', 'imagenes']);
-        $productos = Producto::where('stock', '>', 0)->orderBy('nombre')->get();
+        $productos = Producto::/* where('stock', '>', 0)-> */orderBy('nombre')->get();
         $servicios = Servicio::orderBy('nombre')->get();
         
         return view('ordenes.ver', compact('orden', 'productos', 'servicios'));
@@ -230,6 +232,7 @@ class OrdenServicioController extends Controller
 
         try {
             DB::beginTransaction();
+            $productosSinStock = [];
 
             foreach ($request->items as $item) {
                 $precio = $item['precio_unitario'];
@@ -256,9 +259,23 @@ class OrdenServicioController extends Controller
                 if ($item['tipo'] === 'producto') {
                     $producto = Producto::find($item['item_id']);
                     if ($producto->stock < $cantidad) {
-                        throw new \Exception("Stock insuficiente para: " . $producto->nombre);
+                        // throw new \Exception("Stock insuficiente para: " . $producto->nombre);
+
+                        // Registrar Incidencia de Stock
+                        StockAlerta::create([
+                            'producto_id' => $producto->id,
+                            'user_id' => Auth::id() ?? 1,
+                            'stock_previo' => $producto->stock,
+                            'cantidad_solicitada' => $cantidad,
+                            'referencia_tipo' => 'ORDEN',
+                            'referencia_id' => $orden->id,
+                            'fecha' => now(),
+                        ]);
+
+                        $productosSinStock[] = $producto->nombre;
                     }
-                    $producto->decrement('stock', $cantidad);
+                    $producto->stock = max(0, $producto->stock - $cantidad);
+                    $producto->save();
                 }
             }
 
@@ -267,7 +284,13 @@ class OrdenServicioController extends Controller
             }
 
             DB::commit();
-            return response()->json(['success' => true, 'message' => 'Ítems agregados correctamente']);
+            
+            $mensaje = 'Ítems agregados correctamente';
+            if (!empty($productosSinStock)) {
+                $mensaje .= ' (ADVERTENCIA: Algunos productos quedaron con stock negativo: ' . implode(', ', $productosSinStock) . ')';
+            }
+
+            return response()->json(['success' => true, 'message' => $mensaje]);
 
         } catch (\Exception $e) {
             DB::rollBack();
