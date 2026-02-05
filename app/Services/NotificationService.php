@@ -126,17 +126,42 @@ class NotificationService
 
     private function checkLowStock(Collection $alerts)
     {
-        $products = Producto::whereColumn('stock', '<=', 'stock_minimo')->get();
+        $products = Producto::whereColumn('stock', '<=', 'stock_minimo')
+            ->whereNotNull('marca')
+            ->where('marca', '!=', '')
+            ->get()
+            ->groupBy('marca');
 
-        foreach ($products as $producto) {
+        foreach ($products as $marca => $items) {
+            $count = $items->count();
             $alerts->push([
                 'category' => 'stock',
                 'type' => 'critical',
                 'icon' => 'fa-box-open',
-                'message' => "Stock Bajo: {$producto->nombre} ({$producto->stock})",
-                'url' => route('productos.index', ['search' => $producto->sku]),
+                'message' => "Stock Bajo en {$marca} con {$count} productos",
+                'url' => route('productos.index', ['buscar' => $marca]),
                 'date' => Carbon::now()
             ]);
+        }
+
+        // Productos sin marca (por si acaso)
+        $noBrandProducts = Producto::whereColumn('stock', '<=', 'stock_minimo')
+            ->where(function($q) {
+                $q->whereNull('marca')->orWhere('marca', '');
+            })
+            ->get();
+
+        if ($noBrandProducts->isNotEmpty()) {
+            foreach ($noBrandProducts as $producto) {
+                $alerts->push([
+                    'category' => 'stock',
+                    'type' => 'critical',
+                    'icon' => 'fa-box-open',
+                    'message' => "Stock Bajo: {$producto->nombre} ({$producto->stock})",
+                    'url' => route('productos.index', ['search' => $producto->sku]),
+                    'date' => Carbon::now()
+                ]);
+            }
         }
     }
 
