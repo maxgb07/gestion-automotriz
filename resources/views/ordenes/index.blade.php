@@ -147,26 +147,37 @@
                                 <span class="px-3 py-1 rounded-full text-sm border {{ $color }}">
                                     {{ $orden->estado }}
                                 </span>
-                            </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 <div class="flex justify-center items-center gap-2">
-                                    <a href="{{ route('ordenes.show', $orden) }}" class="p-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 rounded-lg border border-blue-500/10 transition-all" title="VER DETALLE / REPARACIÓN">
+                                    <a href="{{ route('ordenes.show', $orden) }}" class="p-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 rounded-lg border border-blue-500/10 transition-all cursor-pointer" title="VER DETALLE / REPARACIÓN">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                                         </svg>
                                     </a>
+
                                     @php
-                                        $esReparacion = $orden->estado === 'REPARACION' || $orden->estado === 'RECEPCION';
+                                        $esReparacion = $orden->estado === 'REPARACION';
                                     @endphp
-                                    <a href="{{ $esReparacion ? route('ordenes.cotizacion.pdf', $orden) : route('ordenes.pdf', $orden) }}" 
-                                       target="_blank" 
-                                       class="p-2 {{ $esReparacion ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border-amber-500/10' : 'bg-green-500/10 hover:bg-green-500/20 text-green-300 border-green-500/10' }} rounded-lg border transition-all" 
-                                       title="{{ $esReparacion ? 'IMPRIMIR COTIZACIÓN' : 'IMPRIMIR ORDEN' }}">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                                    
+                                    @if($orden->estado !== 'RECEPCION')
+                                        <a href="{{ $esReparacion ? route('ordenes.cotizacion.pdf', $orden) : route('ordenes.pdf', $orden) }}" 
+                                           target="_blank" 
+                                           class="p-2 {{ $esReparacion ? 'bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 border-amber-500/10' : 'bg-green-500/10 hover:bg-green-500/20 text-green-300 border-green-500/10' }} rounded-lg border transition-all cursor-pointer" 
+                                           title="{{ $esReparacion ? 'IMPRIMIR COTIZACIÓN' : 'IMPRIMIR ORDEN' }}">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                                            </svg>
+                                        </a>
+                                    @endif
+
+                                    <button onclick="abrirModalDatosVehiculo({{ $orden->id }}, '{{ $orden->placas ?: $orden->vehiculo->placas }}', {{ $orden->kilometraje_entrega ?: 0 }}, '{{ $orden->numero_serie ?: $orden->vehiculo->numero_serie }}', '{{ $orden->mecanico }}')" 
+                                            class="p-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 rounded-lg border border-purple-500/10 transition-all cursor-pointer" 
+                                            title="DATOS VEHÍCULO (PLACAS/KM/VIN/MECÁNICO)">
+                                        <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                            <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
                                         </svg>
-                                    </a>
+                                    </button>
                                 </div>
                             </td>
                         </tr>
@@ -240,5 +251,130 @@
                 allowClear: true
             });
         });
+
+        function abrirModalDatosVehiculo(ordenId, placasActuales, kmActual, vinActual, mecanicoActual) {
+            Swal.fire({
+                title: 'DATOS DEL VEHÍCULO',
+                background: '#1e293b',
+                color: '#fff',
+                html: `
+                    <div class="p-4 space-y-4 text-left">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">PLACAS</label>
+                                <input type="text" id="modal_placas" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all uppercase" value="${placasActuales}" placeholder="P. EJ. ABC-1234">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">KM ENTREGA</label>
+                                <input type="number" id="modal_km_entrega" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" value="${kmActual}" min="0">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">VIN (NÚMERO DE SERIE)</label>
+                            <input type="text" id="modal_vin" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all uppercase" value="${vinActual}" placeholder="VIN DEL VEHÍCULO">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">MECÁNICO ASIGNADO</label>
+                            <select id="modal_mecanico" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all uppercase">
+                                <option value="" class="text-black">-- SELECCIONAR --</option>
+                                <option value="ALEJANDRO" class="text-black" ${mecanicoActual && mecanicoActual.trim().toUpperCase() === 'ALEJANDRO' ? 'selected' : ''}>ALEJANDRO</option>
+                                <option value="DANIEL" class="text-black" ${mecanicoActual && mecanicoActual.trim().toUpperCase() === 'DANIEL' ? 'selected' : ''}>DANIEL</option>
+                                <option value="ELEAZAR" class="text-black" ${mecanicoActual && mecanicoActual.trim().toUpperCase() === 'ELEAZAR' ? 'selected' : ''}>ELEAZAR</option>
+                                <option value="RAFAEL" class="text-black" ${mecanicoActual && mecanicoActual.trim().toUpperCase() === 'RAFAEL' ? 'selected' : ''}>RAFAEL</option>
+                            </select>
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'GUARDAR CAMBIOS',
+                cancelButtonText: 'CANCELAR',
+                confirmButtonColor: '#2563eb',
+                cancelButtonColor: '#ef4444',
+                customClass: {
+                    container: 'backdrop-blur-sm',
+                    popup: 'rounded-3xl border border-white/10 shadow-2xl',
+                    confirmButton: 'rounded-xl px-8 py-3 font-bold uppercase tracking-widest text-sm',
+                    cancelButton: 'rounded-xl px-8 py-3 font-bold uppercase tracking-widest text-sm'
+                },
+                preConfirm: () => {
+                    const placas = document.getElementById('modal_placas').value;
+                    const km = document.getElementById('modal_km_entrega').value;
+                    const vin = document.getElementById('modal_vin').value;
+                    const mecanico = document.getElementById('modal_mecanico').value;
+                    
+                    if (!placas && !km && !vin && !mecanico) {
+                        Swal.showValidationMessage('Al menos uno de los campos debe tener datos');
+                        return false;
+                    }
+
+                    return { placas: placas, kilometraje_entrega: km, numero_serie: vin, mecanico: mecanico };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Guardando...',
+                        background: '#1e293b',
+                        color: '#fff',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+
+                    fetch(`/ordenes/${ordenId}/datos-vehiculo`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(result.value)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '¡ÉXITO!',
+                                text: data.message,
+                                background: '#1e293b',
+                                color: '#fff',
+                                timer: 1500,
+                                showConfirmButton: false,
+                                customClass: {
+                                    popup: 'rounded-3xl border border-white/10 shadow-2xl'
+                                }
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'ERROR',
+                                text: data.message,
+                                background: '#1e293b',
+                                color: '#fff',
+                                customClass: {
+                                    popup: 'rounded-3xl border border-white/10 shadow-2xl'
+                                }
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'ERROR',
+                            text: 'Ocurrió un error inesperado al procesar la solicitud.',
+                            background: '#1e293b',
+                            color: '#fff',
+                            customClass: {
+                                popup: 'rounded-3xl border border-white/10 shadow-2xl'
+                            }
+                        });
+                    });
+                }
+            });
+        }
+
+        const popupClass = 'rounded-3xl border-none shadow-2xl';
     </script>
 @endpush

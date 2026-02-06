@@ -140,12 +140,12 @@ class OrdenServicioController extends Controller
     {
         if ($request->has('entrega')) {
             $request->validate([
-                'kilometraje_entrega' => 'required|integer|min:' . $ordene->kilometraje_entrada,
-                'fecha_entrega' => 'required|date',
+                'kilometraje_entrega' => 'nullable|integer|min:' . $ordene->kilometraje_entrada,
+                'fecha_entrega' => 'nullable|date',
                 'placas' => 'nullable|string|max:20',
                 'numero_serie' => 'nullable|string|max:50',
-                'monto_pago' => 'nullable|numeric|min:0',
-                'metodo_pago' => 'nullable|string',
+                'monto_pago' => 'required|numeric|min:0',
+                'metodo_pago' => 'required|string',
                 'referencia_pago' => 'nullable|string',
                 'observaciones_post_reparacion' => 'nullable|string',
                 'mecanico' => 'required|string',
@@ -442,6 +442,51 @@ class OrdenServicioController extends Controller
         $pdf->setPaper($papel);
         
         return $pdf->stream("Cotizacion_{$orden->folio}.pdf");
+    }
+
+    public function actualizarDatosVehiculo(Request $request, OrdenServicio $orden)
+    {
+        $request->validate([
+            'placas' => 'nullable|string|max:20',
+            'kilometraje_entrega' => 'nullable|numeric|min:0',
+            'numero_serie' => 'nullable|string|max:50',
+            'mecanico' => 'nullable|string|max:100',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $placas = $request->placas ? mb_strtoupper($request->placas, 'UTF-8') : $orden->placas;
+            $vin = $request->numero_serie ? mb_strtoupper($request->numero_serie, 'UTF-8') : $orden->numero_serie;
+
+            // Actualizar la orden
+            $orden->update([
+                'placas' => $placas,
+                'numero_serie' => $vin,
+                'kilometraje_entrega' => $request->has('kilometraje_entrega') ? $request->kilometraje_entrega : $orden->kilometraje_entrega,
+                'mecanico' => $request->mecanico ? mb_strtoupper($request->mecanico, 'UTF-8') : $orden->mecanico,
+            ]);
+
+            // Actualizar el vehículo maestro
+            $orden->vehiculo->update([
+                'placas' => $placas,
+                'numero_serie' => $vin
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Datos del vehículo actualizados correctamente'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al actualizar los datos: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     private function generarFolio()

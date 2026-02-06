@@ -69,6 +69,7 @@ Route::middleware('auth')->group(function () {
     Route::post('ordenes/{orden}/detalles', [\App\Http\Controllers\OrdenServicioController::class, 'agregarDetalle'])->name('ordenes.detalles.store');
     Route::delete('ordenes/{orden}/detalles/{detalle}', [\App\Http\Controllers\OrdenServicioController::class, 'eliminarDetalle'])->name('ordenes.detalles.destroy');
     Route::post('ordenes/{orden}/imagenes', [\App\Http\Controllers\OrdenServicioController::class, 'subirImagen'])->name('ordenes.imagenes.store');
+    Route::post('ordenes/{orden}/datos-vehiculo', [\App\Http\Controllers\OrdenServicioController::class, 'actualizarDatosVehiculo'])->name('ordenes.datos-vehiculo.update');
     Route::delete('ordenes/{orden}/imagenes/{imagen}', [\App\Http\Controllers\OrdenServicioController::class, 'eliminarImagen'])->name('ordenes.imagenes.destroy');
 
     // Reportes

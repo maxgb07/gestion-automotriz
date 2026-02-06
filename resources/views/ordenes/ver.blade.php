@@ -32,17 +32,25 @@
             </div>
 
             <div class="flex flex-wrap items-center gap-3">
-                @php
-                    $esReparacion = $orden->estado === 'REPARACION' || $orden->estado === 'RECEPCION';
-                @endphp
-                <a href="{{ $esReparacion ? route('ordenes.cotizacion.pdf', $orden) : route('ordenes.pdf', $orden) }}" target="_blank" class="{{ $esReparacion ? 'btn-premium-amber shadow-amber-500/20' : 'btn-premium-blue shadow-blue-500/20' }} px-4 py-2 text-white text-xs font-black rounded-lg shadow-lg transition-all uppercase tracking-widest flex items-center justify-center">
-                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                <button onclick="abrirModalDatosVehiculo({{ $orden->id }}, '{{ $orden->placas ?: $orden->vehiculo->placas }}', {{ $orden->kilometraje_entrega ?: 0 }}, '{{ $orden->numero_serie ?: $orden->vehiculo->numero_serie }}', '{{ $orden->mecanico }}')" class="btn-premium-purple px-4 py-2 text-white text-xs font-black rounded-lg shadow-lg shadow-purple-500/20 transition-all uppercase tracking-widest flex items-center justify-center cursor-pointer">
+                    <svg class="w-6 h-6 mr-2" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
                     </svg>
-                    {{ $esReparacion ? 'Imprimir Cotización' : 'Imprimir Comprobante' }}
-                </a>
+                    Datos Vehículo
+                </button>
+                @php
+                    $esReparacion = $orden->estado === 'REPARACION';
+                @endphp
+                @if($orden->estado !== 'RECEPCION')
+                    <a href="{{ $esReparacion ? route('ordenes.cotizacion.pdf', $orden) : route('ordenes.pdf', $orden) }}" target="_blank" class="{{ $esReparacion ? 'btn-premium-amber shadow-amber-500/20' : 'btn-premium-blue shadow-blue-500/20' }} px-4 py-2 text-white text-xs font-black rounded-lg shadow-lg transition-all uppercase tracking-widest flex items-center justify-center cursor-pointer">
+                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                        </svg>
+                        {{ $esReparacion ? 'Imprimir Cotización' : 'Imprimir Comprobante' }}
+                    </a>
+                @endif
                 
-                @if($orden->estado !== 'ENTREGADO' && $orden->estado !== 'PENDIENTE DE PAGO')
+                @if($orden->estado !== 'ENTREGADO' && $orden->estado !== 'PENDIENTE DE PAGO' && $orden->estado !== 'RECEPCION')
                     <button onclick="abrirModalEntrega()" class="btn-premium-success px-4 py-2 text-white text-xs font-black rounded-lg shadow-lg shadow-green-500/20 transition-all uppercase tracking-widest flex items-center justify-center">
                         <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
@@ -451,6 +459,17 @@
             filter: brightness(1.1);
             transform: translateY(-1px);
             box-shadow: 0 10px 15px -3px rgba(217, 119, 6, 0.5) !important;
+        }
+        .btn-premium-purple {
+            background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%) !important;
+            border: none !important;
+            display: inline-flex !important;
+            cursor: pointer !important;
+        }
+        .btn-premium-purple:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(168, 85, 247, 0.5) !important;
         }
         /* Estilos Select2 idénticos a Ventas */
         .select2-container--default .select2-selection--single {
@@ -917,89 +936,104 @@
         }
 
         function abrirModalEntrega() {
+            const total = {{ $orden->total }};
+            const saldo = {{ $orden->saldo_pendiente }};
+            
             Swal.fire({
-                title: 'ENTREGA DE VEHÍCULO',
-                text: 'Ingresa los datos finales y registra el pago para cerrar la orden.',
+                title: 'FINALIZAR Y ENTREGAR',
                 background: '#1e293b',
                 color: '#fff',
+                width: '600px',
                 html: `
                     <div class="space-y-4 text-left p-2">
-                        <div class="border border-white/10 p-3 rounded-xl mb-4">
-                            <div class="flex justify-between items-center mt-1">
-                                <span class="text-md text-slate-500 font-bold uppercase">Total:</span>
-                                <span class="text-md text-white font-mono">$ {{ number_format($orden->total, 2) }}</span>
+                        <!-- Cabecera de Datos -->
+                        <div class="space-y-2 border-b border-white/10 pb-4 mb-4">
+                            <div class="flex justify-between items-center">
+                                <span class="text-md font-black text-slate-500 uppercase tracking-widest">FECHA DE ENTREGA:</span>
+                                <input type="datetime-local" id="swal-fecha-entrega" value="{{ date('Y-m-d\TH:i') }}" class="bg-transparent border-none text-white font-mono text-right focus:ring-0 outline-none">
                             </div>
-                            <!--<div class="flex justify-between items-center">
-                                <span class="text-md text-blue-500 font-bold uppercase">Saldo Pendiente:</span>
-                                <span class="text-md font-black text-blue-600 font-mono">$ {{ number_format($orden->saldo_pendiente, 2) }}</span>
-                            </div>-->
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">Km de Entrega *</label>
-                                <input type="number" id="swal-km-final" value="{{ $orden->kilometraje_entrada }}" min="{{ $orden->kilometraje_entrada }}" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">Fecha de Entrega *</label>
-                                <input type="datetime-local" id="swal-fecha-entrega" value="{{ date('Y-m-d\TH:i') }}" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                            <div class="flex justify-between items-center">
+                                <span class="text-md font-black text-slate-500 uppercase tracking-widest">TOTAL A PAGAR:</span>
+                                <span class="text-xl font-black text-green-400 font-mono italic">$ ${new Intl.NumberFormat('es-MX', {minimumFractionDigits: 2}).format(total)}</span>
                             </div>
                         </div>
 
-                        <div class="border-t border-slate-100 pt-4 mt-4">
-                            <p class="text-md text-slate-400 font-black uppercase tracking-widest mb-3">Información de Pago</p>
+                        <!-- Información de Pago -->
+                        <div class="space-y-3 bg-white/5 p-4 rounded-2xl border border-white/5">
+                            <p class="text-md font-black text-blue-400 uppercase tracking-[0.2em] mb-2">Información de Pago</p>
                             <div class="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">Método de Pago</label>
-                                    <select id="swal-metodo-pago" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all" onchange="validarMetodoPago(this)">
-                                        <option value="EFECTIVO">EFECTIVO</option>
+                                    <label class="block text-md font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">MÉTODO *</label>
+                                    <select id="swal-metodo-pago" class="w-full px-4 py-2.5 bg-slate-900 border border-white/10 rounded-xl text-white text-md font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all" onchange="actualizarMontoOrden(this)">
+                                        <option value="EFECTIVO" selected>EFECTIVO</option>
                                         <option value="TARJETA">TARJETA</option>
                                         <option value="TRANSFERENCIA">TRANSFERENCIA</option>
                                         <option value="CRÉDITO 15 DÍAS">CRÉDITO 15 DÍAS</option>
                                     </select>
                                 </div>
                                 <div>
-                                    <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">Monto Pagado</label>
-                                    <input type="number" id="swal-monto-pago" step="0.01" value="0.00" max="{{ $orden->saldo_pendiente }}" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                                    <label class="block text-md font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">MONTO PAGADO</label>
+                                    <input type="number" id="swal-monto-pago" step="0.01" value="${total.toFixed(2)}" class="w-full px-4 py-2.5 bg-slate-900 border border-white/10 rounded-xl text-white text-md font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all">
                                 </div>
                             </div>
-                            <div class="mt-4">
-                                <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">Referencia / Notas de Pago</label>
-                                <input type="text" id="swal-ref-pago" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="EJ. TRANSFERENCIA BANAMEX...">
-                            </div>
-                        </div>
-
-                        <div class="border-t border-slate-100 pt-4 mt-4">
-                            <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">Observaciones Post-Reparación (Opcional)</label>
-                            <textarea id="swal-obs-post" rows="2" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="EJ. SE RECOMIENDA CAMBIO DE FRENOS EN 5000 KM..."></textarea>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4 border-t border-slate-100 pt-4">
                             <div>
-                                <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">Confirmar Placas</label>
-                                <input type="text" id="swal-placas" value="{{ $orden->vehiculo->placas }}" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">Confirmar VIN</label>
-                                <input type="text" id="swal-vin" value="{{ $orden->vehiculo->numero_serie }}" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                                <label class="block text-md font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">REFERENCIA / NOTAS</label>
+                                <input type="text" id="swal-ref-pago" class="w-full px-4 py-2.5 bg-slate-900 border border-white/10 rounded-xl text-white text-md font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="P. EJ. FOLIO TRANSF... O SIN REF.">
                             </div>
                         </div>
 
-                        <div class="mt-4">
-                            <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">Mecánico que atendió *</label>
-                            <select id="swal-mecanico" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all">
-                                <option value="">-- SELECCIONAR MECÁNICO --</option>
-                                <option value="ALEJANDRO">ALEJANDRO</option>
-                                <option value="DANIEL">DANIEL</option>
-                                <option value="ELEAZAR">ELEAZAR</option>
-                                <option value="RAFAEL">RAFAEL</option>
-                            </select>
+                        <!-- Información del Vehículo -->
+                        <div class="space-y-3 bg-white/5 p-4 rounded-2xl border border-white/5">
+                            <p class="text-md font-black text-purple-400 uppercase tracking-[0.2em] mb-2">Datos del Vehículo</p>
+                            
+                            <div>
+                                <label class="block text-md font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">MECÁNICO QUE ATENDIÓ *</label>
+                                @php
+                                    $mecanicoActual = trim(strtoupper($orden->mecanico));
+                                @endphp
+                                <select id="swal-mecanico" class="w-full px-4 py-2.5 bg-slate-900 border border-white/10 rounded-xl text-white text-md font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all uppercase">
+                                    <option value="" class="text-black">-- SELECCIONAR MECÁNICO --</option>
+                                    <option value="ALEJANDRO" class="text-black" {{ $mecanicoActual === 'ALEJANDRO' ? 'selected' : '' }}>ALEJANDRO</option>
+                                    <option value="DANIEL" class="text-black" {{ $mecanicoActual === 'DANIEL' ? 'selected' : '' }}>DANIEL</option>
+                                    <option value="ELEAZAR" class="text-black" {{ $mecanicoActual === 'ELEAZAR' ? 'selected' : '' }}>ELEAZAR</option>
+                                    <option value="RAFAEL" class="text-black" {{ $mecanicoActual === 'RAFAEL' ? 'selected' : '' }}>RAFAEL</option>
+                                </select>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <label class="block text-md font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">PLACAS</label>
+                                    <input type="text" id="swal-placas" value="{{ $orden->placas ?: $orden->vehiculo->placas }}" class="w-full px-4 py-2.5 bg-slate-900 border border-white/10 rounded-xl text-white text-md font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all uppercase font-mono">
+                                </div>
+                                <div>
+                                    <label class="block text-md font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">KM ENTREGA</label>
+                                    <input type="number" id="swal-km-final" value="{{ $orden->kilometraje_entrega ?: $orden->kilometraje_entrada }}" min="{{ $orden->kilometraje_entrada }}" class="w-full px-4 py-2.5 bg-slate-900 border border-white/10 rounded-xl text-white text-md font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all font-mono">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-md font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">VIN (NÚMERO DE SERIE)</label>
+                                <input type="text" id="swal-vin" value="{{ $orden->numero_serie ?: $orden->vehiculo->numero_serie }}" class="w-full px-4 py-2.5 bg-slate-900 border border-white/10 rounded-xl text-white text-md font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all uppercase font-mono">
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                             <label class="block text-md font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">Observaciones Post-Reparación</label>
+                             <textarea id="swal-obs-post" rows="2" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-md font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all uppercase">{{ $orden->observaciones_post_reparacion }}</textarea>
                         </div>
                     </div>
                 `,
                 showCancelButton: true,
-                confirmButtonText: 'FINALIZAR Y GENERAR COMPROBANTE',
+                confirmButtonText: 'FINALIZAR Y ENTREGAR',
+                cancelButtonText: 'CANCELAR',
                 confirmButtonColor: '#10b981',
+                cancelButtonColor: '#ef4444',
+                customClass: {
+                    container: 'backdrop-blur-sm',
+                    popup: 'rounded-3xl border border-white/10 shadow-2xl',
+                    confirmButton: 'rounded-xl px-8 py-3 font-bold uppercase tracking-widest text-sm',
+                    cancelButton: 'rounded-xl px-8 py-3 font-bold uppercase tracking-widest text-sm'
+                },
                 preConfirm: () => {
                     const kilometraje_entrega = document.getElementById('swal-km-final').value;
                     const fecha_entrega = document.getElementById('swal-fecha-entrega').value;
@@ -1011,8 +1045,8 @@
                     const numero_serie = document.getElementById('swal-vin').value;
                     const mecanico = document.getElementById('swal-mecanico').value;
 
-                    if (!kilometraje_entrega || !fecha_entrega || !mecanico) {
-                        Swal.showValidationMessage('Kilometraje, fecha y MECÁNICO son obligatorios');
+                    if (!metodo_pago || monto_pago === '' || !mecanico) {
+                        Swal.showValidationMessage('Método de pago, Monto y Mecánico son obligatorios');
                         return false;
                     }
                     return { kilometraje_entrega, fecha_entrega, monto_pago, metodo_pago, referencia_pago, observaciones_post_reparacion, placas, numero_serie, mecanico, entrega: true };
@@ -1050,24 +1084,20 @@
             });
         }
 
-        function validarMetodoPago(select) {
+        function actualizarMontoOrden(select) {
+            const total = {{ $orden->total }};
+            const montoInput = document.getElementById('swal-monto-pago');
+            
             if (select.value === 'CRÉDITO 15 DÍAS') {
-                const montoInput = document.getElementById('swal-monto-pago');
-                if (parseFloat(montoInput.value) > 0) {
-                    Swal.fire({
-                        title: 'ATENCIÓN',
-                        text: 'Al seleccionar CRÉDITO 15 DÍAS, el monto pagado debe ser 0.',
-                        icon: 'warning',
-                        confirmButtonColor: '#3b82f6'
-                    });
-                    montoInput.value = 0;
-                }
+                montoInput.value = (0).toFixed(2);
                 montoInput.setAttribute('readonly', true);
                 montoInput.classList.add('bg-slate-200');
+                montoInput.classList.add('text-slate-500');
             } else {
-                const montoInput = document.getElementById('swal-monto-pago');
+                montoInput.value = total.toFixed(2);
                 montoInput.removeAttribute('readonly');
                 montoInput.classList.remove('bg-slate-200');
+                montoInput.classList.remove('text-slate-500');
             }
         }
         // --- Prevención de salida accidental ---
@@ -1119,5 +1149,128 @@
                 }
             }
         });
+        function abrirModalDatosVehiculo(ordenId, placasActuales, kmActual, vinActual, mecanicoActual) {
+            Swal.fire({
+                title: 'DATOS DEL VEHÍCULO',
+                background: '#1e293b',
+                color: '#fff',
+                html: `
+                    <div class="p-4 space-y-4 text-left">
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">PLACAS</label>
+                                <input type="text" id="modal_placas_quick" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all uppercase" value="${placasActuales}" placeholder="P. EJ. ABC-1234">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">KM ENTREGA</label>
+                                <input type="number" id="modal_km_entrega_quick" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" value="${kmActual}" min="0">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">VIN (NÚMERO DE SERIE)</label>
+                            <input type="text" id="modal_vin_quick" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all uppercase" value="${vinActual}" placeholder="VIN DEL VEHÍCULO">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">MECÁNICO ASIGNADO</label>
+                            <select id="modal_mecanico_quick" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all uppercase">
+                                <option value="" class="text-black">-- SELECCIONAR --</option>
+                                <option value="ALEJANDRO" class="text-black" ${mecanicoActual && mecanicoActual.trim().toUpperCase() === 'ALEJANDRO' ? 'selected' : ''}>ALEJANDRO</option>
+                                <option value="DANIEL" class="text-black" ${mecanicoActual && mecanicoActual.trim().toUpperCase() === 'DANIEL' ? 'selected' : ''}>DANIEL</option>
+                                <option value="ELEAZAR" class="text-black" ${mecanicoActual && mecanicoActual.trim().toUpperCase() === 'ELEAZAR' ? 'selected' : ''}>ELEAZAR</option>
+                                <option value="RAFAEL" class="text-black" ${mecanicoActual && mecanicoActual.trim().toUpperCase() === 'RAFAEL' ? 'selected' : ''}>RAFAEL</option>
+                            </select>
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'GUARDAR CAMBIOS',
+                cancelButtonText: 'CANCELAR',
+                confirmButtonColor: '#2563eb',
+                cancelButtonColor: '#ef4444',
+                customClass: {
+                    container: 'backdrop-blur-sm',
+                    popup: 'rounded-3xl border border-white/10 shadow-2xl',
+                    confirmButton: 'rounded-xl px-8 py-3 font-bold uppercase tracking-widest text-sm',
+                    cancelButton: 'rounded-xl px-8 py-3 font-bold uppercase tracking-widest text-sm'
+                },
+                preConfirm: () => {
+                    const placas = document.getElementById('modal_placas_quick').value;
+                    const km = document.getElementById('modal_km_entrega_quick').value;
+                    const vin = document.getElementById('modal_vin_quick').value;
+                    const mecanico = document.getElementById('modal_mecanico_quick').value;
+                    
+                    if (!placas && !km && !vin && !mecanico) {
+                        Swal.showValidationMessage('Al menos uno de los campos debe tener datos');
+                        return false;
+                    }
+
+                    return { placas: placas, kilometraje_entrega: km, numero_serie: vin, mecanico: mecanico };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Guardando...',
+                        background: '#1e293b',
+                        color: '#fff',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+
+                    fetch(`/ordenes/${ordenId}/datos-vehiculo`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json'
+                        },
+                        body: JSON.stringify(result.value)
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '¡ÉXITO!',
+                                text: data.message,
+                                background: '#1e293b',
+                                color: '#fff',
+                                timer: 1500,
+                                showConfirmButton: false,
+                                customClass: {
+                                    popup: 'rounded-3xl border border-white/10 shadow-2xl'
+                                }
+                            }).then(() => {
+                                isSubmitting = true;
+                                window.location.reload();
+                            });
+                        } else {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'ERROR',
+                                text: data.message,
+                                background: '#1e293b',
+                                color: '#fff',
+                                customClass: {
+                                    popup: 'rounded-3xl border border-white/10 shadow-2xl'
+                                }
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'ERROR',
+                            text: 'Ocurrió un error inesperado al procesar la solicitud.',
+                            background: '#1e293b',
+                            color: '#fff',
+                            customClass: {
+                                popup: 'rounded-3xl border border-white/10 shadow-2xl'
+                            }
+                        });
+                    });
+                }
+            });
+        }
     </script>
 @endpush
