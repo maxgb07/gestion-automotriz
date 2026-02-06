@@ -141,7 +141,7 @@
                     <h1 class="title">ORDEN DE SERVICIO</h1>
                     <p style="margin: 2px 0;">
                         Folio: <strong>{{ $orden->folio }}</strong><br>
-                        Fecha: {{ $orden->fecha_entrega->format('d/m/Y') }}<br>
+                        Fecha: {{ $orden->fecha_entrega ? $orden->fecha_entrega->format('d/m/Y') : 'PENDIENTE' }}<br>
                         Método de Pago: {{ $orden->pagos->pluck('metodo_pago')->unique()->implode(', ') ?: 'PENDIENTE' }}
                         <!-- @if($orden->mecanico)
                         <br>Atendió: <strong>{{ $orden->mecanico }}</strong>
@@ -158,7 +158,7 @@
                     <span class="value">Cliente: {{ $orden->cliente->nombre }}</span>
                 </td>
                 <td style="width: 60%;">
-                    <span class="value">Vehículo: {{ $orden->vehiculo->marca }} {{ $orden->vehiculo->modelo }} | Placas: {{ $orden->placas ?: $orden->vehiculo->placas }} | Km: {{ number_format($orden->kilometraje_entrega) }}</span>
+                    <span class="value">Vehículo: {{ $orden->vehiculo->marca }} {{ $orden->vehiculo->modelo }} | Placas: {{ $orden->placas ?: $orden->vehiculo->placas }} | Km: {{ number_format($orden->kilometraje_entrega ?? $orden->kilometraje_entrada) }}</span>
                 </td>
             </tr>
         </table>

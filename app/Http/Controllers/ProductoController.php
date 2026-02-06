@@ -66,7 +66,7 @@ class ProductoController extends Controller
             ]);
         }
 
-        return redirect()->route('productos.index')->with('success', 'Producto registrado exitosamente');
+        return redirect()->route('productos.create')->with('success', 'Producto registrado exitosamente');
     }
 
     public function edit(Producto $producto)

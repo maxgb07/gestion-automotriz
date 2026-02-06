@@ -32,11 +32,14 @@
             </div>
 
             <div class="flex flex-wrap items-center gap-3">
-                <a href="{{ route('ordenes.pdf', $orden) }}" target="_blank" class="btn-premium-blue px-4 py-2 text-white text-xs font-black rounded-lg shadow-lg shadow-blue-500/20 transition-all uppercase tracking-widest flex items-center justify-center">
+                @php
+                    $esReparacion = $orden->estado === 'REPARACION' || $orden->estado === 'RECEPCION';
+                @endphp
+                <a href="{{ $esReparacion ? route('ordenes.cotizacion.pdf', $orden) : route('ordenes.pdf', $orden) }}" target="_blank" class="{{ $esReparacion ? 'btn-premium-amber shadow-amber-500/20' : 'btn-premium-blue shadow-blue-500/20' }} px-4 py-2 text-white text-xs font-black rounded-lg shadow-lg transition-all uppercase tracking-widest flex items-center justify-center">
                     <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
                     </svg>
-                    Imprimir Comprobante
+                    {{ $esReparacion ? 'Imprimir Cotización' : 'Imprimir Comprobante' }}
                 </a>
                 
                 @if($orden->estado !== 'ENTREGADO' && $orden->estado !== 'PENDIENTE DE PAGO')
@@ -437,6 +440,17 @@
             filter: brightness(1.1);
             transform: translateY(-1px);
             box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.5) !important;
+        }
+        .btn-premium-amber {
+            background: linear-gradient(135deg, #d97706 0%, #b45309 100%) !important;
+            border: none !important;
+            display: inline-flex !important;
+            cursor: pointer !important;
+        }
+        .btn-premium-amber:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(217, 119, 6, 0.5) !important;
         }
         /* Estilos Select2 idénticos a Ventas */
         .select2-container--default .select2-selection--single {
