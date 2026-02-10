@@ -24,7 +24,10 @@ class ProductoController extends Controller
             });
         }
 
-        $productos = $query->latest()->paginate(15)->withQueryString();
+        $productos = $query->orderBy('descripcion', 'asc')
+                           ->orderBy('nombre', 'asc')
+                           ->paginate(15)
+                           ->withQueryString();
         $marcas = Producto::whereNotNull('marca')->where('marca', '!=', '')->distinct()->orderBy('marca')->pluck('marca');
 
         return view('productos.index', compact('productos', 'marcas'));
@@ -120,7 +123,9 @@ class ProductoController extends Controller
             $query->where('marca', $request->marca);
         }
 
-        $productos = $query->get();
+        $productos = $query->orderBy('descripcion', 'asc')
+                            ->orderBy('nombre', 'asc')
+                            ->get();
         
         $pdf = Pdf::loadView('productos.pdf_pedimento', compact('productos'));
         
@@ -136,7 +141,8 @@ class ProductoController extends Controller
         }
 
         $productos = Producto::where('marca', $marca)
-                            ->orderBy('nombre')
+                            ->orderBy('descripcion', 'asc')
+                            ->orderBy('nombre', 'asc')
                             ->get();
 
         return view('productos.inventario', compact('productos', 'marca'));
@@ -173,7 +179,8 @@ class ProductoController extends Controller
         }
 
         $productos = Producto::where('marca', $marca)
-                            ->orderBy('nombre')
+                            ->orderBy('descripcion', 'asc')
+                            ->orderBy('nombre', 'asc')
                             ->get();
 
         $pdf = Pdf::loadView('productos.pdf_lista_inventario', compact('productos', 'marca'));
