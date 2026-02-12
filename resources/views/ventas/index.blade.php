@@ -130,29 +130,30 @@
             <table class="w-full text-center border-collapse">
                 <thead class="bg-white/5 border-b border-white/10 font-bold uppercase tracking-widest">
                     <tr>
-                        <th class="px-6 py-4 text-sm font-semibold text-blue-200 uppercase tracking-wider text-center">Folio</th>
-                        <th class="px-6 py-4 text-sm font-semibold text-blue-200 uppercase tracking-wider text-center">Fecha</th>
-                        <th class="px-6 py-4 text-sm font-semibold text-blue-200 uppercase tracking-wider text-center">Cliente</th>
-                        <th class="px-6 py-4 text-sm font-semibold text-blue-200 uppercase tracking-wider text-center">Total / Saldo</th>
-                        <th class="px-6 py-4 text-sm font-semibold text-blue-200 uppercase tracking-wider text-center">Método de Pago</th>
-                        <th class="px-6 py-4 text-sm font-semibold text-blue-200 uppercase tracking-wider text-center">Estado</th>
-                        <th class="px-6 py-4 text-sm font-semibold text-blue-200 uppercase tracking-wider text-center">Acciones</th>
+                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Folio</th>
+                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Fecha</th>
+                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Cliente</th>
+                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Total / Saldo</th>
+                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Método de Pago</th>
+                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Estado</th>
+                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Factura</th>
+                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-white/10">
                     @forelse($ventas as $venta)
                         <tr class="hover:bg-white/5 transition-colors group">
                             <td class="px-6 py-4 whitespace-nowrap text-center">
-                                <span class="text-white font-bold text-sm uppercase">{{ $venta->folio }}</span>
+                                <span class="text-white font-bold text-md uppercase">{{ $venta->folio }}</span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
-                                <span class="text-white font-medium uppercase text-sm">{{ $venta->fecha->translatedFormat('d M, Y') }}</span>
+                                <span class="text-white font-medium uppercase text-md">{{ $venta->fecha->translatedFormat('d M, Y') }}</span>
                             </td>
                             <td class="px-6 py-4 text-center">
-                                <span class="text-blue-100 font-bold uppercase text-sm group-hover:text-blue-300 transition-colors">{{ $venta->cliente->nombre }}</span>
+                                <span class="text-blue-100 font-bold uppercase text-md group-hover:text-blue-300 transition-colors">{{ $venta->cliente->nombre }}</span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
-                                <p class="text-white font-bold text-sm">${{ number_format($venta->total, 2) }}</p>
+                                <p class="text-white font-bold text-md">${{ number_format($venta->total, 2) }}</p>
                                 <p @class([
                                     'text-[11px] font-bold uppercase',
                                     'text-red-400' => $venta->saldo_pendiente > 0,
@@ -179,14 +180,44 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
+                                @if($venta->requiere_factura === 'SI')
+                                    <span @class([
+                                        'px-2 py-1 rounded-lg text-md font-black uppercase tracking-widest border',
+                                        'bg-teal-500/20 text-teal-400 border-teal-400/50' => $venta->folio_factura,
+                                        'bg-amber-500/10 text-amber-300 border-amber-500/20' => !$venta->folio_factura
+                                    ])>
+                                        SÍ
+                                    </span>
+                                    @if($venta->folio_factura)
+                                        <p class="text-md text-teal-400 font-bold mt-1 uppercase">{{ $venta->folio_factura }}</p>
+                                    @endif
+                                @else
+                                    <span class="text-white/20 text-md font-bold uppercase tracking-widest bg-white/5 px-2 py-1 rounded-lg border border-white/10">
+                                        NO
+                                    </span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
                                 <div class="flex justify-center items-center gap-2">
-                                    <a href="{{ route('ventas.show', $venta) }}" class="p-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 rounded-lg border border-blue-500/10 transition-all" title="VER DETALLE">
+                                    <a href="{{ route('ventas.show', $venta) }}" class="p-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 rounded-lg border border-blue-500/10 transition-all cursor-pointer" title="VER DETALLE">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                                         </svg>
                                     </a>
-                                    <a href="{{ route('ventas.pdf', $venta) }}" target="_blank" class="p-2 bg-green-500/10 hover:bg-green-500/20 text-green-300 rounded-lg border border-green-500/10 transition-all" title="IMPRIMIR COMPROBANTE">
+
+                                    @if($venta->requiere_factura === 'SI')
+                                        <button onclick="abrirModalFactura({{ $venta->id }}, '{{ $venta->folio_factura }}')" 
+                                                class="p-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 rounded-lg border border-amber-500/10 transition-all cursor-pointer"
+                                                title="REGISTRAR FACTURA">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                            </svg>
+                                        </button>
+                                    @endif
+
+                                    <a href="{{ route('ventas.pdf', $venta) }}" 
+                                        target="_blank" class="p-2 bg-green-500/10 hover:bg-green-500/20 text-green-300 rounded-lg border border-green-500/10 transition-all cursor-pointer" title="IMPRIMIR COMPROBANTE">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
                                         </svg>
@@ -226,11 +257,101 @@
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         $(document).ready(function() {
-            $('.select2-filter').select2({
+            $('#cliente_id_filter').select2({
                 width: '100%',
                 placeholder: 'SELECCIONAR...',
-                allowClear: true
+                allowClear: true,
+                dropdownParent: $('#cliente_id_filter').parent()
+            });
+
+            $('.select2-filter').select2({
+                width: '100%'
             });
         });
+
+        function abrirModalFactura(ventaId, folioActual) {
+            Swal.fire({
+                title: 'REGISTRAR FACTURA',
+                background: '#1e293b',
+                color: '#fff',
+                html: `
+                    <div class="p-4 space-y-4 text-left">
+                        <div class="flex items-center bg-amber-500/10 p-4 rounded-xl border border-amber-500/20 mb-4">
+                            <svg class="w-6 h-6 text-amber-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <p class="text-xs text-amber-200/80 font-bold uppercase tracking-wider">Captura el folio de la factura emitida para esta venta.</p>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">FOLIO DE FACTURA *</label>
+                            <input type="text" id="modal_folio_factura" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all uppercase" value="${folioActual !== 'null' ? folioActual : ''}" placeholder="EJ: F-1234">
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'GUARDAR FACTURA',
+                cancelButtonText: 'CANCELAR',
+                confirmButtonColor: '#d97706',
+                cancelButtonColor: '#ef4444',
+                customClass: {
+                    container: 'backdrop-blur-sm',
+                    popup: 'rounded-3xl border border-white/10 shadow-2xl transition-all duration-300',
+                    title: 'text-xl font-black uppercase tracking-tighter pt-6',
+                    confirmButton: 'rounded-xl px-8 py-3 font-bold uppercase tracking-widest text-sm',
+                    cancelButton: 'rounded-xl px-8 py-3 font-bold uppercase tracking-widest text-sm'
+                },
+                preConfirm: () => {
+                    const folio = document.getElementById('modal_folio_factura').value;
+                    if (!folio) {
+                        Swal.showValidationMessage('El folio es obligatorio');
+                        return false;
+                    }
+                    return { folio_factura: folio };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Guardando...',
+                        background: '#1e293b',
+                        color: '#fff',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                    $.ajax({
+                        url: `/ventas/${ventaId}/facturar`,
+                        method: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            folio_factura: result.value.folio_factura
+                        },
+                        success: function(data) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '¡LISTO!',
+                                text: data.message,
+                                background: '#1e293b',
+                                color: '#fff',
+                                timer: 1500,
+                                showConfirmButton: false
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        },
+                        error: function(xhr) {
+                            const data = xhr.responseJSON;
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'ERROR',
+                                text: data.message || 'Error al procesar la solicitud',
+                                background: '#1e293b',
+                                color: '#fff'
+                            });
+                        }
+                    });
+                }
+            });
+        }
     </script>
 @endpush

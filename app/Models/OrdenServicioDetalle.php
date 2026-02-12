@@ -23,6 +23,7 @@ class OrdenServicioDetalle extends Model
         'descuento_porcentaje',
         'descuento_monto',
         'subtotal',
+        'notas',
     ];
 
     public function ordenServicio()

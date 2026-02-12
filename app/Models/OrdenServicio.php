@@ -32,6 +32,10 @@ class OrdenServicio extends Model
         'mecanico',
         'observaciones',
         'observaciones_post_reparacion',
+        'requiere_factura',
+        'folio_factura',
+        'fecha_factura',
+        'uuid_factura',
     ];
 
     protected $casts = [

@@ -19,6 +19,7 @@
                             $color = match($orden->estado) {
                                 'RECEPCION' => 'bg-blue-500/20 text-blue-300 border-blue-500/30',
                                 'REPARACION' => 'bg-amber-500/20 text-amber-300 border-amber-500/30',
+                                'FINALIZADO' => 'bg-teal-500/20 text-teal-400 border-teal-400/50',
                                 'PENDIENTE DE PAGO' => 'bg-red-500/20 text-red-400 border-red-500/30',
                                 'ENTREGADO' => 'bg-green-500/20 text-green-300 border-green-500/30',
                             };
@@ -26,6 +27,14 @@
                         <span class="px-4 py-1 rounded-full text-md font-black border {{ $color }} tracking-widest uppercase">
                             {{ $orden->estado }}
                         </span>
+                        @if($orden->requiere_factura === 'SI')
+                            <span class="px-4 py-1 rounded-full text-md font-black border bg-teal-500/20 text-teal-400 border-teal-400/50 tracking-widest uppercase">
+                                FACTURA
+                                @if($orden->folio_factura)
+                                    : {{ $orden->folio_factura }}
+                                @endif
+                            </span>
+                        @endif
                     </div>
                     <p class="text-blue-200/60 text-md font-bold uppercase tracking-widest">Registrada el {{ $orden->fecha_entrada->translatedFormat('d M, Y h:i A') }}</p>
                 </div>
@@ -50,12 +59,30 @@
                     </a>
                 @endif
                 
-                @if($orden->estado !== 'ENTREGADO' && $orden->estado !== 'PENDIENTE DE PAGO' && $orden->estado !== 'RECEPCION')
-                    <button onclick="abrirModalEntrega()" class="btn-premium-success px-4 py-2 text-white text-xs font-black rounded-lg shadow-lg shadow-green-500/20 transition-all uppercase tracking-widest flex items-center justify-center">
+                @if($orden->estado === 'REPARACION')
+                    <button onclick="abrirModalFinalizarReparacion()" class="btn-premium-teal px-4 py-2 text-white text-xs font-black rounded-lg shadow-lg shadow-teal-500/20 transition-all uppercase tracking-widest flex items-center justify-center">
                         <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
-                        Finalizar y Entregar
+                        Finalizar Reparación
+                    </button>
+                @endif
+
+                @if($orden->requiere_factura === 'SI')
+                    <button onclick="abrirModalFactura({{ $orden->id }}, '{{ $orden->folio_factura }}')" class="btn-premium-amber px-4 py-2 text-white text-xs font-black rounded-lg shadow-lg shadow-amber-500/20 transition-all uppercase tracking-widest flex items-center justify-center cursor-pointer">
+                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                        Registrar Factura
+                    </button>
+                @endif
+
+                @if($orden->estado === 'FINALIZADO')
+                    <button onclick="abrirModalPago({{ $orden->id }}, {{ $orden->total }}, {{ $orden->saldo_pendiente }})" class="btn-premium-success px-4 py-2 text-white text-xs font-black rounded-lg shadow-lg shadow-green-500/20 transition-all uppercase tracking-widest flex items-center justify-center">
+                        <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Registrar Pago
                     </button>
                 @endif
             </div>
@@ -193,6 +220,7 @@
                                     <th class="px-6 py-4 text-sm font-bold text-blue-200 uppercase tracking-widest">Tipo</th>
                                     <th class="px-6 py-4 text-sm font-bold text-blue-200 uppercase tracking-widest">Clave</th>
                                     <th class="px-6 py-4 text-sm font-bold text-blue-200 uppercase tracking-widest">Descripción</th>
+                                    <th class="px-6 py-4 text-sm font-bold text-blue-200 uppercase tracking-widest">Notas</th>
                                     <th class="px-4 py-4 text-sm font-bold text-blue-200 uppercase tracking-widest w-32">Precio</th>
                                     <!-- <th class="px-4 py-4 text-xs font-bold text-blue-200 uppercase tracking-widest w-28">Descuento</th> -->
                                     <th class="px-6 py-4 text-xs font-bold text-blue-200 uppercase tracking-widest w-40 text-right">Importe</th>
@@ -218,6 +246,9 @@
                                         </td>
                                         <td class="px-3 py-4">
                                             <p class="text-white font-bold text-sm">{{ $detalle->producto?->descripcion ?? $detalle->servicio?->descripcion ?? '---' }}</p>
+                                        </td>
+                                        <td class="px-3 py-4">
+                                            <p class="text-blue-200/60 font-medium text-xs uppercase">{{ $detalle->notas ?? '---' }}</p>
                                         </td>
                                         <td class="px-3 py-4 text-center">
                                             <span class="text-blue-100 font-mono text-sm font-bold">${{ number_format($detalle->precio_unitario, 2) }}</span>
@@ -389,6 +420,9 @@
                 <input type="text" name="items[INDEX][descripcion]" class="descripcion-input block w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-white text-xs uppercase focus:outline-none" readonly>
             </td>
             <td class="px-3 py-4">
+                <input type="text" name="items[INDEX][notas]" class="block w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-white text-xs uppercase focus:ring-1 focus:ring-blue-500/50 outline-none transition-all" placeholder="NOTA OPCIONAL...">
+            </td>
+            <td class="px-3 py-4">
                 <input type="number" step="any" name="items[INDEX][precio_unitario]" value="0.00" oninput="calculateRow(this)" class="block w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-white text-center text-sm font-bold focus:ring-1 focus:ring-blue-500/50 outline-none" required>
             </td>
             <!-- <td class="px-3 py-4">
@@ -459,6 +493,17 @@
             filter: brightness(1.1);
             transform: translateY(-1px);
             box-shadow: 0 10px 15px -3px rgba(217, 119, 6, 0.5) !important;
+        }
+        .btn-premium-teal {
+            background: linear-gradient(135deg, #0d9488 0%, #0f766e 100%) !important;
+            border: none !important;
+            display: inline-flex !important;
+            cursor: pointer !important;
+        }
+        .btn-premium-teal:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(13, 148, 136, 0.5) !important;
         }
         .btn-premium-purple {
             background: linear-gradient(135deg, #a855f7 0%, #7e22ce 100%) !important;
@@ -612,14 +657,21 @@
 
         // --- Registro Rápido de Ítems ---
         function toggleSwalFields(tipo) {
-            const divStock = document.getElementById('div-stock');
-            const labelNombre = document.getElementById('label-nombre');
+            const popup = Swal.getPopup();
+            if (!popup) return;
+
+            const divStock = popup.querySelector('#div-stock');
+            const divMarca = popup.querySelector('#div-marca');
+            const labelNombre = popup.querySelector('#label-nombre');
+
             if (tipo === 'servicio') {
-                divStock.classList.add('hidden');
-                labelNombre.textContent = 'NOMBRE DEL SERVICIO *';
+                if (divStock) divStock.classList.add('hidden');
+                if (divMarca) divMarca.classList.add('hidden');
+                if (labelNombre) labelNombre.textContent = 'NOMBRE DEL SERVICIO *';
             } else {
-                divStock.classList.remove('hidden');
-                labelNombre.textContent = 'SKU / CLAVE *';
+                if (divStock) divStock.classList.remove('hidden');
+                if (divMarca) divMarca.classList.remove('hidden');
+                if (labelNombre) labelNombre.textContent = 'SKU / CLAVE *';
             }
         }
 
@@ -652,6 +704,10 @@
                             <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">PRECIO VENTA *</label>
                             <input type="number" id="swal-precio" step="0.01" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="0.00">
                         </div>
+                        <div id="div-marca">
+                            <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">MARCA</label>
+                            <input type="text" id="swal-marca" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold uppercase focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="MARCA DEL PRODUCTO">
+                        </div>
                         <div id="div-stock">
                             <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">EXISTENCIA INICIAL *</label>
                             <input type="number" id="swal-stock" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all" value="1">
@@ -673,21 +729,23 @@
                     const precio = document.getElementById('swal-precio').value;
                     const stock = document.getElementById('swal-stock').value;
                     const descripcion = document.getElementById('swal-descripcion').value;
+                    const marca = document.getElementById('swal-marca').value;
 
                     if (!nombre || !precio || (tipo === 'producto' && !stock)) {
                         Swal.showValidationMessage('Todos los campos marcados con * son obligatorios');
                         return false;
                     }
 
-                    return { tipo, nombre, precio, stock, descripcion };
+                    return { tipo, nombre, precio, stock, descripcion, marca };
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    const { tipo, nombre, precio, stock, descripcion } = result.value;
+                    const { tipo, nombre, precio, stock, descripcion, marca } = result.value;
                     const url = tipo === 'producto' ? '{{ route("productos.store") }}' : '{{ route("servicios.store") }}';
                     const data = {
                         _token: '{{ csrf_token() }}',
                         nombre: nombre,
+                        marca: tipo === 'producto' ? marca : null,
                         descripcion: descripcion,
                         [tipo === 'producto' ? 'precio_venta' : 'precio']: precio,
                         stock: stock,
@@ -758,12 +816,13 @@
                 const item_id = row.querySelector('.item-select').value;
                 const cantidad = row.querySelector('[name*="[cantidad]"]').value;
                 const precio_unitario = row.querySelector('[name*="[precio_unitario]"]').value;
+                const notas = row.querySelector('[name*="[notas]"]').value;
                 const descuento_porcentaje = 0; //row.querySelector('[name*="[descuento_porcentaje]"]').value;
 
                 if (!item_id || !cantidad || !precio_unitario) {
                     valid = false;
                 } else {
-                    items.push({ tipo, item_id, cantidad, precio_unitario, descuento_porcentaje });
+                    items.push({ tipo, item_id, cantidad, precio_unitario, descuento_porcentaje, notas });
                     newItemsCount++;
                 }
             });
@@ -935,68 +994,25 @@
             });
         }
 
-        function abrirModalEntrega() {
-            const total = {{ $orden->total }};
-            const saldo = {{ $orden->saldo_pendiente }};
-            
+        function abrirModalFinalizarReparacion() {
             Swal.fire({
-                title: 'FINALIZAR Y ENTREGAR',
+                title: 'FINALIZAR REPARACIÓN',
                 background: '#1e293b',
                 color: '#fff',
                 width: '600px',
                 html: `
                     <div class="space-y-4 text-left p-2">
-                        <!-- Cabecera de Datos -->
-                        <div class="space-y-2 border-b border-white/10 pb-4 mb-4">
-                            <div class="flex justify-between items-center">
-                                <span class="text-md font-black text-slate-500 uppercase tracking-widest">FECHA DE ENTREGA:</span>
-                                <input type="datetime-local" id="swal-fecha-entrega" value="{{ date('Y-m-d\TH:i') }}" class="bg-transparent border-none text-white font-mono text-right focus:ring-0 outline-none">
-                            </div>
-                            <div class="flex justify-between items-center">
-                                <span class="text-md font-black text-slate-500 uppercase tracking-widest">TOTAL A PAGAR:</span>
-                                <span class="text-xl font-black text-green-400 font-mono italic">$ ${new Intl.NumberFormat('es-MX', {minimumFractionDigits: 2}).format(total)}</span>
-                            </div>
-                        </div>
-
-                        <!-- Información de Pago -->
-                        <div class="space-y-3 bg-white/5 p-4 rounded-2xl border border-white/5">
-                            <p class="text-md font-black text-blue-400 uppercase tracking-[0.2em] mb-2">Información de Pago</p>
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-md font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">MÉTODO *</label>
-                                    <select id="swal-metodo-pago" class="w-full px-4 py-2.5 bg-slate-900 border border-white/10 rounded-xl text-white text-md font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all" onchange="actualizarMontoOrden(this)">
-                                        <option value="EFECTIVO" selected>EFECTIVO</option>
-                                        <option value="TARJETA">TARJETA</option>
-                                        <option value="TRANSFERENCIA">TRANSFERENCIA</option>
-                                        <option value="CRÉDITO 15 DÍAS">CRÉDITO 15 DÍAS</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-md font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">MONTO PAGADO</label>
-                                    <input type="number" id="swal-monto-pago" step="0.01" value="${total.toFixed(2)}" class="w-full px-4 py-2.5 bg-slate-900 border border-white/10 rounded-xl text-white text-md font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all">
-                                </div>
-                            </div>
-                            <div>
-                                <label class="block text-md font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">REFERENCIA / NOTAS</label>
-                                <input type="text" id="swal-ref-pago" class="w-full px-4 py-2.5 bg-slate-900 border border-white/10 rounded-xl text-white text-md font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="P. EJ. FOLIO TRANSF... O SIN REF.">
-                            </div>
-                        </div>
-
-                        <!-- Información del Vehículo -->
-                        <div class="space-y-3 bg-white/5 p-4 rounded-2xl border border-white/5">
-                            <p class="text-md font-black text-purple-400 uppercase tracking-[0.2em] mb-2">Datos del Vehículo</p>
+                        <div class="space-y-4 bg-white/5 p-4 rounded-2xl border border-white/5">
+                            <p class="text-md font-black text-teal-400 uppercase tracking-[0.2em] mb-2">Datos del Vehículo</p>
                             
                             <div>
                                 <label class="block text-md font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">MECÁNICO QUE ATENDIÓ *</label>
-                                @php
-                                    $mecanicoActual = trim(strtoupper($orden->mecanico));
-                                @endphp
                                 <select id="swal-mecanico" class="w-full px-4 py-2.5 bg-slate-900 border border-white/10 rounded-xl text-white text-md font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all uppercase">
                                     <option value="" class="text-black">-- SELECCIONAR MECÁNICO --</option>
-                                    <option value="ALEJANDRO" class="text-black" {{ $mecanicoActual === 'ALEJANDRO' ? 'selected' : '' }}>ALEJANDRO</option>
-                                    <option value="DANIEL" class="text-black" {{ $mecanicoActual === 'DANIEL' ? 'selected' : '' }}>DANIEL</option>
-                                    <option value="ELEAZAR" class="text-black" {{ $mecanicoActual === 'ELEAZAR' ? 'selected' : '' }}>ELEAZAR</option>
-                                    <option value="RAFAEL" class="text-black" {{ $mecanicoActual === 'RAFAEL' ? 'selected' : '' }}>RAFAEL</option>
+                                    <option value="ALEJANDRO" class="text-black" {{ trim(strtoupper($orden->mecanico)) === 'ALEJANDRO' ? 'selected' : '' }}>ALEJANDRO</option>
+                                    <option value="DANIEL" class="text-black" {{ trim(strtoupper($orden->mecanico)) === 'DANIEL' ? 'selected' : '' }}>DANIEL</option>
+                                    <option value="ELEAZAR" class="text-black" {{ trim(strtoupper($orden->mecanico)) === 'ELEAZAR' ? 'selected' : '' }}>ELEAZAR</option>
+                                    <option value="RAFAEL" class="text-black" {{ trim(strtoupper($orden->mecanico)) === 'RAFAEL' ? 'selected' : '' }}>RAFAEL</option>
                                 </select>
                             </div>
 
@@ -1019,14 +1035,14 @@
 
                         <div class="space-y-2">
                              <label class="block text-md font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">Observaciones Post-Reparación</label>
-                             <textarea id="swal-obs-post" rows="2" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-md font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all uppercase">{{ $orden->observaciones_post_reparacion }}</textarea>
+                             <textarea id="swal-obs-post" rows="4" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-md font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all uppercase" placeholder="OBSERVACIONES SOBRE EL TRABAJO REALIZADO...">{{ $orden->observaciones_post_reparacion }}</textarea>
                         </div>
                     </div>
                 `,
                 showCancelButton: true,
-                confirmButtonText: 'FINALIZAR Y ENTREGAR',
+                confirmButtonText: 'FINALIZAR REPARACIÓN',
                 cancelButtonText: 'CANCELAR',
-                confirmButtonColor: '#10b981',
+                confirmButtonColor: '#0d9488',
                 cancelButtonColor: '#ef4444',
                 customClass: {
                     container: 'backdrop-blur-sm',
@@ -1035,26 +1051,33 @@
                     cancelButton: 'rounded-xl px-8 py-3 font-bold uppercase tracking-widest text-sm'
                 },
                 preConfirm: () => {
-                    const kilometraje_entrega = document.getElementById('swal-km-final').value;
-                    const fecha_entrega = document.getElementById('swal-fecha-entrega').value;
-                    const monto_pago = document.getElementById('swal-monto-pago').value;
-                    const metodo_pago = document.getElementById('swal-metodo-pago').value;
-                    const referencia_pago = document.getElementById('swal-ref-pago').value;
-                    const observaciones_post_reparacion = document.getElementById('swal-obs-post').value;
-                    const placas = document.getElementById('swal-placas').value;
-                    const numero_serie = document.getElementById('swal-vin').value;
                     const mecanico = document.getElementById('swal-mecanico').value;
+                    const placas = document.getElementById('swal-placas').value;
+                    const kilometraje_entrega = document.getElementById('swal-km-final').value;
+                    const numero_serie = document.getElementById('swal-vin').value;
+                    const observaciones_post_reparacion = document.getElementById('swal-obs-post').value;
 
-                    if (!metodo_pago || monto_pago === '' || !mecanico) {
-                        Swal.showValidationMessage('Método de pago, Monto y Mecánico son obligatorios');
+                    if (!mecanico) {
+                        Swal.showValidationMessage('El campo mecánico es obligatorio');
                         return false;
                     }
-                    return { kilometraje_entrega, fecha_entrega, monto_pago, metodo_pago, referencia_pago, observaciones_post_reparacion, placas, numero_serie, mecanico, entrega: true };
+
+                    return { 
+                        mecanico, 
+                        placas, 
+                        kilometraje_entrega, 
+                        numero_serie, 
+                        observaciones_post_reparacion,
+                        finalizar_reparacion: true 
+                    };
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
                     Swal.fire({
-                        title: 'Procesando...',
+                        title: 'Finalizando reparación...',
+                        background: '#1e293b',
+                        color: '#fff',
+                        allowOutsideClick: false,
                         didOpen: () => { Swal.showLoading(); }
                     });
 
@@ -1066,22 +1089,166 @@
                             if (response.success) {
                                 Swal.fire({
                                     icon: 'success',
-                                    title: '¡Orden Finalizada!',
+                                    title: '¡REPARACIÓN FINALIZADA!',
                                     text: response.message,
+                                    background: '#1e293b',
+                                    color: '#fff',
                                     confirmButtonText: 'ENTENDIDO'
                                 }).then(() => {
-                                    isSubmitting = true;
-                                    if (response.pdf_url) {
+                                    location.reload();
+                                });
+                            }
+                        },
+                        error: (xhr) => {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'ERROR',
+                                text: xhr.responseJSON.message || 'Error al finalizar reparación',
+                                background: '#1e293b',
+                                color: '#fff'
+                            });
+                        }
+                    });
+                }
+            });
+        }
+
+        function abrirModalPago(ordenId, total, saldo) {
+            Swal.fire({
+                title: 'REGISTRAR PAGO',
+                background: '#1e293b',
+                color: '#fff',
+                html: `
+                    <div class="p-4 space-y-4 text-left">
+                        <div class="flex justify-between items-center bg-white/5 p-4 rounded-xl border border-white/5 mb-4">
+                            <span class="text-md font-black text-slate-500 uppercase tracking-widest">TOTAL A PAGAR:</span>
+                            <span class="text-xl font-black text-green-400 font-mono italic">$ ${new Intl.NumberFormat('es-MX', {minimumFractionDigits: 2}).format(saldo)}</span>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">MÉTODO DE PAGO *</label>
+                            <select id="modal_metodo_pago" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all uppercase" onchange="toggleMontoPago(this.value, ${saldo})">
+                                <option value="" class="text-black">-- SELECCIONA UNA OPCIÓN --</option>
+                                <option value="EFECTIVO" class="text-black">EFECTIVO</option>
+                                <option value="TRANSFERENCIA" class="text-black">TRANSFERENCIA</option>
+                                <option value="TARJETA DE DÉBITO" class="text-black">TARJETA DE DÉBITO</option>
+                                <option value="TARJETA DE CRÉDITO" class="text-black">TARJETA DE CRÉDITO</option>
+                                <option value="CRÉDITO 15 DÍAS" class="text-black">CRÉDITO 15 DÍAS</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">MONTO A PAGAR *</label>
+                            <input type="number" id="modal_monto" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" value="${parseFloat(saldo).toFixed(2)}" step="0.01">
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">¿REQUIERE FACTURA?</label>
+                            <select id="modal_requiere_factura" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all uppercase">
+                                <option value="NO" class="text-black">NO</option>
+                                <option value="SI" class="text-black">SI</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-2 ml-1 text-center">REFERENCIA / NOTAS</label>
+                            <input type="text" id="modal_referencia" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold uppercase focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="EJ: ÚLTIMOS 4 DÍGITOS, FOLIO, ETC.">
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'REGISTRAR PAGO',
+                cancelButtonText: 'CANCELAR',
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#ef4444',
+                customClass: {
+                    container: 'backdrop-blur-sm',
+                    popup: 'rounded-3xl border border-white/10 shadow-2xl',
+                    confirmButton: 'rounded-xl px-8 py-3 font-bold uppercase tracking-widest text-sm',
+                    cancelButton: 'rounded-xl px-8 py-3 font-bold uppercase tracking-widest text-sm'
+                },
+                preConfirm: () => {
+                    const metodo = document.getElementById('modal_metodo_pago').value;
+                    const monto = document.getElementById('modal_monto').value;
+                    const factura = document.getElementById('modal_requiere_factura').value;
+                    const referencia = document.getElementById('modal_referencia').value;
+
+                    if (!metodo) {
+                        Swal.showValidationMessage('Debe seleccionar un método de pago');
+                        return false;
+                    }
+
+                    if (metodo !== 'CRÉDITO 15 DÍAS' && (!monto || monto <= 0)) {
+                        Swal.showValidationMessage('El monto debe ser mayor a 0');
+                        return false;
+                    }
+
+                    return { 
+                        metodo_pago: metodo, 
+                        monto: monto, 
+                        requiere_factura: factura,
+                        referencia: referencia,
+                        fecha_pago: new Date().toISOString().split('T')[0]
+                    };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Procesando pago...',
+                        background: '#1e293b',
+                        color: '#fff',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+
+                    $.ajax({
+                        url: `/ordenes/${ordenId}/pagos`,
+                        method: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ _token: '{{ csrf_token() }}', ...result.value }),
+                        success: (response) => {
+                            if (response.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: '¡PAGO REGISTRADO!',
+                                    text: response.message,
+                                    background: '#1e293b',
+                                    color: '#fff',
+                                    showConfirmButton: true,
+                                    confirmButtonText: 'VER PDF'
+                                }).then((finalRes) => {
+                                    if (finalRes.isConfirmed && response.pdf_url) {
                                         window.open(response.pdf_url, '_blank');
                                     }
                                     location.reload();
                                 });
                             }
                         },
-                        error: (xhr) => Swal.fire('Error', xhr.responseJSON?.message || 'Error al finalizar entrega', 'error')
+                        error: (xhr) => {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'ERROR',
+                                text: xhr.responseJSON.message || 'Error al registrar pago',
+                                background: '#1e293b',
+                                color: '#fff'
+                            });
+                        }
                     });
                 }
             });
+        }
+
+        function toggleMontoPago(metodo, saldo) {
+            const inputMonto = document.getElementById('modal_monto');
+            if (metodo === 'CRÉDITO 15 DÍAS') {
+                inputMonto.value = 0;
+                inputMonto.readOnly = true;
+                inputMonto.classList.add('bg-white/5', 'text-slate-500');
+            } else {
+                inputMonto.value = saldo;
+                inputMonto.readOnly = false;
+                inputMonto.classList.remove('bg-white/5', 'text-slate-500');
+            }
         }
 
         function actualizarMontoOrden(select) {
@@ -1268,6 +1435,95 @@
                                 popup: 'rounded-3xl border border-white/10 shadow-2xl'
                             }
                         });
+                    });
+                }
+            });
+        }
+
+        function abrirModalFactura(ordenId, folioActual) {
+            Swal.fire({
+                title: 'REGISTRAR FACTURA',
+                background: '#1e293b',
+                color: '#fff',
+                html: `
+                    <div class="p-4 space-y-4 text-left">
+                        <div class="flex items-center bg-amber-500/10 p-4 rounded-xl border border-amber-500/20 mb-4">
+                            <svg class="w-6 h-6 text-amber-400 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <p class="text-xs text-amber-200/80 font-bold uppercase tracking-wider">Captura el folio de la factura emitida para esta orden.</p>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">FOLIO DE FACTURA *</label>
+                            <input type="text" id="modal_folio_factura" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all uppercase" value="${folioActual !== 'null' ? folioActual : ''}" placeholder="EJ: F-1234">
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'GUARDAR FACTURA',
+                cancelButtonText: 'CANCELAR',
+                confirmButtonColor: '#d97706',
+                cancelButtonColor: '#ef4444',
+                customClass: {
+                    container: 'backdrop-blur-sm',
+                    popup: 'rounded-3xl border border-white/10 shadow-2xl',
+                    confirmButton: 'rounded-xl px-8 py-3 font-bold uppercase tracking-widest text-sm',
+                    cancelButton: 'rounded-xl px-8 py-3 font-bold uppercase tracking-widest text-sm'
+                },
+                preConfirm: () => {
+                    const folio = document.getElementById('modal_folio_factura').value;
+                    if (!folio) {
+                        Swal.showValidationMessage('El folio es obligatorio');
+                        return false;
+                    }
+                    return { folio_factura: folio };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Guardando...',
+                        background: '#1e293b',
+                        color: '#fff',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+
+                    $.ajax({
+                        url: `/ordenes/${ordenId}/facturar`,
+                        method: 'POST',
+                        contentType: 'application/json',
+                        data: JSON.stringify({ _token: '{{ csrf_token() }}', ...result.value }),
+                        success: (response) => {
+                            if (response.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: '¡LISTO!',
+                                    text: response.message,
+                                    background: '#1e293b',
+                                    color: '#fff'
+                                }).then(() => {
+                                    window.location.reload();
+                                });
+                            } else {
+                                Swal.fire({
+                                    icon: 'error',
+                                    title: 'ERROR',
+                                    text: response.message,
+                                    background: '#1e293b',
+                                    color: '#fff'
+                                });
+                            }
+                        },
+                        error: (error) => {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'ERROR',
+                                text: 'Error al registrar la factura',
+                                background: '#1e293b',
+                                color: '#fff'
+                            });
+                        }
                     });
                 }
             });

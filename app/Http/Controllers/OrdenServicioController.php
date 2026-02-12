@@ -138,15 +138,12 @@ class OrdenServicioController extends Controller
      */
     public function update(Request $request, OrdenServicio $ordene)
     {
-        if ($request->has('entrega')) {
+        if ($request->has('finalizar_reparacion')) {
             $request->validate([
                 'kilometraje_entrega' => 'nullable|integer|min:' . $ordene->kilometraje_entrada,
                 'fecha_entrega' => 'nullable|date',
                 'placas' => 'nullable|string|max:20',
                 'numero_serie' => 'nullable|string|max:50',
-                'monto_pago' => 'required|numeric|min:0',
-                'metodo_pago' => 'required|string',
-                'referencia_pago' => 'nullable|string',
                 'observaciones_post_reparacion' => 'nullable|string',
                 'mecanico' => 'required|string',
             ]);
@@ -154,17 +151,14 @@ class OrdenServicioController extends Controller
             try {
                 DB::beginTransaction();
 
-                // Determinar el nuevo estado
-                $nuevoEstado = ($request->metodo_pago === 'CRÉDITO 15 DÍAS') ? 'PENDIENTE DE PAGO' : 'ENTREGADO';
-
                 $ordene->update([
                     'kilometraje_entrega' => $request->kilometraje_entrega,
-                    'fecha_entrega' => $request->fecha_entrega,
+                    'fecha_entrega' => $request->fecha_entrega ?? now(),
                     'placas' => mb_strtoupper($request->placas, 'UTF-8'),
                     'numero_serie' => mb_strtoupper($request->numero_serie, 'UTF-8'),
                     'observaciones_post_reparacion' => mb_strtoupper($request->observaciones_post_reparacion, 'UTF-8'),
                     'mecanico' => $request->mecanico,
-                    'estado' => $nuevoEstado
+                    'estado' => 'FINALIZADO'
                 ]);
 
                 // Actualizar también los datos actuales del vehículo
@@ -173,39 +167,16 @@ class OrdenServicioController extends Controller
                     'numero_serie' => mb_strtoupper($request->numero_serie, 'UTF-8'),
                 ]);
 
-                // Registrar pago si se proporcionó uno
-                if ($request->monto_pago > 0 && $request->metodo_pago !== 'CRÉDITO 15 DÍAS') {
-                    $monto = floatval($request->monto_pago);
-                    
-                    OrdenServicioPago::create([
-                        'orden_servicio_id' => $ordene->id,
-                        'monto' => $monto,
-                        'fecha_pago' => now(),
-                        'metodo_pago' => $request->metodo_pago ?? 'EFECTIVO',
-                        'referencia' => $request->referencia_pago,
-                    ]);
-
-                    $ordene->decrement('saldo_pendiente', $monto);
-                }
-
                 DB::commit();
 
-                if ($request->ajax()) {
-                    return response()->json([
-                        'success' => true,
-                        'message' => 'Orden finalizada y vehículo entregado',
-                        'pdf_url' => route('ordenes.pdf', $ordene)
-                    ]);
-                }
-
-                return redirect()->back()->with('success', 'Vehículo entregado exitosamente');
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Reparación finalizada. Lista para registro de pago.',
+                ]);
 
             } catch (\Exception $e) {
                 DB::rollBack();
-                if ($request->ajax()) {
-                    return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
-                }
-                return redirect()->back()->with('error', $e->getMessage());
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
             }
         }
 
@@ -226,6 +197,7 @@ class OrdenServicioController extends Controller
             'items.*.cantidad' => 'required|numeric|min:0.1',
             'items.*.precio_unitario' => 'required|numeric|min:0',
             'items.*.descuento_porcentaje' => 'nullable|numeric|min:0|max:100',
+            'items.*.notas' => 'nullable|string|max:500',
         ], [
             'items.*.item_id.required' => 'Debe seleccionar un producto o servicio para cada fila.'
         ]);
@@ -251,6 +223,7 @@ class OrdenServicioController extends Controller
                     'descuento_porcentaje' => $porcentajeDesc,
                     'descuento_monto' => $montoDesc,
                     'subtotal' => $subtotal,
+                    'notas' => $item['notas'] ?? null,
                 ]);
 
                 $orden->increment('total', $subtotal);
@@ -370,29 +343,87 @@ class OrdenServicioController extends Controller
     public function registrarPago(Request $request, OrdenServicio $orden)
     {
         $request->validate([
-            'monto' => 'required|numeric|min:0.01|max:' . $orden->saldo_pendiente,
+            'monto' => 'required|numeric|min:0',
             'fecha_pago' => 'required|date',
             'metodo_pago' => 'required|string',
             'referencia' => 'nullable|string|max:255',
+            'requiere_factura' => 'required|string|in:SI,NO',
         ]);
 
-        DB::transaction(function() use ($request, $orden) {
-            $orden->pagos()->create([
-                'monto' => $request->monto,
-                'fecha_pago' => $request->fecha_pago,
-                'metodo_pago' => $request->metodo_pago,
-                'referencia' => mb_strtoupper($request->referencia, 'UTF-8'),
+        try {
+            DB::beginTransaction();
+
+            $metodo = $request->metodo_pago;
+            $monto = floatval($request->monto);
+
+            // Validar monto según método
+            if ($metodo === 'CRÉDITO 15 DÍAS') {
+                $monto = 0;
+            }
+
+            if ($monto > 0) {
+                $orden->pagos()->create([
+                    'monto' => $monto,
+                    'fecha_pago' => $request->fecha_pago,
+                    'metodo_pago' => $metodo,
+                    'referencia' => mb_strtoupper($request->referencia, 'UTF-8'),
+                ]);
+
+                $orden->decrement('saldo_pendiente', $monto);
+            }
+
+            // Actualizar requiere_factura
+            $orden->requiere_factura = $request->requiere_factura;
+
+            // Determinar nuevo estado
+            $nuevoEstado = ($metodo === 'CRÉDITO 15 DÍAS' || $orden->fresh()->saldo_pendiente > 0) ? 'PENDIENTE DE PAGO' : 'ENTREGADO';
+            $orden->estado = $nuevoEstado;
+            
+            $orden->save();
+
+            DB::commit();
+
+            if ($request->ajax()) {
+                return response()->json([
+                    'success' => true,
+                    'message' => 'Pago registrado correctamente. Estado: ' . $nuevoEstado,
+                    'pdf_url' => route('ordenes.pdf', $orden)
+                ]);
+            }
+
+            return redirect()->back()->with('success', 'Pago registrado exitosamente');
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            if ($request->ajax()) {
+                return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+            }
+            return redirect()->back()->with('error', $e->getMessage());
+        }
+    }
+    public function registrarFactura(Request $request, OrdenServicio $orden)
+    {
+        $request->validate([
+            'folio_factura' => 'required|string|max:50',
+            'fecha_factura' => 'nullable|date',
+            'uuid_factura' => 'nullable|string|max:50',
+        ]);
+
+        try {
+            $orden->update([
+                'folio_factura' => mb_strtoupper($request->folio_factura, 'UTF-8'),
+                'fecha_factura' => $request->fecha_factura ?? now(),
+                'uuid_factura' => $request->uuid_factura,
             ]);
 
-            $orden->decrement('saldo_pendiente', $request->monto);
-            
-            // Si el estado era PENDIENTE DE PAGO y el saldo llega a 0, cambiar a ENTREGADO
-            if ($orden->estado === 'PENDIENTE DE PAGO' && $orden->fresh()->saldo_pendiente <= 0) {
-                $orden->update(['estado' => 'ENTREGADO']);
-            }
-        });
+            return response()->json([
+                'success' => true,
+                'message' => 'Factura registrada correctamente',
+            ]);
 
-        return redirect()->back()->with('success', 'Pago registrado exitosamente');
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 
     public function descargarPDF(OrdenServicio $orden)

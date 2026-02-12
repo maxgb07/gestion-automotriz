@@ -151,7 +151,9 @@
                         @if($orden->fecha_entrega)
                         Fecha Entrega: {{ $orden->fecha_entrega->format('d/m/Y') }}<br>
                         @endif
-                        Método de Pago: {{ $orden->pagos->pluck('metodo_pago')->unique()->implode(', ') ?: 'PENDIENTE' }}
+                        @if($orden->estado !== 'FINALIZADO')
+                            Método de Pago: {{ $orden->pagos->pluck('metodo_pago')->unique()->implode(', ') ?: 'PENDIENTE' }}
+                        @endif
                         <!-- @if($orden->mecanico)
                         <br>Atendió: <strong>{{ $orden->mecanico }}</strong>
                         @endif -->

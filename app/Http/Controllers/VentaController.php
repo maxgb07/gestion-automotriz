@@ -89,6 +89,7 @@ class VentaController extends Controller
             'items.*.cantidad' => 'required|numeric|min:1',
             'items.*.precio_unitario' => 'required|numeric|min:0',
             'items.*.descuento_porcentaje' => 'nullable|numeric|min:0|max:100',
+            'requiere_factura' => 'required|in:SI,NO',
         ], [
             'items.*.id.required' => 'Debe seleccionar un producto o servicio para cada fila.',
             'items.required' => 'Debe agregar al menos un ítem a la venta.'
@@ -128,6 +129,7 @@ class VentaController extends Controller
                 'metodo_pago' => $request->metodo_pago,
                 'estado' => $esCredito ? 'PENDIENTE' : 'PAGADA',
                 'fecha_vencimiento' => $esCredito ? \Carbon\Carbon::parse($request->fecha)->addDays(15) : null,
+                'requiere_factura' => $request->requiere_factura,
                 'observaciones' => $request->observaciones,
             ]);
 
@@ -240,5 +242,32 @@ class VentaController extends Controller
         $pdf->setPaper($papel);
         
         return $pdf->stream("Comprobante_{$venta->folio}.pdf");
+    }
+
+    public function registrarFactura(Request $request, Venta $venta)
+    {
+        $request->validate([
+            'folio_factura' => 'required|string|max:255',
+            'fecha_factura' => 'nullable|date',
+            'uuid_factura' => 'nullable|string|max:255',
+        ]);
+
+        try {
+            $venta->update([
+                'folio_factura' => mb_strtoupper($request->folio_factura, 'UTF-8'),
+                'fecha_factura' => $request->fecha_factura ?? now(),
+                'uuid_factura' => $request->uuid_factura,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Folio de factura registrado correctamente'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al registrar la factura: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

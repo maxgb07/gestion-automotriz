@@ -178,6 +178,11 @@
                         <strong class="uppercase" style="font-size: 8px;">
                             {{ $detalle->producto ? $detalle->producto->descripcion : $detalle->servicio->descripcion }}
                         </strong>
+                        @if($detalle->notas)
+                            <div style="font-size: 7px; color: #000000ff; font-style: italic; margin-top: 2px;">
+                                Nota: {{ $detalle->notas }}
+                            </div>
+                        @endif
                     </td>
                     <td class="font-bold">${{ number_format($detalle->subtotal, 2) }}</td>
                 </tr>

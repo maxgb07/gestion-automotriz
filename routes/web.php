@@ -56,6 +56,7 @@ Route::middleware('auth')->group(function () {
 
     // Ventas
     Route::get('ventas/{venta}/pdf', [VentaController::class, 'downloadPDF'])->name('ventas.pdf');
+    Route::post('ventas/{venta}/facturar', [VentaController::class, 'registrarFactura'])->name('ventas.factura.store');
     Route::resource('ventas', VentaController::class);
     Route::post('ventas/{venta}/pagos', [PagoVentaController::class, 'store'])->name('ventas.pagos.store');
 
@@ -64,6 +65,7 @@ Route::middleware('auth')->group(function () {
     Route::get('vehiculos-buscar', [VehiculoController::class, 'buscar'])->name('vehiculos.buscar');
     Route::resource('ordenes', \App\Http\Controllers\OrdenServicioController::class);
     Route::post('ordenes/{orden}/pagos', [\App\Http\Controllers\OrdenServicioController::class, 'registrarPago'])->name('ordenes.pagos.store');
+    Route::post('ordenes/{orden}/facturar', [\App\Http\Controllers\OrdenServicioController::class, 'registrarFactura'])->name('ordenes.factura.store');
     Route::get('ordenes/{orden}/pdf', [\App\Http\Controllers\OrdenServicioController::class, 'descargarPDF'])->name('ordenes.pdf');
     Route::get('ordenes/{orden}/cotizacion/pdf', [\App\Http\Controllers\OrdenServicioController::class, 'descargarCotizacionPDF'])->name('ordenes.cotizacion.pdf');
     Route::post('ordenes/{orden}/detalles', [\App\Http\Controllers\OrdenServicioController::class, 'agregarDetalle'])->name('ordenes.detalles.store');

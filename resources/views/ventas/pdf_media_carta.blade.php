@@ -117,6 +117,12 @@
                         Folio: <strong>{{ $venta->folio }}</strong><br>
                         Fecha: {{ $venta->fecha->format('d/m/Y') }}<br>
                         Método de Pago: {{ $venta->metodo_pago }}
+                        @if($venta->folio_factura)
+                            <br>Factura: <strong>{{ $venta->folio_factura }}</strong>
+                            @if($venta->uuid_factura)
+                                <br><span style="font-size: 7px;">UUID: {{ $venta->uuid_factura }}</span>
+                            @endif
+                        @endif
                     </p>
                 </td>
             </tr>

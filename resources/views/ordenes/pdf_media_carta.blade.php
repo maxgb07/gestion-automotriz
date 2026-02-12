@@ -141,8 +141,10 @@
                     <h1 class="title">ORDEN DE SERVICIO</h1>
                     <p style="margin: 2px 0;">
                         Folio: <strong>{{ $orden->folio }}</strong><br>
-                        Fecha: {{ $orden->fecha_entrega ? $orden->fecha_entrega->format('d/m/Y') : 'PENDIENTE' }}<br>
-                        Método de Pago: {{ $orden->pagos->pluck('metodo_pago')->unique()->implode(', ') ?: 'PENDIENTE' }}
+                        Fecha: {{ $orden->fecha_entrega ? $orden->fecha_entrega->format('d/m/Y') : 'PENDIENTE' }}
+                        @if($orden->estado !== 'FINALIZADO')
+                            <br>Método de Pago: {{ $orden->pagos->pluck('metodo_pago')->unique()->implode(', ') ?: 'PENDIENTE' }}
+                        @endif
                         <!-- @if($orden->mecanico)
                         <br>Atendió: <strong>{{ $orden->mecanico }}</strong>
                         @endif -->
@@ -187,6 +189,11 @@
                         <strong class="uppercase" style="font-size: 8px;">
                             {{ $detalle->producto ? $detalle->producto->nombre : $detalle->servicio->nombre }} - {{ $detalle->producto ? $detalle->producto->descripcion : $detalle->servicio->descripcion }}
                         </strong>
+                        @if($detalle->notas)
+                            <div style="font-size: 7px; color: #000000ff; font-style: italic; margin-top: 2px;">
+                                Nota: {{ $detalle->notas }}
+                            </div>
+                        @endif
                     </td>
                     <td class="font-bold">${{ number_format($detalle->subtotal, 2) }}</td>
                 </tr>

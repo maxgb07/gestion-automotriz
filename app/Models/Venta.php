@@ -19,7 +19,11 @@ class Venta extends Model
         'metodo_pago',
         'estado',
         'fecha_vencimiento',
-        'observaciones'
+        'observaciones',
+        'requiere_factura',
+        'folio_factura',
+        'fecha_factura',
+        'uuid_factura'
     ];
 
     protected $casts = [

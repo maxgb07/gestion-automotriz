@@ -52,7 +52,7 @@
             <div class="space-y-8">
                 <!-- Sección 1: Datos Generales -->
                 <div class="bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20 shadow-2xl mb-8">
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                         <div>
                             <label for="cliente_id" class="block text-sm font-medium text-blue-100 mb-2 uppercase">Cliente *</label>
                             <select name="cliente_id" id="cliente_id" class="block w-full" required>
@@ -76,6 +76,14 @@
                                 <option value="TARJETA">TARJETA</option>
                                 <option value="TRANSFERENCIA">TRANSFERENCIA</option>
                                 <option value="CREDITO">CRÉDITO (15 DÍAS)</option>
+                            </select>
+                        </div>
+
+                        <div>
+                            <label for="requiere_factura" class="block text-sm font-medium text-blue-100 mb-2 uppercase">¿Requiere Factura? *</label>
+                            <select name="requiere_factura" id="requiere_factura" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all uppercase" required>
+                                <option value="NO">NO</option>
+                                <option value="SI">SÍ</option>
                             </select>
                         </div>
                     </div>
@@ -358,14 +366,21 @@
 
         // --- Registro Rápido de Ítems ---
         function toggleSwalFields(tipo) {
-            const divStock = document.getElementById('div-stock');
-            const labelNombre = document.getElementById('label-nombre');
+            const popup = Swal.getPopup();
+            if (!popup) return;
+
+            const divStock = popup.querySelector('#div-stock');
+            const divMarca = popup.querySelector('#div-marca');
+            const labelNombre = popup.querySelector('#label-nombre');
+
             if (tipo === 'servicio') {
-                divStock.classList.add('hidden');
-                labelNombre.textContent = 'NOMBRE DEL SERVICIO *';
+                if (divStock) divStock.classList.add('hidden');
+                if (divMarca) divMarca.classList.add('hidden');
+                if (labelNombre) labelNombre.textContent = 'NOMBRE DEL SERVICIO *';
             } else {
-                divStock.classList.remove('hidden');
-                labelNombre.textContent = 'SKU / CLAVE *';
+                if (divStock) divStock.classList.remove('hidden');
+                if (divMarca) divMarca.classList.remove('hidden');
+                if (labelNombre) labelNombre.textContent = 'SKU / CLAVE *';
             }
         }
 
@@ -398,6 +413,10 @@
                             <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">PRECIO VENTA *</label>
                             <input type="number" id="swal-precio" step="0.01" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="0.00">
                         </div>
+                        <div id="div-marca">
+                            <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">MARCA</label>
+                            <input type="text" id="swal-marca" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold uppercase focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="MARCA DEL PRODUCTO">
+                        </div>
                         <div id="div-stock">
                             <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">EXISTENCIA INICIAL *</label>
                             <input type="number" id="swal-stock" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all" value="1">
@@ -419,21 +438,23 @@
                     const precio = document.getElementById('swal-precio').value;
                     const stock = document.getElementById('swal-stock').value;
                     const descripcion = document.getElementById('swal-descripcion').value;
+                    const marca = document.getElementById('swal-marca').value;
 
                     if (!nombre || !precio || (tipo === 'producto' && !stock)) {
                         Swal.showValidationMessage('Todos los campos marcados con * son obligatorios');
                         return false;
                     }
 
-                    return { tipo, nombre, precio, stock, descripcion };
+                    return { tipo, nombre, precio, stock, descripcion, marca };
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    const { tipo, nombre, precio, stock, descripcion } = result.value;
+                    const { tipo, nombre, precio, stock, descripcion, marca } = result.value;
                     const url = tipo === 'producto' ? '{{ route("productos.store") }}' : '{{ route("servicios.store") }}';
                     const data = {
                         _token: '{{ csrf_token() }}',
                         nombre: nombre,
+                        marca: tipo === 'producto' ? marca : null,
                         descripcion: descripcion,
                         [tipo === 'producto' ? 'precio_venta' : 'precio']: precio,
                         stock: stock,
