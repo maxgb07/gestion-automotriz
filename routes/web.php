@@ -57,6 +57,7 @@ Route::middleware('auth')->group(function () {
     // Ventas
     Route::get('ventas/{venta}/pdf', [VentaController::class, 'downloadPDF'])->name('ventas.pdf');
     Route::post('ventas/{venta}/facturar', [VentaController::class, 'registrarFactura'])->name('ventas.factura.store');
+    Route::post('ventas/{venta}/cancelar', [VentaController::class, 'cancelar'])->name('ventas.cancelar');
     Route::resource('ventas', VentaController::class);
     Route::post('ventas/{venta}/pagos', [PagoVentaController::class, 'store'])->name('ventas.pagos.store');
 
@@ -69,6 +70,7 @@ Route::middleware('auth')->group(function () {
     Route::get('ordenes/{orden}/pdf', [\App\Http\Controllers\OrdenServicioController::class, 'descargarPDF'])->name('ordenes.pdf');
     Route::get('ordenes/{orden}/cotizacion/pdf', [\App\Http\Controllers\OrdenServicioController::class, 'descargarCotizacionPDF'])->name('ordenes.cotizacion.pdf');
     Route::post('ordenes/{orden}/detalles', [\App\Http\Controllers\OrdenServicioController::class, 'agregarDetalle'])->name('ordenes.detalles.store');
+    Route::put('ordenes/{orden}/detalles/{detalle}', [\App\Http\Controllers\OrdenServicioController::class, 'actualizarDetalle'])->name('ordenes.detalles.update');
     Route::delete('ordenes/{orden}/detalles/{detalle}', [\App\Http\Controllers\OrdenServicioController::class, 'eliminarDetalle'])->name('ordenes.detalles.destroy');
     Route::post('ordenes/{orden}/imagenes', [\App\Http\Controllers\OrdenServicioController::class, 'subirImagen'])->name('ordenes.imagenes.store');
     Route::post('ordenes/{orden}/datos-vehiculo', [\App\Http\Controllers\OrdenServicioController::class, 'actualizarDatosVehiculo'])->name('ordenes.datos-vehiculo.update');

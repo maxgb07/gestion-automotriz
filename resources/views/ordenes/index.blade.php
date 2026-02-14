@@ -37,11 +37,11 @@
                 <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-2 ml-1">Estado de la Orden</label>
                 <select name="estado" id="estado_filter" class="select2-filter">
                     <option value="">TODOS LOS ESTADOS</option>
-                    <option value="RECEPCION" {{ request('estado') == 'RECEPCION' ? 'selected' : '' }}>RECEPCIÓN</option>
-                    <option value="REPARACION" {{ request('estado') == 'REPARACION' ? 'selected' : '' }}>REPARACIÓN</option>
+                    <option value="ENTREGADO" {{ request('estado') == 'ENTREGADO' ? 'selected' : '' }}>ENTREGADO</option>
                     <option value="FINALIZADO" {{ request('estado') == 'FINALIZADO' ? 'selected' : '' }}>FINALIZADO</option>
                     <option value="PENDIENTE DE PAGO" {{ request('estado') == 'PENDIENTE DE PAGO' ? 'selected' : '' }}>PENDIENTE DE PAGO</option>
-                    <option value="ENTREGADO" {{ request('estado') == 'ENTREGADO' ? 'selected' : '' }}>ENTREGADO</option>
+                    <option value="RECEPCION" {{ request('estado') == 'RECEPCION' ? 'selected' : '' }}>RECEPCIÓN</option>
+                    <option value="REPARACION" {{ request('estado') == 'REPARACION' ? 'selected' : '' }}>REPARACIÓN</option>
                 </select>
             </div>
 
@@ -69,7 +69,6 @@
 
             $tabs = [
                 'todos' => 'Todos',
-                'FINALIZADO' => 'Finalizados',
                 'mes' => 'Mes',
                 'semana' => 'Semana',
                 'hoy' => 'Hoy'
@@ -128,9 +127,13 @@
                                 <p class="text-white font-bold text-md">${{ number_format($orden->total, 2) }}</p>
                                 @if($orden->saldo_pendiente > 0)
                                     <p class="text-red-400 text-md font-black uppercase">Saldo: ${{ number_format($orden->saldo_pendiente, 2) }}</p>
-                                @else
-                                    <!-- <p class="text-green-400 text-sm font-black uppercase tracking-tighter">Liquidada</p> -->
                                 @endif
+                                @php
+                                    $metodos = $orden->pagos->pluck('metodo_pago')->unique()->filter()->implode(', ');
+                                @endphp
+                                <p class="{{ $metodos ? 'text-blue-300' : 'text-blue-200/30' }} text-xs font-bold uppercase mt-1">
+                                    {{ $metodos ?: 'N/D' }}
+                                </p>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 <span class="px-2 py-1 rounded text-md font-black {{ $orden->requiere_factura === 'SI' ? 'bg-teal-500/20 text-teal-300 border border-teal-500/30' : 'bg-slate-500/20 text-slate-400 border border-slate-500/30' }}">
@@ -188,7 +191,7 @@
                                         </button>
                                     @endif
 
-                                    @if($orden->requiere_factura === 'SI')
+                                    @if($orden->requiere_factura === 'SI' || ($orden->requiere_factura === 'NO' && $orden->estado === 'ENTREGADO') || ($orden->requiere_factura === 'NO' && $orden->estado === 'PENDIENTE DE PAGO'))
                                         <button onclick="abrirModalFactura({{ $orden->id }}, '{{ $orden->folio_factura }}')" 
                                                 class="p-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 rounded-lg border border-amber-500/10 transition-all cursor-pointer" 
                                                 title="REGISTRAR FACTURA">
@@ -239,30 +242,43 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <style>
         .select2-container--default .select2-selection--single {
-            background-color: rgba(255, 255, 255, 0.05) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            border-radius: 0.5rem !important;
-            height: 38px !important;
-            padding-top: 4px !important;
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border-radius: 0.75rem !important;
+            height: 50px !important;
+            display: flex !important;
+            align-items: center !important;
         }
         .select2-container--default .select2-selection--single .select2-selection__rendered {
             color: white !important;
             text-transform: uppercase;
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 0.1em;
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            padding-left: 16px !important;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 50px !important;
+            top: 0 !important;
+            right: 10px !important;
         }
         .select2-dropdown {
-            background-color: white !important;
-            border-radius: 0.5rem !important;
-            border: 1px solid rgba(0,0,0,0.1) !important;
+            background-color: #ffffff !important;
+            border-radius: 0.75rem !important;
+            border: none !important;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important;
             z-index: 9999 !important;
+            margin-top: 5px !important;
         }
         .select2-results__option {
             color: black !important;
             text-transform: uppercase;
-            font-size: 10px;
-            font-weight: 700;
+            font-size: 14px;
+            font-weight: 800;
+            padding: 12px 16px !important;
+        }
+        .select2-container--default .select2-results__option--highlighted[aria-selected] {
+            background-color: #2563eb !important;
         }
     </style>
 @endpush

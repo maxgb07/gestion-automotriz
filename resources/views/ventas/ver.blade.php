@@ -45,6 +45,30 @@
             </div>
         </div>
 
+        @if($venta->estado === 'CANCELADA')
+            <div class="mb-8 bg-red-500/10 border border-red-500/20 rounded-3xl p-6 backdrop-blur-xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-10">
+                    <svg class="w-20 h-20 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+                    </svg>
+                </div>
+                <div class="flex items-start gap-4 h-full relative z-10">
+                    <div class="p-3 bg-red-500/20 rounded-2xl text-red-400">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                    </div>
+                    <div class="text-left">
+                        <h3 class="text-red-300 font-black uppercase tracking-widest text-sm mb-1">VENTA CANCELADA</h3>
+                        <p class="text-white font-bold text-lg uppercase leading-tight">{{ $venta->motivo_cancelacion }}</p>
+                        <p class="text-red-300/60 text-[10px] font-black uppercase tracking-[0.2em] mt-3 italic">
+                            Cancelado el {{ $venta->cancelado_at ? $venta->cancelado_at->format('d/m/Y H:i') : 'N/A' }}
+                        </p>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         <div class="space-y-8">
             <!-- Fila 1: Datos Generales -->
             <div class="w-full mb-8">

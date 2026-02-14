@@ -6,38 +6,49 @@
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <style>
         .select2-container--default .select2-selection--single {
-            background-color: rgba(255, 255, 255, 0.05) !important;
-            border: 1px solid rgba(255, 255, 255, 0.1) !important;
-            border-radius: 0.5rem !important;
-            height: 38px !important;
-            padding-top: 4px !important;
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border-radius: 0.75rem !important;
+            height: 50px !important;
+            display: flex !important;
+            align-items: center !important;
         }
         .select2-container--default .select2-selection--single .select2-selection__rendered {
             color: white !important;
             text-transform: uppercase;
-            font-size: 10px;
-            font-weight: 700;
-            letter-spacing: 0.1em;
+            font-size: 14px;
+            font-weight: 800;
+            letter-spacing: 0.05em;
+            padding-left: 16px !important;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__arrow {
+            height: 50px !important;
+            top: 0 !important;
+            right: 10px !important;
         }
         .select2-dropdown {
-            background-color: white !important;
-            border-radius: 0.5rem !important;
-            border: 1px solid rgba(0,0,0,0.1) !important;
+            background-color: #ffffff !important;
+            border-radius: 0.75rem !important;
+            border: none !important;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5) !important;
             z-index: 9999 !important;
+            margin-top: 5px !important;
         }
         .select2-results__option {
             color: black !important;
             text-transform: uppercase;
-            font-size: 10px;
-            font-weight: 700;
+            font-size: 14px;
+            font-weight: 800;
+            padding: 12px 16px !important;
         }
         .select2-container--default .select2-results__option--highlighted[aria-selected] {
-            background-color: #3b82f6 !important;
+            background-color: #2563eb !important;
             color: white !important;
         }
         .select2-container--default .select2-search--dropdown .select2-search__field {
-            border-radius: 4px !important;
+            border-radius: 8px !important;
             color: black !important;
+            padding: 8px !important;
         }
     </style>
 @endpush
@@ -75,15 +86,15 @@
                 <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-2 ml-1">Método de Pago</label>
                 <select name="metodo_pago" id="metodo_pago_filter" class="select2-filter">
                     <option value="">TODOS</option>
+                    <option value="CREDITO" {{ request('metodo_pago') == 'CREDITO' ? 'selected' : '' }}>CRÉDITO</option>
                     <option value="EFECTIVO" {{ request('metodo_pago') == 'EFECTIVO' ? 'selected' : '' }}>EFECTIVO</option>
                     <option value="TARJETA" {{ request('metodo_pago') == 'TARJETA' ? 'selected' : '' }}>TARJETA</option>
                     <option value="TRANSFERENCIA" {{ request('metodo_pago') == 'TRANSFERENCIA' ? 'selected' : '' }}>TRANSFERENCIA</option>
-                    <option value="CREDITO" {{ request('metodo_pago') == 'CREDITO' ? 'selected' : '' }}>CRÉDITO</option>
                 </select>
             </div>
 
             <div class="flex gap-2">
-                <button type="submit" class="w-fit px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/20 transition-all uppercase">
+                <button type="submit" class="w-fit px-8 py-3 h-[50px] bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/20 transition-all uppercase flex items-center justify-center">
                     BUSCAR
                 </button>
                 @if(request('buscar') || request('cliente_id') || request('metodo_pago'))
@@ -154,16 +165,14 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 <p class="text-white font-bold text-md">${{ number_format($venta->total, 2) }}</p>
-                                <p @class([
-                                    'text-[11px] font-bold uppercase',
-                                    'text-red-400' => $venta->saldo_pendiente > 0,
-                                    'text-green-400' => $venta->saldo_pendiente == 0
-                                ])>
-                                    Saldo: ${{ number_format($venta->saldo_pendiente, 2) }}
-                                </p>
+                                @if($venta->saldo_pendiente > 0 || $venta->estado === 'PENDIENTE')
+                                    <p class="text-md font-bold uppercase text-red-400">
+                                        Saldo: ${{ number_format($venta->saldo_pendiente, 2) }}
+                                    </p>
+                                @endif
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
-                                <span class="text-white font-medium uppercase text-xs">
+                                <span class="text-white font-medium uppercase text-md">
                                     {{ $venta->metodo_pago }}
                                 </span>
                             </td>
@@ -206,22 +215,40 @@
                                         </svg>
                                     </a>
 
-                                    @if($venta->requiere_factura === 'SI')
-                                        <button onclick="abrirModalFactura({{ $venta->id }}, '{{ $venta->folio_factura }}')" 
-                                                class="p-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 rounded-lg border border-amber-500/10 transition-all cursor-pointer"
-                                                title="REGISTRAR FACTURA">
+                                    @if($venta->estado !== 'CANCELADA')
+                                        @if($venta->requiere_factura === 'SI' || ($venta->requiere_factura === 'NO' && $venta->estado === 'PAGADA') || ($venta->requiere_factura === 'NO' && $venta->estado === 'PENDIENTE'))
+                                            <button onclick="abrirModalFactura({{ $venta->id }}, '{{ $venta->folio_factura }}')" 
+                                                    class="p-2 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 rounded-lg border border-amber-500/10 transition-all cursor-pointer"
+                                                    title="REGISTRAR FACTURA">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                                </svg>
+                                            </button>
+                                        @endif
+
+                                        <a href="{{ route('ventas.pdf', $venta) }}" 
+                                            target="_blank" class="p-2 bg-green-500/10 hover:bg-green-500/20 text-green-300 rounded-lg border border-green-500/10 transition-all cursor-pointer" title="IMPRIMIR COMPROBANTE">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                                            </svg>
+                                        </a>
+
+                                        <button onclick="cancelarVenta({{ $venta->id }}, '{{ $venta->folio }}')" 
+                                                class="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-300 rounded-lg border border-red-500/10 transition-all cursor-pointer"
+                                                title="CANCELAR VENTA">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </button>
+                                    @else
+                                        <button onclick="verMotivo('{{ addslashes($venta->motivo_cancelacion) }}', '{{ $venta->cancelado_at ? $venta->cancelado_at->format('d/m/Y H:i') : 'N/A' }}')" 
+                                                class="p-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 rounded-lg border border-purple-500/10 transition-all cursor-pointer"
+                                                title="VER MOTIVO DE CANCELACIÓN">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                             </svg>
                                         </button>
                                     @endif
-
-                                    <a href="{{ route('ventas.pdf', $venta) }}" 
-                                        target="_blank" class="p-2 bg-green-500/10 hover:bg-green-500/20 text-green-300 rounded-lg border border-green-500/10 transition-all cursor-pointer" title="IMPRIMIR COMPROBANTE">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
-                                        </svg>
-                                    </a>
                                 </div>
                             </td>
                         </tr>
@@ -350,6 +377,110 @@
                             });
                         }
                     });
+                }
+            });
+        }
+
+        function cancelarVenta(ventaId, folio) {
+            Swal.fire({
+                title: '¿CANCELAR VENTA?',
+                text: `Se cancelará la venta ${folio} y el stock de los productos se restaurará. ESTA ACCIÓN NO SE PUEDE DESHACER.`,
+                icon: 'warning',
+                background: '#1e293b',
+                color: '#fff',
+                input: 'textarea',
+                inputLabel: 'MOTIVO DE CANCELACIÓN *',
+                inputPlaceholder: 'Ingresa el motivo detallado...',
+                inputAttributes: {
+                    'aria-label': 'Motivo de cancelación'
+                },
+                showCancelButton: true,
+                confirmButtonText: 'SÍ, CANCELAR VENTA',
+                cancelButtonText: 'NO, VOLVER',
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#475569',
+                customClass: {
+                    container: 'backdrop-blur-sm',
+                    popup: 'rounded-3xl border border-white/10 shadow-2xl transition-all duration-300',
+                    title: 'text-xl font-black uppercase tracking-tighter pt-6',
+                    input: 'bg-white/5 border-white/10 rounded-xl text-white focus:ring-red-500 uppercase text-xs p-4 h-32',
+                    confirmButton: 'rounded-xl px-8 py-3 font-bold uppercase tracking-widest text-sm',
+                    cancelButton: 'rounded-xl px-8 py-3 font-bold uppercase tracking-widest text-sm'
+                },
+                preConfirm: (motivo) => {
+                    if (!motivo) {
+                        Swal.showValidationMessage('El motivo de cancelación es obligatorio');
+                        return false;
+                    }
+                    return motivo;
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Cancelando...',
+                        background: '#1e293b',
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                    $.ajax({
+                        url: `/ventas/${ventaId}/cancelar`,
+                        method: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            motivo_cancelacion: result.value
+                        },
+                        success: function(data) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '¡VENTA CANCELADA!',
+                                text: data.message,
+                                background: '#1e293b',
+                                color: '#fff',
+                                timer: 2000,
+                                showConfirmButton: false
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        },
+                        error: function(xhr) {
+                            const data = xhr.responseJSON;
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'ERROR',
+                                text: data.message || 'Error al cancelar la venta',
+                                background: '#1e293b',
+                                color: '#fff'
+                            });
+                        }
+                    });
+                }
+            });
+        }
+
+        function verMotivo(motivo, fecha) {
+            Swal.fire({
+                title: 'MOTIVO DE CANCELACIÓN',
+                background: '#1e293b',
+                color: '#fff',
+                html: `
+                    <div class="p-6 text-left space-y-4">
+                        <div class="bg-red-500/10 border border-red-500/20 p-4 rounded-2xl">
+                            <p class="text-[10px] text-red-300 font-bold uppercase tracking-widest mb-1">Fecha de Cancelación:</p>
+                            <p class="text-white font-mono italic">${fecha}</p>
+                        </div>
+                        <div class="bg-white/5 border border-white/10 p-4 rounded-2xl">
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest mb-1">Motivo detallado:</p>
+                            <p class="text-blue-100 font-bold uppercase leading-relaxed text-sm">${motivo}</p>
+                        </div>
+                    </div>
+                `,
+                confirmButtonText: 'ENTENDIDO',
+                confirmButtonColor: '#6366f1',
+                customClass: {
+                    container: 'backdrop-blur-sm',
+                    popup: 'rounded-3xl border border-white/10 shadow-2xl transition-all duration-300',
+                    title: 'text-xl font-black uppercase tracking-tighter pt-6',
+                    confirmButton: 'rounded-xl px-12 py-3 font-bold uppercase tracking-widest text-sm'
                 }
             });
         }

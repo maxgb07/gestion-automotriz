@@ -271,6 +271,95 @@ class OrdenServicioController extends Controller
         }
     }
 
+    public function actualizarDetalle(Request $request, OrdenServicio $orden, OrdenServicioDetalle $detalle)
+    {
+        $request->merge(['tipo' => strtolower($request->tipo)]);
+
+        $request->validate([
+            'tipo' => 'required|in:producto,servicio',
+            'item_id' => 'required',
+            'cantidad' => 'required|numeric|min:0.1',
+            'precio_unitario' => 'required|numeric|min:0',
+            'descuento_porcentaje' => 'nullable|numeric|min:0|max:100',
+            'notas' => 'nullable|string|max:500',
+        ], [
+            'tipo.in' => 'El tipo seleccionado (:input) no es válido. Debe ser producto o servicio.',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // 1. REVERTIR INVENTARIO ORIGINAL (si era producto)
+            if ($detalle->producto_id) {
+                $productoAnterior = Producto::find($detalle->producto_id);
+                if ($productoAnterior) {
+                    $productoAnterior->increment('stock', $detalle->cantidad);
+                }
+            }
+
+            // 2. RESTAR SUBTOTAL ANTERIOR DE LA ORDEN
+            $orden->decrement('total', $detalle->subtotal);
+            $orden->decrement('saldo_pendiente', $detalle->subtotal);
+
+            // 3. ACTUALIZAR LOS DATOS DEL DETALLE
+            $precio = $request->precio_unitario;
+            $cantidad = $request->cantidad;
+            $porcentajeDesc = $request->descuento_porcentaje ?? 0;
+            
+            $baseCalculada = $precio * $cantidad;
+            $montoDesc = $baseCalculada * ($porcentajeDesc / 100);
+            $subtotal = $baseCalculada - $montoDesc;
+
+            $detalle->update([
+                'producto_id' => $request->tipo === 'producto' ? $request->item_id : null,
+                'servicio_id' => $request->tipo === 'servicio' ? $request->item_id : null,
+                'cantidad' => $cantidad,
+                'precio_unitario' => $precio,
+                'descuento_porcentaje' => $porcentajeDesc,
+                'descuento_monto' => $montoDesc,
+                'subtotal' => $subtotal,
+                'notas' => $request->notes ?? $request->notas,
+            ]);
+
+            // 4. DESCONTAR NUEVO INVENTARIO (si es producto)
+            $mensajeWarning = '';
+            if ($request->tipo === 'producto') {
+                $productoNuevo = Producto::find($request->item_id);
+                if ($productoNuevo) {
+                    if ($productoNuevo->stock < $cantidad) {
+                        StockAlerta::create([
+                            'producto_id' => $productoNuevo->id,
+                            'user_id' => Auth::id() ?? 1,
+                            'stock_previo' => $productoNuevo->stock,
+                            'cantidad_solicitada' => $cantidad,
+                            'referencia_tipo' => 'ORDEN_EDIT',
+                            'referencia_id' => $orden->id,
+                            'fecha' => now(),
+                        ]);
+                        $mensajeWarning = ' (ADVERTENCIA: Stock insuficiente)';
+                    }
+                    $productoNuevo->stock = $productoNuevo->stock - $cantidad;
+                    $productoNuevo->save();
+                }
+            }
+
+            // 5. SUMAR NUEVO SUBTOTAL A LA ORDEN
+            $orden->increment('total', $subtotal);
+            $orden->increment('saldo_pendiente', $subtotal);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true, 
+                'message' => 'Ítem actualizado correctamente' . $mensajeWarning
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
     public function eliminarDetalle(OrdenServicio $orden, OrdenServicioDetalle $detalle)
     {
         DB::transaction(function() use ($orden, $detalle) {
@@ -414,6 +503,7 @@ class OrdenServicioController extends Controller
                 'folio_factura' => mb_strtoupper($request->folio_factura, 'UTF-8'),
                 'fecha_factura' => $request->fecha_factura ?? now(),
                 'uuid_factura' => $request->uuid_factura,
+                'requiere_factura' => 'SI'
             ]);
 
             return response()->json([

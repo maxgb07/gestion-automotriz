@@ -257,6 +257,7 @@ class VentaController extends Controller
                 'folio_factura' => mb_strtoupper($request->folio_factura, 'UTF-8'),
                 'fecha_factura' => $request->fecha_factura ?? now(),
                 'uuid_factura' => $request->uuid_factura,
+                'requiere_factura' => 'SI',
             ]);
 
             return response()->json([
@@ -267,6 +268,58 @@ class VentaController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error al registrar la factura: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function cancelar(Request $request, Venta $venta)
+    {
+        $request->validate([
+            'motivo_cancelacion' => 'required|string|max:500',
+        ]);
+
+        if ($venta->estado === 'CANCELADA') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Esta venta ya se encuentra cancelada.'
+            ], 422);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            // 1. Restaurar Stock de Productos
+            foreach ($venta->detalles as $detalle) {
+                if ($detalle->producto_id) {
+                    $producto = $detalle->producto;
+                    $producto->increment('stock', $detalle->cantidad);
+                }
+            }
+
+            // 2. Eliminar Pagos si es Crédito o si ya hubo abonos
+            // El usuario pidió: "En caso de ventas de credito canceladas recuerda eliminar saldos y todo lo que nos pueda afectar"
+            $venta->pagos()->delete();
+
+            // 3. Actualizar Cabecera de la Venta
+            $venta->update([
+                'estado' => 'CANCELADA',
+                'saldo_pendiente' => 0,
+                'motivo_cancelacion' => mb_strtoupper($request->motivo_cancelacion, 'UTF-8'),
+                'cancelado_at' => now(),
+            ]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Venta cancelada correctamente y stock restaurado.'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al cancelar la venta: ' . $e->getMessage()
             ], 500);
         }
     }

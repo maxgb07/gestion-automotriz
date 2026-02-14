@@ -78,7 +78,7 @@
                 @endif
 
                 @if($orden->estado === 'FINALIZADO')
-                    <button onclick="abrirModalPago({{ $orden->id }}, {{ $orden->total }}, {{ $orden->saldo_pendiente }})" class="btn-premium-success px-4 py-2 text-white text-xs font-black rounded-lg shadow-lg shadow-green-500/20 transition-all uppercase tracking-widest flex items-center justify-center">
+                    <button onclick="abrirModalPago({{ $orden->id }}, {{ $orden->total }}, {{ $orden->saldo_pendiente }}, true)" class="btn-premium-success px-4 py-2 text-white text-xs font-black rounded-lg shadow-lg shadow-green-500/20 transition-all uppercase tracking-widest flex items-center justify-center">
                         <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                         </svg>
@@ -233,34 +233,40 @@
                                 @forelse($orden->detalles as $detalle)
                                     <tr class="hover:bg-white/5 transition-colors">
                                         <td class="px-3 py-4 text-center">
-                                            <span class="text-white font-bold text-sm">{{ number_format($detalle->cantidad, 2) }}</span>
+                                            <span class="text-white font-bold text-md">{{ number_format($detalle->cantidad, 2) }}</span>
                                         </td>
                                         <td class="px-3 py-4">
-                                            <span class="inline-block px-2 py-1 text-sm font-black uppercase tracking-wider rounded-lg
+                                            <span class="inline-block px-2 py-1 text-md font-black uppercase tracking-wider rounded-lg
                                                 {{ $detalle->producto_id ? 'bg-blue-500/20 text-blue-300' : 'bg-purple-500/20 text-purple-300' }}">
                                                 {{ $detalle->producto_id ? 'PRODUCTO' : 'SERVICIO' }}
                                             </span>
                                         </td>
                                         <td class="px-3 py-4">
-                                            <p class="text-white font-bold text-sm">{{ $detalle->producto?->nombre ?? $detalle->servicio?->nombre ?? 'N/A' }}</p>
+                                            <p class="text-white font-bold text-md">{{ $detalle->producto?->nombre ?? $detalle->servicio?->nombre ?? 'N/A' }}</p>
                                         </td>
                                         <td class="px-3 py-4">
-                                            <p class="text-white font-bold text-sm">{{ $detalle->producto?->descripcion ?? $detalle->servicio?->descripcion ?? '---' }}</p>
+                                            <p class="text-white font-bold text-md">{{ $detalle->producto?->descripcion ?? $detalle->servicio?->descripcion ?? '---' }}</p>
                                         </td>
                                         <td class="px-3 py-4">
-                                            <p class="text-blue-200/60 font-medium text-xs uppercase">{{ $detalle->notas ?? '---' }}</p>
+                                            <p class="text-blue-200/60 font-medium text-md uppercase">{{ $detalle->notas ?? '---' }}</p>
                                         </td>
                                         <td class="px-3 py-4 text-center">
-                                            <span class="text-blue-100 font-mono text-sm font-bold">${{ number_format($detalle->precio_unitario, 2) }}</span>
+                                            <span class="text-blue-100 font-mono text-md font-bold">${{ number_format($detalle->precio_unitario, 2) }}</span>
                                         </td>
                                         <!-- <td class="px-3 py-4 text-center font-mono">
                                             <span class="text-blue-100/60 text-xs font-bold">{{ number_format($detalle->descuento_porcentaje, 1) }}%</span>
                                         </td> -->
                                         <td class="px-3 py-4 text-right font-mono">
-                                            <span class="text-white font-black text-sm existing-subtotal" data-valor="{{ $detalle->subtotal }}">${{ number_format($detalle->subtotal, 2) }}</span>
+                                            <span class="text-white font-black text-md existing-subtotal" data-valor="{{ $detalle->subtotal }}">${{ number_format($detalle->subtotal, 2) }}</span>
                                         </td>
                                         @if($orden->estado !== 'ENTREGADO' && $orden->estado !== 'PENDIENTE DE PAGO')
-                                            <td class="px-4 py-3 text-center">
+                                            <td class="px-4 py-3 text-center flex items-center justify-center gap-1">
+                                                <button type="button" class="p-2 text-white/20 hover:text-blue-400 transition-colors" 
+                                                        onclick="abrirModalEditarItem({{ $detalle->id }}, '{{ $detalle->producto_id ? 'producto' : 'servicio' }}', {{ $detalle->producto_id ?? $detalle->servicio_id }}, {{ $detalle->cantidad }}, {{ $detalle->precio_unitario }}, '{{ addslashes($detalle->notas) }}')">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                                                    </svg>
+                                                </button>
                                                 <form action="{{ route('ordenes.detalles.destroy', [$orden, $detalle]) }}" method="POST" class="inline">
                                                     @csrf @method('DELETE')
                                                     <button type="submit" class="p-2 text-white/20 hover:text-red-400 transition-colors" onclick="return confirm('¿Eliminar este item?')">
@@ -282,7 +288,7 @@
                             </tbody>
                             <tfoot class="bg-white/5 border-t border-white/10">
                                 <tr>
-                                    <td colspan="5" class="px-8 py-6 text-right">
+                                    <td colspan="6" class="px-8 py-6 text-right">
                                         <span class="text-blue-200 text-lg uppercase font-black tracking-[0.2em] mb-2 block">Total:</span>
                                     </td>
                                     <td class="px-8 py-6 text-right">
@@ -350,7 +356,7 @@
                         <div class="p-6 border-b border-white/10 bg-white/5 flex items-center justify-between">
                             <h3 class="text-md font-black text-blue-200 uppercase tracking-[0.2em]">Gestión de Abonos</h3>
                             @if($orden->saldo_pendiente > 0)
-                                <button onclick="abrirModalPago()" class="btn-premium-success px-3 py-1.5 text-white text-md font-black rounded-lg transition-all uppercase tracking-widest flex items-center">
+                                <button onclick="abrirModalPago({{ $orden->id }}, {{ $orden->total }}, {{ $orden->saldo_pendiente }})" class="btn-premium-success px-3 py-1.5 text-white text-md font-black rounded-lg transition-all uppercase tracking-widest flex items-center">
                                     <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                     </svg>
@@ -921,78 +927,6 @@
             });
         }
 
-        function abrirModalPago() {
-            Swal.fire({
-                title: 'REGISTRAR ABONO / PAGO',
-                background: '#1e293b',
-                color: '#fff',
-                html: `
-                    <div class="space-y-4 text-left p-2">
-                        <div class="border border-white/10 p-3 rounded-xl mb-4">
-                            <p class="text-md text-slate-500 font-bold uppercase">Saldo Actual</p>
-                            <p class="text-md text-white font-mono">$ {{ number_format($orden->saldo_pendiente, 2) }}</p>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">Monto a Abonar *</label>
-                            <input type="number" id="swal-monto-abono" step="0.01" value="{{ $orden->saldo_pendiente }}" max="{{ $orden->saldo_pendiente }}" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all">
-                        </div>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">Fecha *</label>
-                                <input type="date" id="swal-fecha" value="{{ date('Y-m-d') }}" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">Método *</label>
-                                <select id="swal-metodo" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all">
-                                    <option value="EFECTIVO">EFECTIVO</option>
-                                    <option value="TARJETA">TARJETA</option>
-                                    <option value="TRANSFERENCIA">TRANSFERENCIA</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div>
-                            <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">Referencia</label>
-                            <input type="text" id="swal-ref" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="OPCIONAL...">
-                        </div>
-                    </div>
-                `,
-                showCancelButton: true,
-                confirmButtonText: 'REGISTRAR PAGO',
-                confirmButtonColor: '#10b981',
-                preConfirm: () => {
-                    const monto = document.getElementById('swal-monto-abono').value;
-                    const fecha_pago = document.getElementById('swal-fecha').value;
-                    const metodo_pago = document.getElementById('swal-metodo').value;
-                    const referencia = document.getElementById('swal-ref').value;
-                    if (!monto || !fecha_pago || !metodo_pago) {
-                        Swal.showValidationMessage('Monto, fecha y método son obligatorios');
-                        return false;
-                    }
-                    return { monto, fecha_pago, metodo_pago, referencia };
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    $.ajax({
-                        url: '{{ route("ordenes.pagos.store", $orden) }}',
-                        method: 'POST',
-                        data: { _token: '{{ csrf_token() }}', ...result.value },
-                        success: () => {
-                            Swal.fire({
-                                icon: 'success',
-                                title: '¡Pago Registrado!',
-                                text: 'El abono se ha guardado correctamente.',
-                                showConfirmButton: false,
-                                timer: 1500
-                            }).then(() => {
-                                isSubmitting = true;
-                                location.reload();
-                            });
-                        },
-                        error: (xhr) => Swal.fire('Error', xhr.responseJSON.message || 'Error al registrar pago', 'error')
-                    });
-                }
-            });
-        }
 
         function abrirModalFinalizarReparacion() {
             Swal.fire({
@@ -1113,7 +1047,7 @@
             });
         }
 
-        function abrirModalPago(ordenId, total, saldo) {
+        function abrirModalPago(ordenId, total, saldo, siempreMostrarPDF = false) {
             Swal.fire({
                 title: 'REGISTRAR PAGO',
                 background: '#1e293b',
@@ -1142,12 +1076,18 @@
                             <input type="number" id="modal_monto" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" value="${parseFloat(saldo).toFixed(2)}" step="0.01">
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">¿REQUIERE FACTURA?</label>
-                            <select id="modal_requiere_factura" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all uppercase">
-                                <option value="NO" class="text-black">NO</option>
-                                <option value="SI" class="text-black">SI</option>
-                            </select>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">FECHA PAGO *</label>
+                                <input type="date" id="modal_fecha_pago" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-mono" value="{{ date('Y-m-d') }}">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">¿REQUIERE FACTURA?</label>
+                                <select id="modal_requiere_factura" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all uppercase">
+                                    <option value="NO" class="text-black">NO</option>
+                                    <option value="SI" class="text-black">SI</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div>
@@ -1170,11 +1110,17 @@
                 preConfirm: () => {
                     const metodo = document.getElementById('modal_metodo_pago').value;
                     const monto = document.getElementById('modal_monto').value;
+                    const fecha = document.getElementById('modal_fecha_pago').value;
                     const factura = document.getElementById('modal_requiere_factura').value;
                     const referencia = document.getElementById('modal_referencia').value;
 
                     if (!metodo) {
                         Swal.showValidationMessage('Debe seleccionar un método de pago');
+                        return false;
+                    }
+
+                    if (!fecha) {
+                        Swal.showValidationMessage('Debe seleccionar la fecha de pago');
                         return false;
                     }
 
@@ -1188,7 +1134,7 @@
                         monto: monto, 
                         requiere_factura: factura,
                         referencia: referencia,
-                        fecha_pago: new Date().toISOString().split('T')[0]
+                        fecha_pago: fecha
                     };
                 }
             }).then((result) => {
@@ -1208,16 +1154,20 @@
                         data: JSON.stringify({ _token: '{{ csrf_token() }}', ...result.value }),
                         success: (response) => {
                             if (response.success) {
+                                const isFullPayment = parseFloat(result.value.monto) >= parseFloat(saldo);
+                                const mostrarPDF = siempreMostrarPDF || isFullPayment;
+                                
                                 Swal.fire({
                                     icon: 'success',
-                                    title: '¡PAGO REGISTRADO!',
+                                    title: isFullPayment ? '¡PAGO REGISTRADO!' : '¡ABONO REGISTRADO!',
                                     text: response.message,
                                     background: '#1e293b',
                                     color: '#fff',
-                                    showConfirmButton: true,
-                                    confirmButtonText: 'VER PDF'
+                                    showConfirmButton: mostrarPDF,
+                                    confirmButtonText: 'VER PDF',
+                                    timer: mostrarPDF ? null : 1500
                                 }).then((finalRes) => {
-                                    if (finalRes.isConfirmed && response.pdf_url) {
+                                    if (mostrarPDF && finalRes.isConfirmed && response.pdf_url) {
                                         window.open(response.pdf_url, '_blank');
                                     }
                                     location.reload();
@@ -1316,6 +1266,172 @@
                 }
             }
         });
+        function abrirModalEditarItem(id, tipo, itemId, cantidad, precio, notas) {
+            Swal.fire({
+                title: 'EDITAR ÍTEM',
+                background: '#1e293b',
+                color: '#fff',
+                width: '600px',
+                html: `
+                    <div class="space-y-4 text-left p-2">
+                        <div class="flex gap-8 justify-center mb-6 p-4 bg-white/5 rounded-2xl border border-white/10">
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="radio" name="edit-tipo" value="producto" ${tipo === 'producto' ? 'checked' : ''} onchange="updateEditItemSelect(this.value)" class="w-5 h-5 text-blue-500 bg-white/10 border-white/20 focus:ring-blue-500">
+                                <span class="text-md font-black uppercase tracking-widest text-blue-100">Producto</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer group">
+                                <input type="radio" name="edit-tipo" value="servicio" ${tipo === 'servicio' ? 'checked' : ''} onchange="updateEditItemSelect(this.value)" class="w-5 h-5 text-blue-500 bg-white/10 border-white/20 focus:ring-blue-500">
+                                <span class="text-md font-black uppercase tracking-widest text-blue-100">Servicio</span>
+                            </label>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">SELECCIONAR ÍTEM *</label>
+                            <div class="select2-container-swal">
+                                <select id="edit-item-id" class="w-full">
+                                    <!-- Se rellena dinámicamente -->
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">CANTIDAD *</label>
+                                <input type="number" id="edit-cantidad" step="0.01" value="${cantidad}" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">PRECIO UNITARIO *</label>
+                                <input type="number" id="edit-precio" step="0.01" value="${precio}" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1 ml-1 text-center">NOTAS / OBSERVACIONES</label>
+                            <textarea id="edit-notas" rows="2" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all uppercase" placeholder="NOTAS ADICIONALES...">${notas}</textarea>
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'ACTUALIZAR ÍTEM',
+                cancelButtonText: 'CANCELAR',
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#475569',
+                customClass: {
+                    popup: 'rounded-3xl border border-white/20 shadow-2xl',
+                    title: 'text-xl font-black uppercase tracking-tighter'
+                },
+                didOpen: () => {
+                    updateEditItemSelect(tipo, itemId);
+                },
+                preConfirm: () => {
+                    const nuevoTipo = $('input[name="edit-tipo"]:checked').val();
+                    const nuevoItemId = $('#edit-item-id').val();
+                    const nuevaCantidad = $('#edit-cantidad').val();
+                    const nuevoPrecio = $('#edit-precio').val();
+                    const nuevasNotas = $('#edit-notas').val();
+
+                    console.log('Edit Modal - Submitting (Normalized):', { nuevoTipo, nuevoItemId, nuevaCantidad, nuevoPrecio });
+
+                    if (!nuevoItemId || !nuevaCantidad || !nuevoPrecio) {
+                        Swal.showValidationMessage('Todos los campos marcados con * son obligatorios');
+                        return false;
+                    }
+
+                    return { 
+                        tipo: nuevoTipo.toLowerCase(), 
+                        item_id: nuevoItemId, 
+                        cantidad: nuevaCantidad, 
+                        precio_unitario: nuevoPrecio, 
+                        notas: nuevasNotas 
+                    };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Actualizando...',
+                        background: '#1e293b',
+                        color: '#fff',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+
+                    $.ajax({
+                        url: `/ordenes/{{ $orden->id }}/detalles/${id}`,
+                        method: 'POST',
+                        data: { 
+                            _token: '{{ csrf_token() }}', 
+                            _method: 'PUT',
+                            ...result.value 
+                        },
+                        success: (res) => {
+                            if (res.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: '¡ACTUALIZADO!',
+                                    text: res.message,
+                                    background: '#1e293b',
+                                    color: '#fff',
+                                    timer: 1500,
+                                    showConfirmButton: false
+                                }).then(() => {
+                                    isSubmitting = true;
+                                    location.reload();
+                                });
+                            }
+                        },
+                        error: (xhr) => {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'ERROR',
+                                text: xhr.responseJSON ? xhr.responseJSON.message : 'Error al actualizar',
+                                background: '#1e293b',
+                                color: '#fff'
+                            });
+                        }
+                    });
+                }
+            });
+        }
+
+        function updateEditItemSelect(tipo, selectedId = null) {
+            console.log('updateEditItemSelect called with:', tipo, selectedId);
+            const select = $('#edit-item-id');
+            const data = (String(tipo).toLowerCase() === 'producto') ? PRODUCTOS : SERVICIOS;
+            
+            if (select.data('select2')) {
+                select.select2('destroy');
+            }
+
+            select.empty().append('<option value="" disabled>SELECCIONAR...</option>');
+            data.forEach(item => {
+                const opt = new Option(`${item.nombre} - ${item.descripcion || ''}`, item.id, false, (selectedId && item.id == selectedId));
+                select.append(opt);
+            });
+
+            select.select2({
+                dropdownParent: Swal.getPopup(),
+                width: '100%',
+                placeholder: 'BUSCAR ÍTEM...',
+                language: {
+                    noResults: function() { return "NO SE ENCONTRARON RESULTADOS"; }
+                }
+            });
+
+            // Ajustar estilos de Select2 SOLO para este modal
+            const s2c = select.next('.select2-container');
+            s2c.find('.select2-selection--single').css({
+                'background-color': 'rgba(255, 255, 255, 0.05)',
+                'border': '1px solid rgba(255, 255, 255, 0.1)',
+                'height': '48px',
+                'border-radius': '0.75rem',
+                'display': 'flex',
+                'align-items': 'center',
+                'color': 'white'
+            });
+            s2c.find('.select2-selection__rendered').css('color', 'white');
+            s2c.find('.select2-selection__arrow').css('top', '10px');
+        }
+
         function abrirModalDatosVehiculo(ordenId, placasActuales, kmActual, vinActual, mecanicoActual) {
             Swal.fire({
                 title: 'DATOS DEL VEHÍCULO',

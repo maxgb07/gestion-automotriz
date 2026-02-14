@@ -23,12 +23,15 @@ class Venta extends Model
         'requiere_factura',
         'folio_factura',
         'fecha_factura',
-        'uuid_factura'
+        'uuid_factura',
+        'motivo_cancelacion',
+        'cancelado_at'
     ];
 
     protected $casts = [
         'fecha' => 'datetime',
         'fecha_vencimiento' => 'date',
+        'cancelado_at' => 'datetime',
     ];
 
     public function cliente()
