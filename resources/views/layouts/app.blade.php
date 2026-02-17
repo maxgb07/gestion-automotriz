@@ -22,6 +22,11 @@
             text-transform: uppercase;
         }
 
+        /* Cursor pointer global para elementos interactivos */
+        button, a, input[type="submit"], input[type="button"], select, [role="button"] {
+            cursor: pointer !important;
+        }
+
         /* Mantener placeholders en estilo normal si se prefiere, o también en mayúsculas */
         input::placeholder, textarea::placeholder {
             text-transform: none;

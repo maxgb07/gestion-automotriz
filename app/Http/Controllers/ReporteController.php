@@ -22,35 +22,25 @@ class ReporteController extends Controller
     {
         $hoy = Carbon::today();
         
-        // Ventas de hoy: No canceladas 
-        // Siguiendo regla: Si es crédito, solo si hubo pago hoy. 
-        // Simplificado: Ventas creadas hoy que no estén en recepción/reparación (aunque ventas no tienen esos estados)
-        // Aplicamos la lógica solicitada:
-        $ventas = Venta::with(['cliente', 'pagos'])
+        $ventas = Venta::with(['cliente', 'detalles.producto', 'detalles.servicio'])
             ->whereDate('created_at', $hoy)
-            ->where('estado', '!=', 'CANCELADO')
-            ->get()
-            ->filter(function($venta) use ($hoy) {
-                // Si es crédito/pendiente, verificar si hubo pago hoy
-                if ($venta->estado === 'PENDIENTE') {
-                    return $venta->pagos->whereBetween('fecha_pago', [Carbon::today()->startOfDay(), Carbon::today()->endOfDay()])->count() > 0;
-                }
-                return true;
-            });
+            ->where('estado', 'PAGADA')
+            ->get();
 
-        // Órdenes de hoy
-        $ordenes = OrdenServicio::with(['cliente', 'pagos'])
+        $ordenes = OrdenServicio::with(['cliente', 'vehiculo', 'detalles.producto', 'detalles.servicio', 'pagos'])
             ->whereDate('created_at', $hoy)
-            ->whereNotIn('estado', ['RECEPCION', 'REPARACION'])
-            ->get()
-            ->filter(function($orden) use ($hoy) {
-                if ($orden->estado === 'PENDIENTE DE PAGO') {
-                    return $orden->pagos->whereBetween('fecha_pago', [Carbon::today()->startOfDay(), Carbon::today()->endOfDay()])->count() > 0;
-                }
-                return true;
-            });
+            ->where('estado', 'ENTREGADO')
+            ->get();
 
-        return view('reportes.corte', compact('ventas', 'ordenes'));
+        $pagoVentas = VentaPago::with(['venta.cliente', 'venta.pagos'])
+            ->whereDate('fecha_pago', $hoy)
+            ->get();
+
+        $pagoOrdenes = OrdenServicioPago::with(['ordenServicio.cliente', 'ordenServicio.pagos'])
+            ->whereDate('fecha_pago', $hoy)
+            ->get();
+
+        return view('reportes.corte', compact('ventas', 'ordenes', 'pagoVentas', 'pagoOrdenes'));
     }
 
     public function ventas(Request $request)
@@ -82,30 +72,26 @@ class ReporteController extends Controller
     public function cortePDF()
     {
         $hoy = Carbon::today();
-        // Misma lógica que corteDia para el PDF
-        $ventas = Venta::with(['cliente', 'pagos'])
+        
+        $ventas = Venta::with(['cliente', 'detalles.producto', 'detalles.servicio'])
             ->whereDate('created_at', $hoy)
-            ->where('estado', '!=', 'CANCELADO')
-            ->get()
-            ->filter(function($venta) use ($hoy) {
-                if ($venta->estado === 'PENDIENTE') {
-                    return $venta->pagos->whereBetween('fecha_pago', [Carbon::today()->startOfDay(), Carbon::today()->endOfDay()])->count() > 0;
-                }
-                return true;
-            });
+            ->where('estado', 'PAGADA')
+            ->get();
 
-        $ordenes = OrdenServicio::with(['cliente', 'pagos'])
+        $ordenes = OrdenServicio::with(['cliente', 'vehiculo', 'detalles.producto', 'detalles.servicio', 'pagos'])
             ->whereDate('created_at', $hoy)
-            ->whereNotIn('estado', ['RECEPCION', 'REPARACION'])
-            ->get()
-            ->filter(function($orden) use ($hoy) {
-                if ($orden->estado === 'PENDIENTE DE PAGO') {
-                    return $orden->pagos->whereBetween('fecha_pago', [Carbon::today()->startOfDay(), Carbon::today()->endOfDay()])->count() > 0;
-                }
-                return true;
-            });
+            ->where('estado', 'ENTREGADO')
+            ->get();
 
-        $pdf = Pdf::loadView('reportes.pdf.corte', compact('ventas', 'ordenes', 'hoy'));
+        $pagoVentas = VentaPago::with(['venta.cliente', 'venta.pagos'])
+            ->whereDate('fecha_pago', $hoy)
+            ->get();
+
+        $pagoOrdenes = OrdenServicioPago::with(['ordenServicio.cliente', 'ordenServicio.pagos'])
+            ->whereDate('fecha_pago', $hoy)
+            ->get();
+
+        $pdf = Pdf::loadView('reportes.pdf.corte', compact('ventas', 'ordenes', 'pagoVentas', 'pagoOrdenes', 'hoy'));
         return $pdf->stream("Corte_{$hoy->format('d-m-Y')}.pdf");
     }
 
