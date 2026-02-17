@@ -82,7 +82,7 @@ class VentaController extends Controller
         $request->validate([
             'cliente_id' => 'required|exists:clientes,id',
             'fecha' => 'required|date',
-            'metodo_pago' => 'required|in:EFECTIVO,TARJETA,TRANSFERENCIA,CREDITO',
+            'metodo_pago' => 'required|in:EFECTIVO,TARJETA DE DÉBITO,TARJETA DE CRÉDITO,TRANSFERENCIA,CHEQUE,CREDITO',
             'items' => 'required|array|min:1',
             'items.*.tipo' => 'required|in:producto,servicio',
             'items.*.id' => 'required',

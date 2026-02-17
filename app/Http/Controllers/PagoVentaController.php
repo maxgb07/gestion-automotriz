@@ -15,7 +15,7 @@ class PagoVentaController extends Controller
         $request->validate([
             'monto' => 'required|numeric|min:0.01|max:' . $venta->saldo_pendiente,
             'fecha_pago' => 'required|date',
-            'metodo_pago' => 'required|in:EFECTIVO,TARJETA,TRANSFERENCIA',
+            'metodo_pago' => 'required|in:EFECTIVO,TARJETA DE DÉBITO,TARJETA DE CRÉDITO,TRANSFERENCIA,CHEQUE',
             'referencia' => 'nullable|string|max:100',
         ]);
 

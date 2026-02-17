@@ -88,8 +88,10 @@
                     <option value="">TODOS</option>
                     <option value="CREDITO" {{ request('metodo_pago') == 'CREDITO' ? 'selected' : '' }}>CRÉDITO</option>
                     <option value="EFECTIVO" {{ request('metodo_pago') == 'EFECTIVO' ? 'selected' : '' }}>EFECTIVO</option>
-                    <option value="TARJETA" {{ request('metodo_pago') == 'TARJETA' ? 'selected' : '' }}>TARJETA</option>
+                    <option value="TARJETA DE DÉBITO" {{ request('metodo_pago') == 'TARJETA DE DÉBITO' ? 'selected' : '' }}>TARJETA DE DÉBITO</option>
+                    <option value="TARJETA DE CRÉDITO" {{ request('metodo_pago') == 'TARJETA DE CRÉDITO' ? 'selected' : '' }}>TARJETA DE CRÉDITO</option>
                     <option value="TRANSFERENCIA" {{ request('metodo_pago') == 'TRANSFERENCIA' ? 'selected' : '' }}>TRANSFERENCIA</option>
+                    <option value="CHEQUE" {{ request('metodo_pago') == 'CHEQUE' ? 'selected' : '' }}>CHEQUE</option>
                 </select>
             </div>
 

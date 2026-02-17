@@ -435,6 +435,7 @@
                             <select id="modal_metodo_pago" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all uppercase" onchange="toggleMontoPago(this.value, ${saldo})">
                                 <option value="" class="text-black">-- SELECCIONA UNA OPCIÓN --</option>
                                 <option value="EFECTIVO" class="text-black">EFECTIVO</option>
+                                <option value="CHEQUE" class="text-black">CHEQUE</option>
                                 <option value="TRANSFERENCIA" class="text-black">TRANSFERENCIA</option>
                                 <option value="TARJETA DE DÉBITO" class="text-black">TARJETA DE DÉBITO</option>
                                 <option value="TARJETA DE CRÉDITO" class="text-black">TARJETA DE CRÉDITO</option>

@@ -73,8 +73,10 @@
                             <label for="metodo_pago" class="block text-sm font-medium text-blue-100 mb-2 uppercase">Método de Pago *</label>
                             <select name="metodo_pago" id="metodo_pago" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all uppercase" required>
                                 <option value="EFECTIVO">EFECTIVO</option>
-                                <option value="TARJETA">TARJETA</option>
+                                <option value="TARJETA DE DÉBITO">TARJETA DE DÉBITO</option>
+                                <option value="TARJETA DE CRÉDITO">TARJETA DE CRÉDITO</option>
                                 <option value="TRANSFERENCIA">TRANSFERENCIA</option>
+                                <option value="CHEQUE">CHEQUE</option>
                                 <option value="CREDITO">CRÉDITO (15 DÍAS)</option>
                             </select>
                         </div>
