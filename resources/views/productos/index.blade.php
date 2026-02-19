@@ -377,6 +377,7 @@
                         <p class="text-blue-200 text-sm mb-2 uppercase font-bold">2. Forma de inventariar</p>
                         <select id="swal-modo-inv" class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all uppercase">
                             <option value="digital" class="bg-slate-800" selected>CAPTURA DIGITAL (SISTEMA)</option>
+                            <option value="rapida" class="bg-slate-800">CAPTURA RÁPIDA (POR CLAVE)</option>
                             <option value="imprimir" class="bg-slate-800">IMPRIMIR LISTA (PDF)</option>
                         </select>
                     </div>
@@ -409,11 +410,13 @@
                 const { marca, modo } = result.value;
                 if (modo === 'digital') {
                     let url = '{{ route("productos.inventario") }}';
-                    url += '?marca=' + encodeURIComponent(marca);
+                    if (marca) url += '?marca=' + encodeURIComponent(marca);
                     window.location.href = url;
+                } else if (modo === 'rapida') {
+                    window.location.href = '{{ route("productos.inventario.captura_rapida") }}';
                 } else {
                     let url = '{{ route("productos.inventario.pdf") }}';
-                    url += '?marca=' + encodeURIComponent(marca);
+                    if (marca) url += '?marca=' + encodeURIComponent(marca);
                     window.open(url, '_blank');
                 }
             }

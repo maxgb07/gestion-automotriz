@@ -235,6 +235,29 @@ class ProductoController extends Controller
         return redirect()->route('productos.index')->with('success', "Inventario actualizado correctamente. Se modificaron {$updatedCount} productos.");
     }
 
+    public function buscar(Request $request)
+    {
+        $term = $request->get('q');
+        $productos = Producto::where('nombre', 'like', "%{$term}%")
+                            ->orWhere('sku', 'like', "%{$term}%")
+                            ->orWhere('marca', 'like', "%{$term}%")
+                            ->limit(10)
+                            ->get(['id', 'nombre', 'sku', 'marca', 'descripcion']);
+
+        $results = [];
+        foreach ($productos as $producto) {
+            $results[] = [
+                'id' => $producto->id,
+                'text' => "{$producto->nombre} - " . ($producto->descripcion ?? 'SIN DESCRIPCIÓN'),
+                'nombre' => $producto->nombre,
+                'descripcion' => $producto->descripcion ?? 'SIN DESCRIPCIÓN',
+                'marca' => $producto->marca
+            ];
+        }
+
+        return response()->json(['results' => $results]);
+    }
+
     public function exportarInventarioPDF(Request $request)
     {
         $marca = $request->input('marca');
@@ -254,5 +277,45 @@ class ProductoController extends Controller
         $filename = 'inventario_fisico_' . ($marca ? strtolower(str_replace(' ', '_', $marca)) : 'global') . '_' . date('Y-m-d') . '.pdf';
         
         return $pdf->stream($filename);
+    }
+
+    public function capturaRapida()
+    {
+        return view('productos.captura_rapida');
+    }
+
+    public function guardarLoteInventario(Request $request)
+    {
+        $request->validate([
+            'items' => 'required|array',
+            'items.*.id' => 'required|exists:productos,id',
+            'items.*.cantidad' => 'required|numeric|min:0'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $updatedCount = 0;
+            foreach ($request->items as $item) {
+                $producto = Producto::find($item['id']);
+                if ($producto) {
+                    $producto->update(['stock' => $item['cantidad']]);
+                    $updatedCount++;
+                }
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => "Se actualizaron {$updatedCount} productos correctamente."
+            ]);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al actualizar el inventario: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

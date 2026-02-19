@@ -38,11 +38,13 @@ Route::middleware('auth')->group(function () {
     Route::put('vehiculos/{vehiculo}', [VehiculoController::class, 'update'])->name('vehiculos.update');
     Route::delete('vehiculos/{vehiculo}', [VehiculoController::class, 'destroy'])->name('vehiculos.destroy');
 
-    // Inventario - Productos
     Route::get('productos/inventario', [ProductoController::class, 'inventario'])->name('productos.inventario');
+    Route::get('productos/inventario/captura-rapida', [ProductoController::class, 'capturaRapida'])->name('productos.inventario.captura_rapida');
+    Route::post('productos/inventario/update-lote', [ProductoController::class, 'guardarLoteInventario'])->name('productos.inventario.update_lote');
     Route::post('productos/inventario/update', [ProductoController::class, 'updateInventario'])->name('productos.inventario.update');
     Route::get('productos/pedimento', [ProductoController::class, 'pedimento'])->name('productos.pedimento');
     Route::get('productos/inventario/pdf', [ProductoController::class, 'exportarInventarioPDF'])->name('productos.inventario.pdf');
+    Route::get('productos-buscar', [ProductoController::class, 'buscar'])->name('productos.buscar');
     Route::resource('productos', ProductoController::class);
 
     // Proveedores
