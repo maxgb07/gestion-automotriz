@@ -48,12 +48,18 @@ class ReporteController extends Controller
         $fecha_inicio = $request->get('fecha_inicio', Carbon::today()->startOfMonth()->format('Y-m-d'));
         $fecha_fin = $request->get('fecha_fin', Carbon::today()->format('Y-m-d'));
 
-        $ventas = Venta::with('cliente')
+        // Ventas finalizadas en el periodo
+        $ventas = Venta::with(['cliente', 'detalles.producto', 'detalles.servicio'])
             ->whereBetween(DB::raw('DATE(created_at)'), [$fecha_inicio, $fecha_fin])
-            ->latest()
+            ->where('estado', 'PAGADA')
             ->get();
 
-        return view('reportes.ventas', compact('ventas', 'fecha_inicio', 'fecha_fin'));
+        // Pagos recibidos en el periodo
+        $pagos = VentaPago::with(['venta.cliente', 'venta.pagos', 'venta.detalles.producto', 'venta.detalles.servicio'])
+            ->whereBetween(DB::raw('DATE(fecha_pago)'), [$fecha_inicio, $fecha_fin])
+            ->get();
+
+        return view('reportes.ventas', compact('ventas', 'pagos', 'fecha_inicio', 'fecha_fin'));
     }
 
     public function ordenes(Request $request)
@@ -61,12 +67,18 @@ class ReporteController extends Controller
         $fecha_inicio = $request->get('fecha_inicio', Carbon::today()->startOfMonth()->format('Y-m-d'));
         $fecha_fin = $request->get('fecha_fin', Carbon::today()->format('Y-m-d'));
 
-        $ordenes = OrdenServicio::with(['cliente', 'vehiculo', 'pagos'])
+        // Órdenes entregadas en el periodo
+        $ordenes = OrdenServicio::with(['cliente', 'vehiculo', 'detalles.producto', 'detalles.servicio', 'pagos'])
             ->whereBetween(DB::raw('DATE(created_at)'), [$fecha_inicio, $fecha_fin])
-            ->latest()
+            ->where('estado', 'ENTREGADO')
             ->get();
 
-        return view('reportes.ordenes', compact('ordenes', 'fecha_inicio', 'fecha_fin'));
+        // Pagos recibidos en el periodo
+        $pagos = OrdenServicioPago::with(['ordenServicio.cliente', 'ordenServicio.pagos', 'ordenServicio.vehiculo', 'ordenServicio.detalles.producto', 'ordenServicio.detalles.servicio'])
+            ->whereBetween(DB::raw('DATE(fecha_pago)'), [$fecha_inicio, $fecha_fin])
+            ->get();
+
+        return view('reportes.ordenes', compact('ordenes', 'pagos', 'fecha_inicio', 'fecha_fin'));
     }
 
     public function cortePDF()
@@ -100,12 +112,18 @@ class ReporteController extends Controller
         $fecha_inicio = $request->get('fecha_inicio');
         $fecha_fin = $request->get('fecha_fin');
 
-        $ventas = Venta::with('cliente')
+        // Ventas finalizadas en el periodo
+        $ventas = Venta::with(['cliente', 'detalles.producto', 'detalles.servicio'])
             ->whereBetween(DB::raw('DATE(created_at)'), [$fecha_inicio, $fecha_fin])
-            ->latest()
+            ->where('estado', 'PAGADA')
             ->get();
 
-        $pdf = Pdf::loadView('reportes.pdf.ventas', compact('ventas', 'fecha_inicio', 'fecha_fin'));
+        // Pagos recibidos en el periodo
+        $pagos = VentaPago::with(['venta.cliente', 'venta.pagos', 'venta.detalles.producto', 'venta.detalles.servicio'])
+            ->whereBetween(DB::raw('DATE(fecha_pago)'), [$fecha_inicio, $fecha_fin])
+            ->get();
+
+        $pdf = Pdf::loadView('reportes.pdf.ventas', compact('ventas', 'pagos', 'fecha_inicio', 'fecha_fin'));
         return $pdf->stream("Reporte_Ventas_{$fecha_inicio}_al_{$fecha_fin}.pdf");
     }
 
@@ -114,12 +132,18 @@ class ReporteController extends Controller
         $fecha_inicio = $request->get('fecha_inicio');
         $fecha_fin = $request->get('fecha_fin');
 
-        $ordenes = OrdenServicio::with(['cliente', 'vehiculo', 'pagos'])
+        // Órdenes entregadas en el periodo
+        $ordenes = OrdenServicio::with(['cliente', 'vehiculo', 'detalles.producto', 'detalles.servicio', 'pagos'])
             ->whereBetween(DB::raw('DATE(created_at)'), [$fecha_inicio, $fecha_fin])
-            ->latest()
+            ->where('estado', 'ENTREGADO')
             ->get();
 
-        $pdf = Pdf::loadView('reportes.pdf.ordenes', compact('ordenes', 'fecha_inicio', 'fecha_fin'));
+        // Pagos recibidos en el periodo
+        $pagos = OrdenServicioPago::with(['ordenServicio.cliente', 'ordenServicio.pagos', 'ordenServicio.vehiculo', 'ordenServicio.detalles.producto', 'ordenServicio.detalles.servicio'])
+            ->whereBetween(DB::raw('DATE(fecha_pago)'), [$fecha_inicio, $fecha_fin])
+            ->get();
+
+        $pdf = Pdf::loadView('reportes.pdf.ordenes', compact('ordenes', 'pagos', 'fecha_inicio', 'fecha_fin'));
         return $pdf->stream("Reporte_Ordenes_{$fecha_inicio}_al_{$fecha_fin}.pdf");
     }
 }
