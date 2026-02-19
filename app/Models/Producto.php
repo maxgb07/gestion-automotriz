@@ -66,4 +66,14 @@ class Producto extends Model
     {
         return $this->hasMany(StockAlerta::class);
     }
+
+    public function ventaDetalles()
+    {
+        return $this->hasMany(VentaDetalle::class);
+    }
+
+    public function ordenServicioDetalles()
+    {
+        return $this->hasMany(OrdenServicioDetalle::class);
+    }
 }

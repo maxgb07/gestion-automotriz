@@ -265,7 +265,7 @@
 
     function abrirModalPedimento() {
         const marcas = @json($marcas);
-        let options = '<option value="">TODAS LAS MARCAS</option>';
+        let options = '<option value="">TODAS</option>';
         marcas.forEach(marca => {
             options += `<option value="${marca}">${marca}</option>`;
         });
@@ -273,12 +273,36 @@
         Swal.fire({
             title: 'GENERAR PEDIMENTO',
             html: `
-                <div class="text-left">
-                    <p class="text-blue-200 text-sm mb-2 uppercase font-bold">Selecciona una marca</p>
-                    <select id="swal-marca" class="w-full">
-                        ${options}
-                    </select>
-                    <p class="text-blue-200/50 text-xs mt-4 uppercase">Si no seleccionas ninguna marca, se generará el pedimento de todos los productos con stock bajo.</p>
+                <div class="text-left space-y-4">
+                    <div>
+                        <p class="text-blue-200 text-sm mb-2 uppercase font-bold">1. Selecciona el periodo</p>
+                        <select id="swal-periodo" class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all uppercase">
+                            <option value="completo" class="bg-slate-800">COMPLETO (TODO BAJO STOCK)</option>
+                            <option value="hoy" class="bg-slate-800">HOY</option>
+                            <option value="semanal" class="bg-slate-800">SEMANAL (LUNES A HOY)</option>
+                            <option value="quincenal" class="bg-slate-800">QUINCENAL (2 SEMANAS)</option>
+                            <option value="mensual" class="bg-slate-800">MENSUAL (MES ACTUAL)</option>
+                            <option value="personalizado" class="bg-slate-800">PERSONALIZADO (FECHAS)</option>
+                        </select>
+                    </div>
+
+                    <div id="div-fechas" class="hidden grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-blue-200 text-xs mb-1 uppercase font-bold">Inicio</p>
+                            <input type="date" id="swal-fecha-inicio" class="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm">
+                        </div>
+                        <div>
+                            <p class="text-blue-200 text-xs mb-1 uppercase font-bold">Fin</p>
+                            <input type="date" id="swal-fecha-fin" class="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm">
+                        </div>
+                    </div>
+
+                    <div>
+                        <p class="text-blue-200 text-sm mb-2 uppercase font-bold">2. Selecciona la marca (Opcional)</p>
+                        <select id="swal-marca" class="w-full">
+                            ${options}
+                        </select>
+                    </div>
                 </div>
             `,
             showCancelButton: true,
@@ -295,21 +319,38 @@
             didOpen: () => {
                 $('#swal-marca').select2({
                     width: '100%',
-                    dropdownParent: Swal.getPopup(),
-                    placeholder: 'BUSCAR MARCA...',
-                    allowClear: true
+                    dropdownParent: Swal.getPopup()
+                });
+
+                $('#swal-periodo').on('change', function() {
+                    if ($(this).val() === 'personalizado') {
+                        $('#div-fechas').removeClass('hidden');
+                    } else {
+                        $('#div-fechas').addClass('hidden');
+                    }
                 });
             },
             preConfirm: () => {
-                return $('#swal-marca').val();
+                const periodo = $('#swal-periodo').val();
+                const marca = $('#swal-marca').val();
+                const fecha_inicio = $('#swal-fecha-inicio').val();
+                const fecha_fin = $('#swal-fecha-fin').val();
+
+                if (periodo === 'personalizado' && (!fecha_inicio || !fecha_fin)) {
+                    Swal.showValidationMessage('DEBES SELECCIONAR AMBAS FECHAS');
+                }
+
+                return { periodo, marca, fecha_inicio, fecha_fin };
             }
         }).then((result) => {
             if (result.isConfirmed) {
-                const marca = result.value;
+                const { periodo, marca, fecha_inicio, fecha_fin } = result.value;
                 let url = '{{ route("productos.pedimento") }}';
-                if (marca) {
-                    url += '?marca=' + encodeURIComponent(marca);
-                }
+                url += `?periodo=${periodo}`;
+                if (marca) url += `&marca=${encodeURIComponent(marca)}`;
+                if (fecha_inicio) url += `&fecha_inicio=${fecha_inicio}`;
+                if (fecha_fin) url += `&fecha_fin=${fecha_fin}`;
+                
                 window.open(url, '_blank');
             }
         });
@@ -317,7 +358,7 @@
 
     function abrirModalInventario() {
         const marcas = @json($marcas);
-        let options = '<option value="">SELECCIONAR MARCA...</option>';
+        let options = '<option value="">TODAS</option>';
         marcas.forEach(marca => {
             options += `<option value="${marca}">${marca}</option>`;
         });
@@ -355,17 +396,12 @@
             didOpen: () => {
                 $('#swal-marca-inv').select2({
                     width: '100%',
-                    dropdownParent: Swal.getPopup(),
-                    placeholder: 'BUSCAR MARCA...',
-                    allowClear: true
+                    dropdownParent: Swal.getPopup()
                 });
             },
             preConfirm: () => {
                 const marca = $('#swal-marca-inv').val();
                 const modo = $('#swal-modo-inv').val();
-                if (!marca) {
-                    Swal.showValidationMessage('DEBES SELECCIONAR UNA MARCA');
-                }
                 return { marca, modo };
             }
         }).then((result) => {

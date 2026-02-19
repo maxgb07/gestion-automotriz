@@ -5,7 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Producto;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 
 class ProductoController extends Controller
 {
@@ -117,17 +119,79 @@ class ProductoController extends Controller
 
     public function pedimento(Request $request)
     {
+        $periodo = $request->get('periodo', 'completo');
+        $fecha_inicio = null;
+        $fecha_fin = Carbon::now();
+
+        switch ($periodo) {
+            case 'hoy':
+                $fecha_inicio = Carbon::today();
+                break;
+            case 'semanal':
+                $fecha_inicio = Carbon::now()->startOfWeek();
+                break;
+            case 'quincenal':
+                $fecha_inicio = Carbon::now()->subWeek()->startOfWeek();
+                break;
+            case 'mensual':
+                $fecha_inicio = Carbon::now()->startOfMonth();
+                break;
+            case 'personalizado':
+                $fecha_inicio = $request->filled('fecha_inicio') ? Carbon::parse($request->fecha_inicio)->startOfDay() : null;
+                $fecha_fin = $request->filled('fecha_fin') ? Carbon::parse($request->fecha_fin)->endOfDay() : Carbon::now();
+                break;
+        }
+
         $query = Producto::whereColumn('stock', '<=', 'stock_minimo');
 
         if ($request->filled('marca')) {
             $query->where('marca', $request->marca);
         }
 
-        $productos = $query->orderBy('descripcion', 'asc')
-                            ->orderBy('nombre', 'asc')
-                            ->get();
-        
-        $pdf = Pdf::loadView('productos.pdf_pedimento', compact('productos'));
+        if ($periodo !== 'completo' && $fecha_inicio) {
+            // Filtrar productos que tengan ventas u órdenes en el periodo
+            $query->where(function($q) use ($fecha_inicio, $fecha_fin) {
+                $q->whereHas('ventaDetalles.venta', function($qv) use ($fecha_inicio, $fecha_fin) {
+                    $qv->whereBetween('created_at', [$fecha_inicio, $fecha_fin]);
+                })->orWhereHas('ordenServicioDetalles.ordenServicio', function($qo) use ($fecha_inicio, $fecha_fin) {
+                    $qo->whereBetween('created_at', [$fecha_inicio, $fecha_fin]);
+                });
+            });
+
+            // Obtener el conteo de movimientos para cada producto y filtrar estrictamente
+            $productos = $query->get()->map(function($producto) use ($fecha_inicio, $fecha_fin) {
+                $ventasQty = DB::table('venta_detalles')
+                    ->join('ventas', 'venta_detalles.venta_id', '=', 'ventas.id')
+                    ->where('venta_detalles.producto_id', $producto->id)
+                    ->whereBetween('ventas.created_at', [$fecha_inicio, $fecha_fin])
+                    ->sum('venta_detalles.cantidad');
+
+                $ordenesQty = DB::table('orden_servicio_detalles')
+                    ->join('ordenes_servicio', 'orden_servicio_detalles.orden_servicio_id', '=', 'ordenes_servicio.id')
+                    ->where('orden_servicio_detalles.producto_id', $producto->id)
+                    ->whereBetween('ordenes_servicio.created_at', [$fecha_inicio, $fecha_fin])
+                    ->sum('orden_servicio_detalles.cantidad');
+
+                $producto->ventas_periodo = $ventasQty + $ordenesQty;
+                return $producto;
+            })->filter(function($producto) {
+                return $producto->ventas_periodo > 0;
+            })->values()
+            ->sortBy([
+                ['marca', 'asc'],
+                ['nombre', 'asc'],
+            ]);
+        } else {
+            $productos = $query->orderBy('marca', 'asc')
+                                ->orderBy('nombre', 'asc')
+                                ->get()
+                                ->map(function($p) {
+                                    $p->ventas_periodo = 0;
+                                    return $p;
+                                });
+        }
+
+        $pdf = Pdf::loadView('productos.pdf_pedimento', compact('productos', 'periodo', 'fecha_inicio', 'fecha_fin'));
         
         return $pdf->stream('pedimento_inventario_' . date('Y-m-d') . '.pdf');
     }
@@ -136,12 +200,13 @@ class ProductoController extends Controller
     {
         $marca = $request->input('marca');
 
-        if (!$marca) {
-            return redirect()->route('productos.index')->with('error', 'Debes seleccionar una marca para realizar el inventario.');
+        $query = Producto::query();
+
+        if ($marca) {
+            $query->where('marca', $marca);
         }
 
-        $productos = Producto::where('marca', $marca)
-                            ->orderBy('descripcion', 'asc')
+        $productos = $query->orderBy('descripcion', 'asc')
                             ->orderBy('nombre', 'asc')
                             ->get();
 
@@ -174,17 +239,20 @@ class ProductoController extends Controller
     {
         $marca = $request->input('marca');
 
-        if (!$marca) {
-            return redirect()->route('productos.index')->with('error', 'Debes seleccionar una marca para exportar el inventario.');
+        $query = Producto::query();
+
+        if ($marca) {
+            $query->where('marca', $marca);
         }
 
-        $productos = Producto::where('marca', $marca)
-                            ->orderBy('descripcion', 'asc')
+        $productos = $query->orderBy('descripcion', 'asc')
                             ->orderBy('nombre', 'asc')
                             ->get();
 
         $pdf = Pdf::loadView('productos.pdf_lista_inventario', compact('productos', 'marca'));
         
-        return $pdf->stream('inventario_fisico_' . strtolower(str_replace(' ', '_', $marca)) . '_' . date('Y-m-d') . '.pdf');
+        $filename = 'inventario_fisico_' . ($marca ? strtolower(str_replace(' ', '_', $marca)) : 'global') . '_' . date('Y-m-d') . '.pdf';
+        
+        return $pdf->stream($filename);
     }
 }

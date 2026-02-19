@@ -6,10 +6,10 @@
         body { font-family: 'Helvetica', sans-serif; font-size: 12px; color: #333; }
         .header { text-align: center; margin-bottom: 30px; border-bottom: 2px solid #3b82f6; padding-bottom: 10px; }
         .title { font-size: 20px; font-weight: bold; color: #1e3a8a; text-transform: uppercase; }
-        .date { font-size: 10px; color: #666; margin-top: 5px; }
+        .date { font-size: 12px; color: #000000ff; margin-top: 5px; }
         table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
-        th { background-color: #f1f5f9; border: 1px solid #cbd5e1; padding: 10px; text-align: center; font-weight: bold; text-transform: uppercase; font-size: 10px; }
-        td { border: 1px solid #cbd5e1; padding: 8px; font-size: 11px; }
+        th { background-color: #f1f5f9; border: 1px solid #cbd5e1; padding: 10px; text-align: center; font-weight: bold; text-transform: uppercase; font-size: 12px; }
+        td { border: 1px solid #cbd5e1; padding: 8px; font-size: 12px; }
         .low-stock { color: #dc2626; font-weight: bold; }
         .footer { position: fixed; bottom: 0; width: 100%; text-align: center; font-size: 10px; color: #999; padding: 10px 0; border-top: 1px solid #eee; }
         .text-center { text-align: center; }
@@ -20,39 +20,57 @@
 <body>
     <div class="header">
         <div class="title">REPORTE DE PEDIMENTO - EXISTENCIAS MÍNIMAS</div>
+        <div class="date">
+            PERIODO: {{ strtoupper($periodo) }} 
+            @if($fecha_inicio) 
+                ({{ \Carbon\Carbon::parse($fecha_inicio)->format('d/m/Y') }} 
+                AL {{ \Carbon\Carbon::parse($fecha_fin)->format('d/m/Y') }})
+            @endif
+        </div>
         <div class="date">GENERADO EL: {{ date('d/m/Y H:i:s') }}</div>
     </div>
 
     <table>
         <thead>
             <tr>
-                <th width="5%" class="text-center">#</th>
-                <th width="20%" class="text-center">SKU / CLAVE</th>
-                <th width="40%" class="text-center">CÓDIGO BARRAS / DESCRIPCIÓN</th>
-                <th width="10%" class="text-center">STOCK ACT.</th>
-                <th width="10%" class="text-center">S. MÍN.</th>
-                <th width="10%" class="text-center">SUGERIDO</th>
+                <!-- <th width="5%" class="text-center">ID</th> -->
+                <th width="20%" class="text-center">CLAVE</th>
+                <th width="35%" class="text-center">DESCRIPCIÓN</th>
+                <th width="10%" class="text-center">VENTAS</th>
+                <th width="10%" class="text-center">STOCK ACTUAL</th>
+                <th width="10%" class="text-center">STOCK MINIMO</th>
+                <th width="15%" class="text-center">SUGERIDO</th>
             </tr>
         </thead>
         <tbody>
             @foreach($productos as $index => $producto)
                 <tr>
-                    <td class="text-center">{{ $index + 1 }}</td>
+                    <!-- <td class="text-center">{{ $producto->id }}</td> -->
                     <td class="text-center">
                         <strong>{{ $producto->nombre }}</strong><br>
-                        <span style="font-size: 10px; color: #1e40af;">MARCA: {{ $producto->marca ?? 'N/A' }}</span>
+                        <span style="font-size: 12px; color: #1e40af;">MARCA: {{ $producto->marca ?? 'N/A' }}</span>
                     </td>
                     <td class="uppercase text-center">
-                        <small style="color:#666">{{ $producto->codigo_barras ?? 'S/B' }}</small><br>
                         {{ $producto->descripcion }}<br>
-                        <span style="font-size: 9px;">APLICA: {{ $producto->aplicacion ?? 'N/A' }}</span>
+                        <span style="font-size: 12px;">APLICA: {{ $producto->aplicacion ?? 'N/A' }}</span>
+                    </td>
+                    <td class="text-center" style="font-weight: bold;">
+                        {{ $producto->ventas_periodo }}
                     </td>
                     <td class="text-center {{ $producto->stock <= $producto->stock_minimo ? 'low-stock' : '' }}">
                         {{ $producto->stock }}
                     </td>
                     <td class="text-center">{{ $producto->stock_minimo }}</td>
                     <td class="text-center" style="background-color: #eff6ff; font-weight: bold;">
-                        {{ ($producto->stock_minimo * 2) - $producto->stock > 0 ? ($producto->stock_minimo * 2) - $producto->stock : ($producto->stock_minimo - $producto->stock + 5) }}
+                        @php
+                            $basico = ($producto->stock_minimo * 2) - $producto->stock;
+                            $sugerido = $basico > 0 ? $basico : ($producto->stock_minimo - $producto->stock + 5);
+                            // Si hubo mcuas ventas, asegurar que el sugerido cubra al menos lo vendido en el periodo + stock minimo
+                            if($producto->ventas_periodo > $sugerido) {
+                                $sugerido = $producto->ventas_periodo + ($producto->stock_minimo - $producto->stock);
+                            }
+                        @endphp
+                        {{ $sugerido }}
                     </td>
                 </tr>
             @endforeach
