@@ -23,7 +23,7 @@
                         </svg>
                     </div>
                 </div>
-                <h3 class="text-xl font-bold text-white mb-2">Clientes</h3>
+                <h3 class="text-xl font-bold text-white mb-2 uppercase">Clientes</h3>
                 <p class="text-blue-200 text-sm">Gestión de clientes y sus vehículos</p>
             </a>
 
@@ -36,7 +36,7 @@
                         </svg>
                     </div>
                 </div>
-                <h3 class="text-xl font-bold text-white mb-2">Ventas</h3>
+                <h3 class="text-xl font-bold text-white mb-2 uppercase">Ventas</h3>
                 <p class="text-purple-200 text-sm">Registro de ventas y gestión de créditos</p>
             </a>
 
@@ -49,7 +49,7 @@
                         </svg>
                     </div>
                 </div>
-                <h3 class="text-xl font-bold text-white mb-2">Órdenes de Servicio</h3>
+                <h3 class="text-xl font-bold text-white mb-2 uppercase">Órdenes de Servicio</h3>
                 <p class="text-blue-200 text-sm">Recepción, reparación y entrega de vehículos</p>
             </a>
 
@@ -62,7 +62,7 @@
                         </svg>
                     </div>
                 </div>
-                <h3 class="text-xl font-bold text-white mb-2">Inventario</h3>
+                <h3 class="text-xl font-bold text-white mb-2 uppercase">Inventario</h3>
                 <p class="text-blue-200 text-sm">Control de productos y existencias</p>
             </a>
 
@@ -76,10 +76,24 @@
                         </svg>
                     </div>
                 </div>
-                <h3 class="text-xl font-bold text-white mb-2">Servicios</h3>
+                <h3 class="text-xl font-bold text-white mb-2 uppercase">Servicios</h3>
                 <p class="text-blue-200 text-sm">Catálogo de servicios del taller</p>
             </a>
 
+
+            <!-- Reportes Card -->
+            <a href="{{ route('reportes.index') }}" class="group bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-cyan-500/20 cursor-pointer block">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-cyan-500/20 rounded-xl group-hover:bg-cyan-500/30 transition-colors">
+                        <svg class="w-8 h-8 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-2 uppercase">Reportes y Corte</h3>
+                <p class="text-blue-200 text-sm">Corte diario y balances históricos</p>
+            </a>
+            
             <!-- Proveedores Card -->
             <a href="{{ route('proveedores.index') }}" class="group bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/20 cursor-pointer block">
                 <div class="flex items-center justify-between mb-4">
@@ -89,7 +103,7 @@
                         </svg>
                     </div>
                 </div>
-                <h3 class="text-xl font-bold text-white mb-2">Proveedores</h3>
+                <h3 class="text-xl font-bold text-white mb-2 uppercase">Proveedores</h3>
                 <p class="text-blue-200 text-sm">Gestión de proveedores locales</p>
             </a>
 
@@ -102,21 +116,8 @@
                         </svg>
                     </div>
                 </div>
-                <h3 class="text-xl font-bold text-white mb-2">Compras</h3>
+                <h3 class="text-xl font-bold text-white mb-2 uppercase">Compras</h3>
                 <p class="text-blue-200 text-sm">Registro de compras y abastecimiento</p>
-            </a>
-
-            <!-- Reportes Card -->
-            <a href="{{ route('reportes.index') }}" class="group bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-cyan-500/20 cursor-pointer block">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="p-3 bg-cyan-500/20 rounded-xl group-hover:bg-cyan-500/30 transition-colors">
-                        <svg class="w-8 h-8 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                        </svg>
-                    </div>
-                </div>
-                <h3 class="text-xl font-bold text-white mb-2">Reportes y Corte</h3>
-                <p class="text-blue-200 text-sm">Corte diario y balances históricos</p>
             </a>
         </div>
 

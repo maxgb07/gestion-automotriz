@@ -146,4 +146,5 @@ class ReporteController extends Controller
         $pdf = Pdf::loadView('reportes.pdf.ordenes', compact('ordenes', 'pagos', 'fecha_inicio', 'fecha_fin'));
         return $pdf->stream("Reporte_Ordenes_{$fecha_inicio}_al_{$fecha_fin}.pdf");
     }
+
 }

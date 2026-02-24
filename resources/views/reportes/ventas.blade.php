@@ -41,7 +41,7 @@
                 'metodo' => $v->metodo_pago,
                 'metodo_mapeado' => $metodoMapeado,
                 'folio' => $v->folio,
-                'cliente' => $v->cliente->nombre,
+                'cliente' => $v->cliente?->nombre ?? 'CLIENTE ELIMINADO',
                 'es_pago' => false,
                 'requiere_factura' => $v->requiere_factura,
                 'folio_factura' => $v->folio_factura,
@@ -78,7 +78,7 @@
                     'metodo' => $metodoOriginal,
                     'metodo_mapeado' => $metodoMapeado,
                     'folio' => $v->folio,
-                    'cliente' => $v->cliente->nombre,
+                    'cliente' => $v->cliente?->nombre ?? 'CLIENTE ELIMINADO',
                     'es_pago' => true,
                     'requiere_factura' => $v->requiere_factura,
                     'folio_factura' => $v->folio_factura,
@@ -180,8 +180,8 @@
                             $details = $mov['item']->detalles->map(function($d) {
                                 return [
                                     'cantidad' => $d->cantidad,
-                                    'nombre' => $d->producto_id ? $d->producto->nombre : $d->servicio->nombre,
-                                    'descripcion' => $d->producto_id ? $d->producto->descripcion : $d->servicio->descripcion,
+                                    'nombre' => $d->producto_id ? ($d->producto?->nombre ?? 'PRODUCTO ELIMINADO') : ($d->servicio?->nombre ?? 'SERVICIO ELIMINADO'),
+                                    'descripcion' => $d->producto_id ? ($d->producto?->descripcion ?? 'N/A') : ($d->servicio?->descripcion ?? 'N/A'),
                                     'subtotal' => $d->subtotal
                                 ];
                             });

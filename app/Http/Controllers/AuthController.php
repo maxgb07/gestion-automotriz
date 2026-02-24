@@ -60,9 +60,9 @@ class AuthController extends Controller
     }
 
     /**
-     * Muestra el dashboard principal
+     * Muestra el dashboard principal con estadísticas
      */
-    public function dashboard()
+    public function dashboard(Request $request)
     {
         return view('dashboard');
     }
