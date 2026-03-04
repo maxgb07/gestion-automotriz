@@ -181,7 +181,7 @@
                                         </a>
                                     @endif
 
-                                    @if($orden->estado === 'FINALIZADO')
+                                    @if(in_array($orden->estado, ['FINALIZADO', 'PENDIENTE DE PAGO']))
                                         <button onclick="abrirModalPago({{ $orden->id }}, {{ $orden->total }}, {{ $orden->saldo_pendiente }})" 
                                                 class="p-2 bg-green-500/10 hover:bg-green-500/20 text-green-300 rounded-lg border border-green-500/10 transition-all cursor-pointer" 
                                                 title="REGISTRAR PAGO">

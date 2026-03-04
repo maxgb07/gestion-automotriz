@@ -35,6 +35,7 @@ class AppServiceProvider extends ServiceProvider
             $notificationService = app(\App\Services\NotificationService::class);
             $view->with('eomAlert', $notificationService->getEndOfMonthRepairs());
             $view->with('prevMonthAlert', $notificationService->getPreviousMonthRepairs());
+            $view->with('finishedOrdersAlert', $notificationService->getFinishedOrdersPrevMonth());
         });
     }
 }

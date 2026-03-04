@@ -63,7 +63,16 @@
                 </a>
 
 
-                <a href="{{ route('reportes.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 {{ request()->routeIs('reportes.index') || request()->routeIs('reportes.corte') || request()->routeIs('reportes.ventas') || request()->routeIs('reportes.ordenes') ? 'bg-gradient-to-r from-blue-500/80 to-purple-600/80 text-white shadow-lg shadow-blue-500/20 font-bold' : 'text-blue-100 hover:bg-white/5 hover:text-white' }}">
+                <a href="{{ route('creditos.index') }}" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 {{ request()->routeIs('creditos.*') ? 'bg-gradient-to-r from-blue-500/80 to-purple-600/80 text-white shadow-lg shadow-blue-500/20 font-bold' : 'text-blue-100 hover:bg-white/5 hover:text-white' }}">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 1.343-3 3s1.343 3 3 3 3-1.343 3-3-1.343-3-3-3zM12 8V7m0 1v1m0 0a4 4 0 014 4m0 0h1m-1 0a4 4 0 01-4 4m0 0h-1m1 0a4 4 0 01-4-4m0 0h-1m1 0a4 4 0 014-4m0 0V7"></path>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 22V18m-4.5 0h9M12 2v4m-4.5 0h9"></path>
+                    </svg>
+                    <span>Cuentas por Cobrar</span>
+                </a>
+
+                <a href="{{ route('reportes.index') }}"
+ class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 {{ request()->routeIs('reportes.index') || request()->routeIs('reportes.corte') || request()->routeIs('reportes.ventas') || request()->routeIs('reportes.ordenes') ? 'bg-gradient-to-r from-blue-500/80 to-purple-600/80 text-white shadow-lg shadow-blue-500/20 font-bold' : 'text-blue-100 hover:bg-white/5 hover:text-white' }}">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                     </svg>

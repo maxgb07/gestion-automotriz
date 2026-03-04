@@ -11,6 +11,7 @@ use App\Http\Controllers\ServicioController;
 use App\Http\Controllers\VentaController;
 use App\Http\Controllers\PagoVentaController;
 use App\Http\Controllers\ReporteController;
+use App\Http\Controllers\CreditoController;
 
 // Ruta principal - redirige según autenticación
 Route::get('/', function () {
@@ -77,6 +78,15 @@ Route::middleware('auth')->group(function () {
     Route::post('ordenes/{orden}/imagenes', [\App\Http\Controllers\OrdenServicioController::class, 'subirImagen'])->name('ordenes.imagenes.store');
     Route::post('ordenes/{orden}/datos-vehiculo', [\App\Http\Controllers\OrdenServicioController::class, 'actualizarDatosVehiculo'])->name('ordenes.datos-vehiculo.update');
     Route::delete('ordenes/{orden}/imagenes/{imagen}', [\App\Http\Controllers\OrdenServicioController::class, 'eliminarImagen'])->name('ordenes.imagenes.destroy');
+
+    // Cuentas por Cobrar
+    Route::prefix('creditos')->name('creditos.')->group(function () {
+        Route::get('/', [CreditoController::class, 'index'])->name('index');
+        Route::get('/{cliente}', [CreditoController::class, 'show'])->name('show');
+        Route::post('/{cliente}/comentario', [CreditoController::class, 'storeComentario'])->name('comentario.store');
+        Route::get('/{cliente}/historial', [CreditoController::class, 'historialComentarios'])->name('historial');
+        Route::get('/{cliente}/pdf', [CreditoController::class, 'generarEstadoCuenta'])->name('pdf');
+    });
 
     // Reportes
     Route::prefix('reportes')->name('reportes.')->group(function () {

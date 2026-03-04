@@ -23,11 +23,19 @@
                 iconColor: '#3b82f6',
                 background: 'rgba(15, 23, 42, 0.95)',
                 backdrop: 'rgba(0,0,0,0.4) blur(4px)',
-                confirmButtonText: 'ENTENDIDO',
+                showCancelButton: true,
+                confirmButtonText: 'VER ÓRDENES',
+                cancelButtonText: 'AHORA NO',
                 confirmButtonColor: '#3b82f6',
+                cancelButtonColor: '#475569',
                 customClass: {
                     popup: 'rounded-[2rem] border border-white/10 shadow-2xl backdrop-blur-2xl',
-                    confirmButton: 'rounded-xl font-black uppercase tracking-widest px-10 py-3 shadow-lg shadow-blue-500/20'
+                    confirmButton: 'rounded-xl font-black uppercase tracking-widest px-10 py-3 shadow-lg shadow-blue-500/20',
+                    cancelButton: 'rounded-xl font-black uppercase tracking-widest px-10 py-3'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    window.location.href = '{{ $eomAlert['url'] }}';
                 }
             });
         });

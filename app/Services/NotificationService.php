@@ -187,8 +187,9 @@ class NotificationService
         }
 
         return [
-            'count' => $orders->count(),
-            'folios' => $orders->pluck('folio')->implode(', ')
+            'count'  => $orders->count(),
+            'folios' => $orders->pluck('folio')->implode(', '),
+            'url'    => route('ordenes.index', ['estado' => 'REPARACION']),
         ];
     }
     /**
@@ -207,8 +208,32 @@ class NotificationService
         }
 
         return [
-            'count' => $orders->count(),
-            'folios' => $orders->pluck('folio')->implode(', ')
+            'count'  => $orders->count(),
+            'folios' => $orders->pluck('folio')->implode(', '),
+            'url'    => route('ordenes.index', ['estado' => 'REPARACION']),
+        ];
+    }
+
+    /**
+     * Obtiene órdenes en estado FINALIZADO de meses anteriores.
+     * Se muestra SIEMPRE que existan, sin restricción de fecha.
+     */
+    public function getFinishedOrdersPrevMonth(): ?array
+    {
+        $inicioMesActual = Carbon::now()->startOfMonth();
+
+        $orders = OrdenServicio::where('estado', 'FINALIZADO')
+            ->where('fecha_entrada', '<', $inicioMesActual)
+            ->get();
+
+        if ($orders->isEmpty()) {
+            return null;
+        }
+
+        return [
+            'count'   => $orders->count(),
+            'folios'  => $orders->pluck('folio')->implode(', '),
+            'url'     => route('ordenes.index', ['estado' => 'FINALIZADO']),
         ];
     }
 }

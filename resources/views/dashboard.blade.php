@@ -119,6 +119,19 @@
                 <h3 class="text-xl font-bold text-white mb-2 uppercase">Compras</h3>
                 <p class="text-blue-200 text-sm">Registro de compras y abastecimiento</p>
             </a>
+
+            <!-- Cuentas por Cobrar Card -->
+            <a href="{{ route('creditos.index') }}" class="group bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-rose-500/20 cursor-pointer block">
+                <div class="flex items-center justify-between mb-4">
+                    <div class="p-3 bg-rose-500/20 rounded-xl group-hover:bg-rose-500/30 transition-colors">
+                        <svg class="w-8 h-8 text-rose-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                        </svg>
+                    </div>
+                </div>
+                <h3 class="text-xl font-bold text-white mb-2 uppercase">Cuentas por Cobrar</h3>
+                <p class="text-rose-200 text-sm">Seguimiento de saldos y cobranza</p>
+            </a>
         </div>
 
         <div class="mt-16 bg-blue-500/20 backdrop-blur-xl rounded-2xl p-8 border border-blue-500/30">
