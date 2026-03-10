@@ -76,4 +76,18 @@ class Producto extends Model
     {
         return $this->hasMany(OrdenServicioDetalle::class);
     }
+    public function historialCompras()
+    {
+        return $this->hasMany(DetalleCompra::class)
+            ->join('compras', 'detalles_compra.compra_id', '=', 'compras.id')
+            ->join('proveedores', 'compras.proveedor_id', '=', 'proveedores.id')
+            ->select(
+                'detalles_compra.*',
+                'compras.fecha_compra',
+                'compras.folio',
+                'compras.factura',
+                'proveedores.nombre as proveedor_nombre'
+            )
+            ->orderBy('compras.fecha_compra', 'desc');
+    }
 }

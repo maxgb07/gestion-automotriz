@@ -13,16 +13,23 @@ class ProductoController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Producto::query();
+        $query = Producto::with('historialCompras');
 
-        if ($request->has('buscar')) {
+        if ($request->has('buscar') && $request->get('buscar') != '') {
             $buscar = $request->get('buscar');
-            $query->where(function($q) use ($buscar) {
-                $q->where('nombre', 'like', "%{$buscar}%")
-                  ->orWhere('sku', 'like', "%{$buscar}%")
-                  ->orWhere('marca', 'like', "%{$buscar}%")
-                  ->orWhere('codigo_barras', 'like', "%{$buscar}%")
-                  ->orWhere('aplicacion', 'like', "%{$buscar}%");
+            $terminos = array_filter(explode(' ', $buscar));
+
+            $query->where(function($q) use ($terminos) {
+                foreach ($terminos as $termino) {
+                    $q->where(function($subQ) use ($termino) {
+                        $subQ->where('nombre', 'like', "%{$termino}%")
+                          ->orWhere('descripcion', 'like', "%{$termino}%")
+                          ->orWhere('sku', 'like', "%{$termino}%")
+                          ->orWhere('marca', 'like', "%{$termino}%")
+                          ->orWhere('codigo_barras', 'like', "%{$termino}%")
+                          ->orWhere('aplicacion', 'like', "%{$termino}%");
+                    });
+                }
             });
         }
 
@@ -76,6 +83,7 @@ class ProductoController extends Controller
 
     public function edit(Producto $producto)
     {
+        $producto->load('historialCompras');
         return view('productos.editar', compact('producto'));
     }
 
@@ -238,11 +246,26 @@ class ProductoController extends Controller
     public function buscar(Request $request)
     {
         $term = $request->get('q');
-        $productos = Producto::where('nombre', 'like', "%{$term}%")
-                            ->orWhere('sku', 'like', "%{$term}%")
-                            ->orWhere('marca', 'like', "%{$term}%")
-                            ->limit(10)
-                            ->get(['id', 'nombre', 'sku', 'marca', 'descripcion']);
+        $query = Producto::query();
+
+        if (!empty(trim($term))) {
+            $terminos = array_filter(explode(' ', $term));
+            $query->where(function($q) use ($terminos) {
+                foreach ($terminos as $termino) {
+                    $q->where(function($subQ) use ($termino) {
+                        $subQ->where('nombre', 'like', "%{$termino}%")
+                             ->orWhere('descripcion', 'like', "%{$termino}%")
+                             ->orWhere('sku', 'like', "%{$termino}%")
+                             ->orWhere('marca', 'like', "%{$termino}%")
+                             ->orWhere('codigo_barras', 'like', "%{$termino}%")
+                             ->orWhere('aplicacion', 'like', "%{$termino}%");
+                    });
+                }
+            });
+        }
+
+        $productos = $query->limit(10)
+                           ->get(['id', 'nombre', 'sku', 'marca', 'descripcion', 'aplicacion', 'codigo_barras']);
 
         $results = [];
         foreach ($productos as $producto) {

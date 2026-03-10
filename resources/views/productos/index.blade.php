@@ -187,43 +187,75 @@
                     ${imagenHtml}
                     <div class="text-center mb-8">
                         <h3 class="text-3xl font-black text-white uppercase mb-2 tracking-tighter">${producto.nombre}</h3>
-                        <!--<p class="text-blue-300/60 text-xs font-mono uppercase mb-4 tracking-widest">${producto.sku || 'SIN SKU'}</p>-->
+                        <!--<p class="text-blue-300/60 text-md font-mono uppercase mb-4 tracking-widest">${producto.sku || 'SIN SKU'}</p>-->
                         <div class="h-px w-20 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent mx-auto mb-4"></div>
-                        <p class="text-blue-100/80 text-sm uppercase px-6 leading-relaxed">${producto.descripcion || 'SIN DESCRIPCIÓN'}</p>
+                        <p class="text-blue-100/80 text-md uppercase px-6 leading-relaxed">${producto.descripcion || 'SIN DESCRIPCIÓN'}</p>
                     </div>
 
                     <div class="grid grid-cols-2 gap-4 bg-white/5 p-6 rounded-[2rem] border border-white/10 shadow-inner">
                         <div class="space-y-1 p-3 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
-                            <p class="text-[10px] font-black text-blue-300/40 uppercase tracking-widest">Marca Original</p>
-                            <p class="text-white font-bold uppercase text-sm">${producto.marca || 'N/A'}</p>
+                            <p class="text-md font-black text-blue-300/40 uppercase tracking-widest">Marca Original</p>
+                            <p class="text-white font-bold uppercase text-md">${producto.marca || 'N/A'}</p>
                         </div>
                         <div class="space-y-1 p-3 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
-                            <p class="text-[10px] font-black text-blue-300/40 uppercase tracking-widest">Código de Barras</p>
-                            <p class="text-white font-mono font-bold text-sm">${producto.codigo_barras || 'N/A'}</p>
+                            <p class="text-md font-black text-blue-300/40 uppercase tracking-widest">Código de Barras</p>
+                            <p class="text-white font-mono font-bold text-md">${producto.codigo_barras || 'N/A'}</p>
                         </div>
                         <div class="col-span-2 space-y-1 p-3 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
-                            <p class="text-[10px] font-black text-blue-300/40 uppercase tracking-widest">Aplicación / Compatibilidad</p>
-                            <p class="text-white font-bold uppercase text-xs leading-relaxed">${producto.aplicacion || 'N/A'}</p>
+                            <p class="text-md font-black text-blue-300/40 uppercase tracking-widest">Aplicación / Compatibilidad</p>
+                            <p class="text-white font-bold uppercase text-md leading-relaxed">${producto.aplicacion || 'N/A'}</p>
                         </div>
                         <div class="space-y-1 p-4 rounded-2xl bg-green-500/10 border border-green-500/20 group hover:bg-green-500/15 transition-all">
-                            <p class="text-[10px] font-black text-green-400/40 uppercase tracking-widest mb-1">Precio Venta</p>
+                            <p class="text-md font-black text-green-400/40 uppercase tracking-widest mb-1">Precio Venta</p>
                             <p class="text-green-400 font-black text-2xl group-hover:scale-105 transition-transform origin-left">$${new Intl.NumberFormat().format(producto.precio_venta)}</p>
                         </div>
                         <div class="space-y-1 p-4 rounded-2xl bg-blue-500/10 border border-blue-500/20 group hover:bg-blue-500/15 transition-all">
-                            <p class="text-[10px] font-black text-blue-400/40 uppercase tracking-widest mb-1">Precio Compra</p>
+                            <p class="text-md font-black text-blue-400/40 uppercase tracking-widest mb-1">Precio Compra</p>
                             <p class="text-blue-400 font-bold text-xl group-hover:scale-105 transition-transform origin-left">$${new Intl.NumberFormat().format(producto.precio_compra)}</p>
                         </div>
                         <div class="space-y-1 p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col justify-center items-center text-center">
-                            <p class="text-[10px] font-black text-blue-300/40 uppercase tracking-widest mb-2">Stock Existente</p>
+                            <p class="text-md font-black text-blue-300/40 uppercase tracking-widest mb-2">Stock Existente</p>
                             <p class="text-white font-black text-3xl tracking-tighter">${producto.stock}</p>
                         </div>
                         <div class="space-y-1 p-4 rounded-2xl bg-white/5 border border-white/10 flex flex-col justify-center items-center text-center">
-                            <p class="text-[10px] font-black text-blue-300/40 uppercase tracking-widest mb-2">Punto de Reorden</p>
+                            <p class="text-md font-black text-blue-300/40 uppercase tracking-widest mb-2">Punto de Reorden</p>
                             <p class="text-white font-bold text-2xl tracking-tighter">${producto.stock_minimo}</p>
                         </div>
                         <div class="col-span-2 space-y-1 p-4 rounded-2xl bg-white/5 border border-white/10">
-                            <p class="text-[10px] font-black text-blue-300/40 uppercase tracking-widest mb-2">Observaciones Internas</p>
-                            <p class="text-white/70 text-xs uppercase italic leading-relaxed">${producto.observaciones || 'SIN COMENTARIOS ADICIONALES'}</p>
+                            <p class="text-md font-black text-blue-300/40 uppercase tracking-widest mb-2">Observaciones Internas</p>
+                            <p class="text-white/70 text-md uppercase italic leading-relaxed">${producto.observaciones || 'SIN COMENTARIOS ADICIONALES'}</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 border-t border-white/10 pt-6">
+                        <h4 class="text-md font-black text-blue-200 uppercase tracking-widest mb-4">Últimas Compras</h4>
+                        <div class="max-h-60 overflow-y-auto overflow-x-hidden rounded-xl bg-white/5 border border-white/10">
+                            ${producto.historial_compras && producto.historial_compras.length > 0 ? `
+                                <table class="w-full text-left border-collapse text-md">
+                                    <thead class="bg-white/10 sticky top-0 backdrop-blur-md">
+                                        <tr>
+                                            <th class="px-4 py-2 text-md text-white font-bold uppercase first:rounded-tl-xl">FECHA</th>
+                                            <th class="px-4 py-2 text-md text-white font-bold uppercase">PROVEEDOR</th>
+                                            <th class="px-4 py-2 text-md text-white font-bold uppercase text-center">CANTIDAD</th>
+                                            <th class="px-4 py-2 text-md text-white font-bold uppercase text-center">FOLIO COMPRA</th>
+                                            <th class="px-4 py-2 text-md text-white font-bold uppercase text-center">FACTURA</th>
+                                            <th class="px-4 py-2 text-md text-white font-bold uppercase text-right last:rounded-tr-xl pr-6 w-32">PRECIO</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-white/5">
+                                        ${producto.historial_compras.map((comp, index) => `
+                                            <tr class="hover:bg-white/5 transition-colors ${index === producto.historial_compras.length - 1 ? 'last:rounded-b-xl' : ''}">
+                                                <td class="px-4 py-3 text-md font-bold text-white ${index === producto.historial_compras.length - 1 ? 'first:rounded-bl-xl' : ''}">${comp.fecha_compra ? comp.fecha_compra.split('-').reverse().join('/') : ''}</td>
+                                                <td class="px-4 py-3 text-md font-bold uppercase text-white truncate" title="${comp.proveedor_nombre || 'N/A'}">${comp.proveedor_nombre || 'N/A'}</td>
+                                                <td class="px-4 py-3 text-md font-bold text-center text-white">${comp.cantidad ? new Intl.NumberFormat('en-US').format(comp.cantidad) : '0'}</td>
+                                                <td class="px-4 py-3 text-md font-bold uppercase text-center text-white truncate max-w-[100px]">${comp.folio || '-'}</td>
+                                                <td class="px-4 py-3 text-md font-bold uppercase text-center text-white truncate max-w-[100px]">${comp.factura || '-'}</td>
+                                                <td class="px-4 py-3 text-md font-black text-white text-right ${index === producto.historial_compras.length - 1 ? 'last:rounded-br-xl' : ''} pr-6 min-w-[100px]">$${new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(comp.precio_compra)}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                </table>
+                            ` : `<p class="px-4 py-6 text-center text-blue-200/40 font-bold text-xs uppercase tracking-widest">SIN HISTORIAL DE COMPRAS</p>`}
                         </div>
                     </div>
                 </div>
@@ -233,7 +265,7 @@
             confirmButtonColor: '#3b82f6',
             background: 'rgba(15, 23, 42, 0.95)',
             color: '#fff',
-            width: '600px',
+            width: '1000px',
             customClass: {
                 popup: 'backdrop-blur-xl border border-white/20 rounded-[3rem] p-8',
                 confirmButton: 'px-8 py-3 rounded-2xl font-black uppercase tracking-widest text-xs'

@@ -3,7 +3,7 @@
 @section('title', 'Editar Producto')
 
 @section('content')
-    <div class="max-w-4xl mx-auto py-4">
+    <div class="max-w-6xl mx-auto py-4">
         <div class="mb-8 flex items-center justify-between">
             <a href="{{ route('productos.index') }}" class="inline-flex items-center text-blue-200 hover:text-white transition-colors">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -97,6 +97,43 @@
                     <div class="md:col-span-2">
                         <label for="observaciones" class="block text-sm font-medium text-blue-100 mb-2 uppercase">Observaciones</label>
                         <textarea name="observaciones" id="observaciones" rows="3" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-200/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm uppercase">{{ old('observaciones', $producto->observaciones) }}</textarea>
+                    </div>
+                </div>
+
+                <div class="mt-12 space-y-4">
+                    <h3 class="text-xl font-bold text-white uppercase border-b border-white/10 pb-2">Historial de Compras</h3>
+                    
+                    <div class="bg-white/5 rounded-2xl border border-white/10 overflow-hidden">
+                        <table class="w-full text-left border-collapse">
+                            <thead class="bg-white/10 border-b border-white/10">
+                                <tr>
+                                    <th class="px-6 py-3 text-md font-semibold text-white uppercase tracking-widest">Fecha</th>
+                                    <th class="px-6 py-3 text-md font-semibold text-white uppercase tracking-widest">Proveedor</th>
+                                    <th class="px-6 py-3 text-md font-semibold text-white uppercase tracking-widest text-center">Cantidad</th>
+                                    <th class="px-6 py-3 text-md font-semibold text-white uppercase tracking-widest text-center">Folio Compra</th>
+                                    <th class="px-6 py-3 text-md font-semibold text-white uppercase tracking-widest text-center">Factura</th>
+                                    <th class="px-6 py-3 text-md font-semibold text-white uppercase tracking-widest text-right">Precio de Compra</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-white/10">
+                                @forelse($producto->historialCompras as $compra)
+                                    <tr class="hover:bg-white/5 transition-colors">
+                                        <td class="px-6 py-4 text-md text-white font-mono">{{ \Carbon\Carbon::parse($compra->fecha_compra)->format('d/m/Y') }}</td>
+                                        <td class="px-6 py-4 text-md text-white font-bold uppercase">{{ $compra->proveedor_nombre ?? 'N/A' }}</td>
+                                        <td class="px-6 py-4 text-md text-white font-bold text-center">{{ number_format($compra->cantidad, 0) }}</td>
+                                        <td class="px-6 py-4 text-md text-white uppercase text-center">{{ $compra->folio ?? 'N/A' }}</td>
+                                        <td class="px-6 py-4 text-md text-white uppercase text-center">{{ $compra->factura ?? 'N/A' }}</td>
+                                        <td class="px-6 py-4 text-md font-black text-white text-right group-hover:text-gray-300 transition-colors">${{ number_format($compra->precio_compra, 2, '.', ',') }}</td>
+                                    </tr>
+                                @empty
+                                    <tr>
+                                        <td colspan="6" class="px-6 py-10 text-center">
+                                            <p class="text-blue-200/50 uppercase text-sm font-semibold tracking-widest">Este producto no cuenta con historial de compras</p>
+                                        </td>
+                                    </tr>
+                                @endforelse
+                            </tbody>
+                        </table>
                     </div>
                 </div>
 

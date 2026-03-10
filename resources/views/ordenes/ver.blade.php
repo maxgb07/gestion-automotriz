@@ -1298,7 +1298,7 @@
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">CANTIDAD *</label>
-                                <input type="number" id="edit-cantidad" step="0.01" value="${cantidad}" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                                <input type="number" id="edit-cantidad" step="1" value="${cantidad}" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all">
                             </div>
                             <div>
                                 <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">PRECIO UNITARIO *</label>
