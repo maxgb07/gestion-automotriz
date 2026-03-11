@@ -61,16 +61,8 @@
                         {{ $producto->stock }}
                     </td>
                     <td class="text-center">{{ $producto->stock_minimo }}</td>
-                    <td class="text-center" style="background-color: #eff6ff; font-weight: bold;">
-                        @php
-                            $basico = ($producto->stock_minimo * 2) - $producto->stock;
-                            $sugerido = $basico > 0 ? $basico : ($producto->stock_minimo - $producto->stock + 5);
-                            // Si hubo mcuas ventas, asegurar que el sugerido cubra al menos lo vendido en el periodo + stock minimo
-                            if($producto->ventas_periodo > $sugerido) {
-                                $sugerido = $producto->ventas_periodo + ($producto->stock_minimo - $producto->stock);
-                            }
-                        @endphp
-                        {{ $sugerido }}
+                    <td class="text-center" style="background-color: #eff6ff; font-weight: bold; color: #1e40af;">
+                        {{ $producto->sugerido }}
                     </td>
                 </tr>
             @endforeach

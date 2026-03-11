@@ -265,7 +265,7 @@ class ProductoController extends Controller
         }
 
         $productos = $query->limit(10)
-                           ->get(['id', 'nombre', 'sku', 'marca', 'descripcion', 'aplicacion', 'codigo_barras']);
+                           ->get(['id', 'nombre', 'sku', 'marca', 'descripcion', 'aplicacion', 'codigo_barras', 'precio_compra', 'precio_venta']);
 
         $results = [];
         foreach ($productos as $producto) {
@@ -274,7 +274,10 @@ class ProductoController extends Controller
                 'text' => "{$producto->nombre} - " . ($producto->descripcion ?? 'SIN DESCRIPCIÓN'),
                 'nombre' => $producto->nombre,
                 'descripcion' => $producto->descripcion ?? 'SIN DESCRIPCIÓN',
-                'marca' => $producto->marca
+                'sku' => $producto->sku,
+                'marca' => $producto->marca,
+                'precio_compra' => $producto->precio_compra,
+                'precio_venta' => $producto->precio_venta
             ];
         }
 

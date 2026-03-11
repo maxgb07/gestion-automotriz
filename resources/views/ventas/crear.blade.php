@@ -54,7 +54,7 @@
                 <div class="bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20 shadow-2xl mb-8">
                     <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
                         <div>
-                            <label for="cliente_id" class="block text-sm font-medium text-blue-100 mb-2 uppercase">Cliente *</label>
+                            <label for="cliente_id" class="block text-md font-medium text-blue-100 mb-2 uppercase">Cliente *</label>
                             <select name="cliente_id" id="cliente_id" class="block w-full" required>
                                 @foreach($clientes as $cliente)
                                     <option value="{{ $cliente->id }}" {{ $publicoGeneral && $cliente->id == $publicoGeneral->id ? 'selected' : '' }}>
@@ -65,13 +65,14 @@
                         </div>
 
                         <div>
-                            <label for="fecha" class="block text-sm font-medium text-blue-100 mb-2 uppercase">Fecha *</label>
+                            <label for="fecha" class="block text-md font-medium text-blue-100 mb-2 uppercase">Fecha *</label>
                             <input type="datetime-local" name="fecha" id="fecha" value="{{ date('Y-m-d\TH:i') }}" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" required>
                         </div>
 
                         <div>
-                            <label for="metodo_pago" class="block text-sm font-medium text-blue-100 mb-2 uppercase">Método de Pago *</label>
+                            <label for="metodo_pago" class="block text-md font-medium text-blue-100 mb-2 uppercase">Método de Pago *</label>
                             <select name="metodo_pago" id="metodo_pago" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all uppercase" required>
+                                <option value="" disabled selected>SELECCIONA UNA OPCIÓN</option>
                                 <option value="EFECTIVO">EFECTIVO</option>
                                 <option value="TARJETA DE DÉBITO">TARJETA DE DÉBITO</option>
                                 <option value="TARJETA DE CRÉDITO">TARJETA DE CRÉDITO</option>
@@ -82,8 +83,8 @@
                         </div>
 
                         <div>
-                            <label for="requiere_factura" class="block text-sm font-medium text-blue-100 mb-2 uppercase">¿Requiere Factura? *</label>
-                            <select name="requiere_factura" id="requiere_factura" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all uppercase" required>
+                            <label for="requiere_factura" class="block text-md font-medium text-blue-100 mb-2 uppercase">¿Requiere Factura? *</label>
+                            <select name="requiere_factura" id="requiere_factura" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all uppercase text-md" required>
                                 <option value="NO">NO</option>
                                 <option value="SI">SÍ</option>
                             </select>
@@ -115,13 +116,13 @@
                         <table class="w-full text-center border-collapse" id="items-table">
                             <thead class="bg-white/5 border-b border-white/10">
                                 <tr>
-                                    <th class="px-2 py-4 text-xs font-bold text-blue-200 uppercase tracking-widest w-28">Cantidad</th>
-                                    <th class="px-6 py-4 text-xs font-bold text-blue-200 uppercase tracking-widest">Tipo</th>
-                                    <th class="px-3 py-4 text-xs font-bold text-blue-200 uppercase tracking-widest w-80">Clave</th>
-                                    <th class="px-6 py-4 text-xs font-bold text-blue-200 uppercase tracking-widest w-80">Descripción</th>
-                                    <th class="px-4 py-4 text-xs font-bold text-blue-200 uppercase tracking-widest w-32">Precio</th>
+                                    <th class="px-2 py-4 text-md font-bold text-blue-200 uppercase tracking-widest w-28">Cantidad</th>
+                                    <th class="px-6 py-4 text-md font-bold text-blue-200 uppercase tracking-widest">Tipo</th>
+                                    <th class="px-3 py-4 text-md font-bold text-blue-200 uppercase tracking-widest w-80">Clave</th>
+                                    <th class="px-6 py-4 text-md font-bold text-blue-200 uppercase tracking-widest w-80">Descripción</th>
+                                    <th class="px-4 py-4 text-md font-bold text-blue-200 uppercase tracking-widest w-32">Precio</th>
                                     <!-- <th class="px-4 py-4 text-xs font-bold text-blue-200 uppercase tracking-widest w-28">Descuento</th> -->
-                                    <th class="px-6 py-4 text-xs font-bold text-blue-200 uppercase tracking-widest w-40 text-right">Importe</th>
+                                    <th class="px-6 py-4 text-md font-bold text-blue-200 uppercase tracking-widest w-40 text-right">Importe</th>
                                     <th class="px-4 py-4 w-16"></th>
                                 </tr>
                             </thead>
@@ -133,7 +134,7 @@
 
                     <div class="bg-white/5 p-8 border-t border-white/10 flex justify-end">
                         <div class="w-full md:w-80 text-right">
-                            <span class="text-blue-200 text-xs uppercase font-black tracking-[0.2em] mb-2 block" style="font-size: 1.5rem; font-weight: 500;">Total a Pagar</span>
+                            <span class="text-blue-200 text-md uppercase font-black tracking-[0.2em] mb-2 block" style="font-size: 1.5rem; font-weight: 500;">Total a Pagar</span>
                             <div class="font-black text-white hover:text-blue-400 transition-all duration-300 leading-none tracking-tighter" id="total-general" style="font-size: 1.5rem; font-weight: 500;">$0.00</div>
                         </div>
                     </div>
@@ -162,7 +163,7 @@
     <template id="row-template">
         <tr class="hover:bg-white/5 transition-colors">
             <td class="px-3 py-4">
-                <input type="number" name="items[INDEX][cantidad]" value="1" min="1" step="any" oninput="calculateRow(this)" class="block w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-white text-center text-sm font-bold focus:ring-1 focus:ring-blue-500/50 outline-none transition-all" required>
+                <input type="number" name="items[INDEX][cantidad]" value="1" min="1" step="any" oninput="calculateRow(this)" class="block w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-white text-center text-md font-bold focus:ring-1 focus:ring-blue-500/50 outline-none transition-all" required>
             </td>
             <td class="px-3 py-4">
                 <select name="items[INDEX][tipo]" onchange="changeType(this)" class="tipo-select block w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-white text-md uppercase focus:outline-none">
@@ -179,7 +180,7 @@
                 <input type="text" name="items[INDEX][descripcion]" class="descripcion-input block w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-white text-md uppercase focus:outline-none" readonly>
             </td>
             <td class="px-3 py-4">
-                <input type="number" step="any" name="items[INDEX][precio_unitario]" value="0.00" oninput="calculateRow(this)" class="block w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-white text-center text-sm font-bold focus:ring-1 focus:ring-blue-500/50 outline-none" required>
+                <input type="number" step="any" name="items[INDEX][precio_unitario]" value="0.00" oninput="calculateRow(this)" class="block w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-white text-center text-md font-bold focus:ring-1 focus:ring-blue-500/50 outline-none" required>
             </td>
             <!-- <td class="px-3 py-4">
                 <div class="relative">
@@ -187,7 +188,7 @@
                 </div>
             </td> -->
             <td class="px-3 py-4 text-right">
-                <input type="number" step="any" name="items[INDEX][subtotal]" value="0.00" oninput="calculateTotal()" class="subtotal-input block w-full px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-white text-right text-sm font-black font-mono focus:ring-1 focus:ring-blue-500/50 outline-none" required>
+                <input type="number" step="any" name="items[INDEX][subtotal]" value="0.00" oninput="calculateTotal()" class="subtotal-input block w-full px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-white text-right text-md font-black font-mono focus:ring-1 focus:ring-blue-500/50 outline-none" required>
             </td>
             <td class="px-3 py-4 text-center">
                 <button type="button" onclick="removeRow(this)" class="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-xl transition-all">
@@ -206,6 +207,7 @@
     <script>
         const PRODUCTOS = @json($productos);
         const SERVICIOS = @json($servicios);
+        const PUBLICO_GENERAL_ID = {{ $publicoGeneral ? $publicoGeneral->id : 1 }};
         let rowIndex = 0;
 
         $(document).ready(function() {
@@ -216,6 +218,25 @@
             $('#venta-form').on('submit', function(e) {
                 e.preventDefault();
                 const form = $(this);
+                
+                const clienteId = parseInt($('#cliente_id').val());
+                const metodoPago = $('#metodo_pago').val();
+                
+                if (metodoPago === 'CREDITO' && clienteId === PUBLICO_GENERAL_ID) {
+                    Swal.fire({
+                        title: 'MÉTODO DE PAGO INVÁLIDO',
+                        text: 'El método de pago a CRÉDITO no puede ser otorgado al cliente "Público en General". Por favor, seleccione el cliente correcto en el menú desplegable o cambie el método de pago.',
+                        icon: 'warning',
+                        confirmButtonColor: '#3b82f6',
+                        background: '#1e293b',
+                        color: '#fff',
+                        customClass: {
+                            popup: 'rounded-3xl border border-white/20 shadow-2xl',
+                            title: 'text-xl font-black uppercase tracking-tighter'
+                        }
+                    });
+                    return;
+                }
                 
                 Swal.fire({
                     title: '¿Finalizar Venta?',

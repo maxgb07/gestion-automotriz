@@ -107,24 +107,32 @@
                 <div class="bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl overflow-hidden mb-8">
                     <div class="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
                         <h2 class="text-xl font-bold text-white uppercase tracking-tight">Detalle de Productos</h2>
-                        <button type="button" onclick="addRow()" class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-6 py-2.5 focus:outline-none inline-flex items-center">
-                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                            </svg>
-                            Agregar Producto
-                        </button>
+                        <div class="flex gap-3">
+                            <button type="button" onclick="abrirModalNuevoProducto()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black rounded-xl transition-all uppercase tracking-widest flex items-center justify-center cursor-pointer shadow-lg shadow-blue-900/40">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Nuevo Producto
+                            </button>
+                            <button type="button" onclick="addRow()" class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-6 py-2.5 focus:outline-none inline-flex items-center transition-colors">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                                </svg>
+                                Fila Manual
+                            </button>
+                        </div>
                     </div>
                     
                     <div class="overflow-x-auto">
                         <table class="w-full text-left" id="productos-table">
-                            <thead class="bg-white/5 border-b border-white/10">
+                            <thead class="bg-slate-800/90 backdrop-blur-md border-b border-white/10 sticky top-[70px] z-10 shadow-lg">
                                 <tr>
-                                    <th class="px-4 py-4 text-xs font-bold text-blue-200 uppercase tracking-wider w-24 text-center">Cantidad</th>
-                                    <th class="px-6 py-4 text-xs font-bold text-blue-200 uppercase tracking-wider text-center">Producto</th>
-                                    <th class="px-4 py-4 text-xs font-bold text-blue-200 uppercase tracking-wider w-36 text-center">Precio Compra</th>
-                                    <th class="px-4 py-4 text-xs font-bold text-blue-200 uppercase tracking-wider w-36 text-center">Precio Venta</th>
-                                    <th class="px-4 py-4 text-xs font-bold text-blue-200 uppercase tracking-wider w-40 text-center">Subtotal</th>
-                                    <th class="px-4 py-4 text-xs font-bold text-blue-200 uppercase tracking-wider w-16 text-center"></th>
+                                    <th class="px-4 py-4 text-md font-bold text-blue-200 uppercase tracking-wider w-24 text-center">Cantidad</th>
+                                    <th class="px-6 py-4 text-md font-bold text-blue-200 uppercase tracking-wider text-center">Producto</th>
+                                    <th class="px-4 py-4 text-md font-bold text-blue-200 uppercase tracking-wider w-36 text-center">Precio Compra</th>
+                                    <th class="px-4 py-4 text-md font-bold text-blue-200 uppercase tracking-wider w-36 text-center">Precio Venta</th>
+                                    <th class="px-4 py-4 text-md font-bold text-blue-200 uppercase tracking-wider w-40 text-center">Subtotal</th>
+                                    <th class="px-4 py-4 text-md font-bold text-blue-200 uppercase tracking-wider w-16 text-center"></th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-white/10">
@@ -167,26 +175,21 @@
     <template id="row-template">
         <tr class="hover:bg-white/5 transition-colors">
             <td class="px-4 py-4 text-center">
-                <input type="number" name="productos[INDEX][cantidad]" value="1" min="1" oninput="calculateRow(this)" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm text-sm text-center">
+                <input type="number" name="productos[INDEX][cantidad]" value="1" min="1" oninput="calculateRow(this)" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm text-md text-center">
             </td>
             <td class="px-6 py-4 text-center">
-                <select name="productos[INDEX][id]" onchange="updateProductData(this)" class="select-product block w-full" required>
-                    <option value="" disabled selected>SELECCIONAR...</option>
-                    @foreach($productos as $producto)
-                        <option value="{{ $producto->id }}" data-compra="{{ $producto->precio_compra }}" data-venta="{{ $producto->precio_venta }}">
-                            {{ $producto->nombre }}
-                        </option>
-                    @endforeach
+                <select name="productos[INDEX][id]" class="select-product block w-full" required>
+                    <!-- Opciones cargadas por AJAX vía Select2 -->
                 </select>
             </td>
             <td class="px-4 py-4 text-center">
-                <input type="number" step="any" name="productos[INDEX][precio_compra]" value="0.00" min="0.00" oninput="calculateRow(this)" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm text-sm text-center">
+                <input type="number" step="any" name="productos[INDEX][precio_compra]" value="0.00" min="0.00" oninput="calculateRow(this)" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm text-md text-center">
             </td>
             <td class="px-4 py-4 text-center">
-                <input type="number" step="any" name="productos[INDEX][precio_venta]" value="0.00" min="0.00" oninput="calculateRow(this)" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm text-sm font-bold text-center">
+                <input type="number" step="any" name="productos[INDEX][precio_venta]" value="0.00" min="0.00" oninput="calculateRow(this)" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm text-md font-bold text-center">
             </td>
             <td class="px-4 py-4 text-center">
-                <span class="text-white font-mono text-base font-bold subtotal">$0.00</span>
+                <span class="text-white text-md font-bold subtotal">$0.00</span>
             </td>
             <td class="px-4 py-4 text-center">
                 <button type="button" onclick="removeRow(this)" class="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-xl transition-all">
@@ -202,23 +205,84 @@
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/i18n/es.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $(document).ready(function() {
             let rowIndex = 0;
+
+            // Arreglo global: cuando Select2 se abre, forzar el foco interno en su input text de búsqueda
+            $(document).on('select2:open', () => {
+                document.querySelector('.select2-search__field').focus();
+            });
 
             // Inicializar Select2 para Proveedor
             $('#proveedor_id').select2({
                 placeholder: 'SELECCIONA PROVEEDOR',
                 width: '100%',
-                dropdownParent: $('#compra-form')
+                dropdownParent: $('#compra-form'),
+                language: 'es'
             });
 
-            // Función para inicializar Select2 en una fila específica
+            // Función para inicializar Select2 en una fila específica vía AJAX
             window.initSelect2 = function(row) {
-                $(row).find('.select-product').select2({
-                    placeholder: 'SELECCIONAR...',
+                const selectElement = $(row).find('.select-product');
+                
+                selectElement.select2({
+                    placeholder: 'BUSCAR PRODUCTO...',
                     width: '100%',
-                    dropdownParent: $('#compra-form')
+                    dropdownParent: $('#compra-form'),
+                    ajax: {
+                        url: '{{ route('productos.buscar') }}',
+                        dataType: 'json',
+                        delay: 250,
+                        data: function (params) {
+                            return {
+                                q: params.term // término de búsqueda
+                            };
+                        },
+                        processResults: function (data) {
+                            return {
+                                results: data.results // {id, text, precio_compra, precio_venta}
+                            };
+                        },
+                        cache: true
+                    },
+                    minimumInputLength: 1,
+                    language: 'es',
+                    templateResult: formatProductInfo,
+                    templateSelection: formatProductSelection
+                });
+
+                // Abrir automáticamente el buscador cuando la celda reciba el foco via Tabulador
+                $(row).find('.select2-selection').on('focus', function() {
+                    $(this).closest('.select2-container').siblings('select:enabled').select2('open');
+                });
+
+                // Escuchar el evento de selección para llenar los campos de precios
+                selectElement.on('select2:select', function (e) {
+                    const data = e.params.data;
+                    const tr = this.closest('tr');
+                    
+                    const pCompra = tr.querySelector('[name*="[precio_compra]"]');
+                    const pVenta = tr.querySelector('[name*="[precio_venta]"]');
+                    const cant = tr.querySelector('[name*="[cantidad]"]');
+
+                    if (data.precio_compra !== undefined) {
+                        pCompra.value = data.precio_compra;
+                        pVenta.value = data.precio_venta;
+                    }
+                    
+                    calculateRow(this);
+                    
+                    // UX Auto-Row: Si es la última fila y acabamos de seleccionar un producto válido, agregar una nueva fila automáticamente.
+                    const tbody = document.querySelector('#productos-table tbody');
+                    if (tr === tbody.lastElementChild && pCompra.value !== "") {
+                        setTimeout(() => { addRow(); }, 150); // Ligero delay para que el usuario sienta la fluidez
+                    }
+                    
+                    // Pasar el foco al precio de compra de la fila actual para que el usuario pueda validarlo
+                    pCompra.select();
                 });
             };
 
@@ -256,20 +320,6 @@
                 checkEmpty();
             };
 
-            window.updateProductData = function(select) {
-                const option = select.options[select.selectedIndex];
-                const row = select.closest('tr');
-                const pCompra = row.querySelector('[name*="[precio_compra]"]');
-                const pVenta = row.querySelector('[name*="[precio_venta]"]');
-                
-                if (option.dataset.compra) {
-                    pCompra.value = option.dataset.compra;
-                    pVenta.value = option.dataset.venta;
-                }
-                
-                calculateRow(select);
-            };
-
             window.calculateRow = function(input) {
                 const row = input.closest('tr');
                 const cant = row.querySelector('[name*="[cantidad]"]').value || 0;
@@ -292,6 +342,19 @@
                 document.getElementById('total-general').textContent = '$' + total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
             };
 
+            // Formato visual para los resultados de la búsqueda Ajax
+            function formatProductInfo (producto) {
+                if (producto.loading) {
+                    return producto.text;
+                }
+                return $('<div>' + producto.text + '</div>');
+            }
+
+            // Formato visual de lo que queda seleccionado en la caja
+            function formatProductSelection (producto) {
+                return producto.text;
+            }
+
             window.checkEmpty = function() {
                 const tbody = document.querySelector('#productos-table tbody');
                 const msg = document.getElementById('no-products-msg');
@@ -303,8 +366,157 @@
                 }
             };
 
+            // Antes de enviar el formulario (interceptando el click del botón submit para evitar la validación HTML5 de la fila vacía)
+            $('#compra-form button[type="submit"]').on('click', function(e) {
+                const tbody = document.querySelector('#productos-table tbody');
+                const rows = tbody.querySelectorAll('tr');
+                
+                rows.forEach(row => {
+                    const select = row.querySelector('.select-product');
+                    // Si el select de esta fila está vacío, le quitamos el 'required' y removemos la fila
+                    if (!select.value) {
+                        select.removeAttribute('required');
+                        row.remove();
+                    }
+                });
+                
+                // Si la tabla quedó sin filas válidas, no dejamos continuar
+                if (tbody.children.length === 0) {
+                    e.preventDefault();
+                    alert('Debe agregar al menos un producto a la compra.');
+                    addRow();
+                }
+            });
+
             // Agregar una fila inicial
             addRow();
         });
+
+        // --- Registro Rápido de Producto ---
+        function abrirModalNuevoProducto() {
+            Swal.fire({
+                title: 'REGISTRAR NUEVO PRODUCTO',
+                background: '#1e293b',
+                color: '#fff',
+                html: `
+                    <div class="space-y-4 text-left mt-4">
+                        <div>
+                            <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">SKU / CLAVE *</label>
+                            <input type="text" id="swal-nombre" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-md font-bold uppercase focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="EJ: WX333">
+                        </div>
+                        <div>
+                            <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">MARCA</label>
+                            <input type="text" id="swal-marca" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-md font-bold uppercase focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="EJ: WAGNER">
+                        </div>
+                        <div>
+                            <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">DESCRIPCIÓN</label>
+                            <textarea id="swal-descripcion" rows="2" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-md font-bold uppercase focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="EJ: BALATAS FRENO DE DISCO"></textarea>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">PRECIO COMPRA</label>
+                                <input type="number" id="swal-costo" step="0.01" value="0.00" onfocus="this.select()" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-md font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">PRECIO VENTA</label>
+                                <input type="number" id="swal-precio" step="0.01" value="0.00" onfocus="this.select()" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-md font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">STOCK MÍNIMO</label>
+                            <input type="number" id="swal-stock-minimo" step="1" value="1" onfocus="this.select()" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-md font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'REGISTRAR',
+                cancelButtonText: 'CANCELAR',
+                confirmButtonColor: '#3b82f6',
+                cancelButtonColor: '#475569',
+                customClass: {
+                    popup: 'rounded-3xl border border-white/20 shadow-2xl',
+                    title: 'text-xl font-black uppercase tracking-tighter'
+                },
+                didOpen: () => {
+                    setTimeout(() => document.getElementById('swal-nombre').focus(), 100);
+                },
+                preConfirm: () => {
+                    const nombre = document.getElementById('swal-nombre').value;
+                    // El SKU asume el mismo valor del nombre si es el estándar usado en BD
+                    const sku = nombre; 
+                    const costo = document.getElementById('swal-costo').value;
+                    const precio = document.getElementById('swal-precio').value;
+                    const descripcion = document.getElementById('swal-descripcion').value;
+                    const marca = document.getElementById('swal-marca').value;
+                    const stockMinimo = document.getElementById('swal-stock-minimo').value;
+
+                    if (!nombre) {
+                        Swal.showValidationMessage('Todos los campos obligatorios (*) deben estar llenos');
+                        return false;
+                    }
+
+                    return { sku, nombre, costo, precio, descripcion, marca, stockMinimo };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const { sku, nombre, costo, precio, descripcion, marca, stockMinimo } = result.value;
+                    
+                    Swal.fire({
+                        title: 'Guardando...',
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                    $.ajax({
+                        url: '{{ route("productos.store") }}',
+                        method: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            sku: sku,
+                            nombre: nombre,
+                            marca: marca,
+                            descripcion: descripcion,
+                            precio_compra: costo,
+                            precio_venta: precio,
+                            stock: 0,
+                            stock_minimo: stockMinimo
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: '¡Producto Registrado!',
+                                    text: 'Ya puedes buscarlo en la tabla.',
+                                    timer: 2000,
+                                    showConfirmButton: false
+                                }).then(() => {
+                                    // Alerta de éxito completada, enfocamos la última fila para que el usuario busque
+                                    const tbody = document.querySelector('#productos-table tbody');
+                                    let lastRow = tbody.lastElementChild;
+                                    
+                                    // Si la tabla estuviera mágicamente limpia, agregamos fila
+                                    if (!lastRow) {
+                                        addRow();
+                                        lastRow = tbody.lastElementChild;
+                                    }
+                                    
+                                    // Comprobar si la última fila ya tiene un producto; si es así, hacemos otra limpia
+                                    const selectVal = lastRow.querySelector('.select-product').value;
+                                    if (selectVal) {
+                                        addRow();
+                                        lastRow = tbody.lastElementChild;
+                                    }
+
+                                    // Enfocar para escribir
+                                    $(lastRow).find('.select2-selection').focus();
+                                });
+                            }
+                        },
+                        error: function(xhr) {
+                            Swal.fire('Error', xhr.responseJSON.message || 'No se pudo registrar el producto', 'error');
+                        }
+                    });
+                }
+            });
+        }
     </script>
 @endpush
