@@ -140,7 +140,13 @@
                     </div>
                 </div>
 
-                <!-- Sección 3: Acciones -->
+                <!-- Sección 3: Observaciones -->
+                <div class="bg-white/10 backdrop-blur-xl rounded-3xl p-8 border border-white/20 shadow-2xl mb-8">
+                    <h2 class="text-xl font-bold text-white uppercase tracking-tight mb-4">Observaciones</h2>
+                    <textarea name="observaciones" id="observaciones" rows="3" placeholder="EJ: ENVÍO A DOMICILIO, GARANTÍA 30 DÍAS..." class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-200/40 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all resize-none text-md uppercase"></textarea>
+                </div>
+
+                <!-- Sección 4: Acciones -->
                 <div class="flex items-center justify-center gap-6 py-12 mt-10 border-t border-white/5">
                     <button type="submit" class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-black leading-5 rounded-base text-sm px-10 py-4 focus:outline-none inline-flex items-center min-w-[220px] justify-center uppercase tracking-widest">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -238,16 +244,75 @@
                     return;
                 }
                 
+                // Recopilar datos del formulario para el resumen
+                const clienteTexto = $('#cliente_id option:selected').text().trim();
+                const metodoPagoTexto = $('#metodo_pago option:selected').text().trim();
+                const observaciones = $('#observaciones').val().trim();
+                const totalTexto = document.getElementById('total-general').textContent.trim();
+                const numArticulos = document.querySelectorAll('#items-table tbody tr').length;
+                const esCredito = metodoPago === 'CREDITO';
+                
+                // Fecha de vencimiento estimada (15 días)
+                const fechaVencimiento = (() => {
+                    const d = new Date();
+                    d.setDate(d.getDate() + 15);
+                    return d.toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                })();
+
+                const resumenHtml = `
+                    <div style="text-align:left; font-size:14px; margin-top:10px;">
+                        <table style="width:100%; border-collapse:collapse;">
+                            <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+                                <td style="padding:8px 4px; color:#93c5fd; font-size:14px; text-transform:uppercase; font-weight:700;">Cliente</td>
+                                <td style="padding:8px 4px; font-weight:600;">${clienteTexto}</td>
+                            </tr>
+                            <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+                                <td style="padding:8px 4px; color:#93c5fd; font-size:14px; text-transform:uppercase; font-weight:700;">Artículos</td>
+                                <td style="padding:8px 4px; font-weight:600;">${numArticulos}</td>
+                            </tr>
+                            <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+                                <td style="padding:8px 4px; color:#93c5fd; font-size:14px; text-transform:uppercase; font-weight:700;">Método de Pago</td>
+                                <td style="padding:8px 4px; font-weight:600;">${metodoPagoTexto}</td>
+                            </tr>
+                            <tr style="${esCredito ? 'border-bottom:1px solid rgba(255,255,255,0.1);' : ''}">
+                                <td style="padding:8px 4px; color:#93c5fd; font-size:14px; text-transform:uppercase; font-weight:700;">Total</td>
+                                <td style="padding:8px 4px; font-weight:900; font-size:18px; color:#4ade80;">${totalTexto}</td>
+                            </tr>
+                            ${esCredito ? `
+                            <tr>
+                                <td colspan="2" style="padding:10px 4px;">
+                                    <div style="background:rgba(239,68,68,0.15); border:1px solid rgba(239,68,68,0.4); border-radius:10px; padding:10px;">
+                                        <p style="margin:0 0 4px 0; color:#f87171; font-weight:900; font-size:14px; text-transform:uppercase;">⚠ Venta a Crédito</p>
+                                        <p style="margin:0; font-size:14px; color:#fca5a5;">El saldo de <strong>${totalTexto}</strong> quedará pendiente de pago con vencimiento el <strong>${fechaVencimiento}</strong>.</p>
+                                    </div>
+                                </td>
+                            </tr>` : ''}
+                            ${observaciones ? `
+                            <tr>
+                                <td style="padding:8px 4px; color:#93c5fd; font-size:14px; text-transform:uppercase; font-weight:700;">Observaciones</td>
+                                <td style="padding:8px 4px; font-size:14px; color:#cbd5e1;">${observaciones}</td>
+                            </tr>` : ''}
+                        </table>
+                    </div>
+                `;
+
                 Swal.fire({
                     title: '¿Finalizar Venta?',
-                    text: "Se registrará la venta en el sistema.",
+                    html: resumenHtml,
                     icon: 'question',
                     showCancelButton: true,
                     confirmButtonColor: '#3b82f6',
                     cancelButtonColor: '#6b7280',
                     confirmButtonText: 'Sí, finalizar',
-                    cancelButtonText: 'Cancelar'
+                    cancelButtonText: 'Cancelar',
+                    background: '#1e293b',
+                    color: '#fff',
+                    customClass: {
+                        popup: 'rounded-3xl border border-white/20 shadow-2xl',
+                        title: 'text-xl font-black uppercase tracking-tighter'
+                    }
                 }).then((result) => {
+
                     if (result.isConfirmed) {
                         Swal.fire({
                             title: 'Procesando...',

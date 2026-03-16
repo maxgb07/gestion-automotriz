@@ -18,7 +18,7 @@ class VentaController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Venta::with('cliente');
+        $query = Venta::with(['cliente', 'detalles.producto', 'detalles.servicio'])->withCount('detalles');
 
         if ($request->has('buscar') && $request->buscar != '') {
             $buscar = $request->get('buscar');

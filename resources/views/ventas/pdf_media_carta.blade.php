@@ -178,6 +178,13 @@
             </div>
         </div>
 
+        @if($venta->observaciones)
+        <div style="margin-top: 10px; border-top: 1px solid #e5e7eb; padding-top: 6px;">
+            <p style="font-size: 8px; color: #6b7280; text-transform: uppercase; font-weight: bold; margin: 0 0 3px 0;">Observaciones:</p>
+            <p style="font-size: 9px; color: #1a1a1a; margin: 0;">{{ $venta->observaciones }}</p>
+        </div>
+        @endif
+
         <div class="footer">
            {{ config('app.name') }} - Gracias por su preferencia.<br>
            Este documento no representa un comprobante fiscal.

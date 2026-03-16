@@ -112,6 +112,23 @@
                 </div>
             </div>
 
+            @if($venta->observaciones)
+            <!-- Observaciones -->
+            <div class="w-full mb-8">
+                <div class="bg-white/10 backdrop-blur-xl rounded-3xl p-6 border border-blue-400/20 shadow-2xl flex items-start gap-4">
+                    <div class="p-3 bg-blue-500/10 rounded-2xl text-blue-400 shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <p class="text-blue-300 text-xs font-black uppercase tracking-widest mb-1">Observaciones</p>
+                        <p class="text-white font-bold uppercase text-md leading-relaxed">{{ $venta->observaciones }}</p>
+                    </div>
+                </div>
+            </div>
+            @endif
+
             <!-- Fila 2: Resumen de Cuenta -->
             <div class="w-full mb-8">
                 <!-- Card: Detalle de Items -->

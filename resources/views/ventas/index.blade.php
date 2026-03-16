@@ -72,14 +72,16 @@
     <!-- Filtros -->
     <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 mb-8 shadow-xl">
         <form action="{{ route('ventas.index') }}" method="GET" class="flex flex-col md:flex-row gap-4 items-end">
-            <div class="md:flex-[3] w-full">
-                <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-2 ml-1">Seleccionar Cliente</label>
-                <select name="cliente_id" id="cliente_id_filter" class="select2-filter">
-                    <option value="">TODOS LOS CLIENTES</option>
-                    @foreach(\App\Models\Cliente::orderBy('nombre')->get() as $cliente)
-                        <option value="{{ $cliente->id }}" {{ request('cliente_id') == $cliente->id ? 'selected' : '' }}>{{ $cliente->nombre }}</option>
-                    @endforeach
-                </select>
+            <div class="md:flex-[3] relative w-full">
+                <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-2 ml-1">Buscar Venta</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <svg class="h-5 w-5 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                    </div>
+                    <input type="text" name="buscar" value="{{ request('buscar') }}" placeholder="FOLIO O CLIENTE..." class="block w-full pl-12 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-200/50 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all duration-200 backdrop-blur-sm uppercase text-md font-bold">
+                </div>
             </div>
 
             <div class="md:flex-1 w-full">
@@ -99,13 +101,14 @@
                 <button type="submit" class="w-fit px-8 py-3 h-[50px] bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/20 transition-all uppercase flex items-center justify-center">
                     BUSCAR
                 </button>
-                @if(request('buscar') || request('cliente_id') || request('metodo_pago'))
+                @if(request('buscar') || request('metodo_pago'))
                     <a href="{{ route('ventas.index') }}" class="w-fit px-5 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-200 font-semibold rounded-xl border border-red-500/30 transition-all text-center uppercase">
                         LIMPIAR
                     </a>
                 @endif
             </div>
         </form>
+    </div>
     <!-- Tabs de Filtrado -->
     <div class="flex flex-wrap items-center gap-2 mb-4 mt-8">
         @php
@@ -155,7 +158,24 @@
                 </thead>
                 <tbody class="divide-y divide-white/10">
                     @forelse($ventas as $venta)
-                        <tr class="hover:bg-white/5 transition-colors group">
+                    <tr class="hover:bg-white/5 transition-colors group"
+                        data-venta="{{ json_encode([
+                            'folio' => $venta->folio,
+                            'fecha' => $venta->fecha->translatedFormat('d M, Y'),
+                            'cliente' => $venta->cliente->nombre,
+                            'total' => number_format($venta->total, 2),
+                            'saldo' => number_format($venta->saldo_pendiente, 2),
+                            'metodo' => $venta->metodo_pago,
+                            'estado' => $venta->estado,
+                            'detalles' => $venta->detalles->map(fn($d) => [
+                                'nombre' => $d->producto?->nombre ?? $d->servicio?->nombre ?? 'N/A',
+                                'descripcion' => $d->producto?->descripcion ?? $d->servicio?->descripcion ?? '---',
+                                'cantidad' => $d->cantidad,
+                                'subtotal' => number_format($d->subtotal, 2)
+                            ]),
+                            'observaciones' => $venta->observaciones ?? '',
+                            'factura' => $venta->folio_factura ?? '',
+                        ]) }}">
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 <span class="text-white font-bold text-md uppercase">{{ $venta->folio }}</span>
                             </td>
@@ -210,6 +230,11 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 <div class="flex justify-center items-center gap-2">
+                                    <button onclick="vistaRapida(this)" class="p-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 rounded-lg border border-purple-500/10 transition-all cursor-pointer" title="VISTA RÁPIDA">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </button>
                                     <a href="{{ route('ventas.show', $venta) }}" class="p-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 rounded-lg border border-blue-500/10 transition-all cursor-pointer" title="VER DETALLE">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -455,6 +480,94 @@
                             });
                         }
                     });
+                }
+            });
+        }
+
+        function vistaRapida(btn) {
+            const row = btn.closest('tr');
+            const v = JSON.parse(row.dataset.venta);
+            const estadoColor = v.estado === 'PAGADA' ? '#4ade80' : v.estado === 'PENDIENTE' ? '#fbbf24' : '#f87171';
+
+            Swal.fire({
+                title: v.folio,
+                background: '#1e293b',
+                color: '#fff',
+                html: `
+                    <div style="text-align:left; font-size:14px; margin-top:6px;">
+                        <table style="width:100%; border-collapse:collapse; margin-bottom:15px;">
+                            <tr>
+                                <td style="padding:4px; color:#93c5fd; font-size:14px; text-transform:uppercase; font-weight:700; width:65%">Cliente</td>
+                                <td style="padding:4px; color:#93c5fd; font-size:14px; text-transform:uppercase; font-weight:700; width:35%; text-align:right;">Fecha</td>
+                            </tr>
+                            <tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
+                                <td style="padding:0 4px 8px 4px; font-size:14px">${v.cliente}</td>
+                                <td style="padding:0 4px 8px 4px; font-size:14px; text-align:right;">${v.fecha}</td>
+                            </tr>
+                            <tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
+                                <td style="padding:7px 4px; color:#93c5fd; font-size:14px; text-transform:uppercase; font-weight:700;">Método</td>
+                                <td style="padding:7px 4px; font-size:14px; text-align:right;">${v.metodo}</td>
+                            </tr>
+                        </table>
+
+                        <p style="color:#93c5fd; font-size:14px; text-transform:uppercase; font-weight:700; margin-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:4px;">Detalle de Artículos</p>
+                        <table style="width:100%; border-collapse:collapse; margin-bottom:15px; font-size:12px;">
+                            <thead>
+                                <tr style="color:#93c5fd; text-align:center;">
+                                    <th style="padding:4px; font-size:14px; border-bottom:1px solid rgba(255,255,255,0.1);">CANT</th>
+                                    <th style="padding:4px; font-size:14px; border-bottom:1px solid rgba(255,255,255,0.1); text-align:left;">PRODUCTO/SERVICIO</th>
+                                    <th style="padding:4px; font-size:14px; border-bottom:1px solid rgba(255,255,255,0.1); text-align:right;">IMPORTE</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${v.detalles.map(d => `
+                                    <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                                        <td style="padding:6px 4px; text-align:center; font-size:14px;">${d.cantidad}</td>
+                                        <td style="padding:6px 4px; text-transform:uppercase;">
+                                            <div style="font-size:14px;">${d.nombre}</div>
+                                            <div style="font-size:14px;">${d.descripcion}</div>
+                                        </td>
+                                        <td style="padding:6px 4px; text-align:right; font-size:14px;">$${d.subtotal}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+
+                        <table style="width:100%; border-collapse:collapse;">
+                            <tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
+                                <td style="padding:7px 4px; color:#93c5fd; font-size:14px; text-transform:uppercase; font-size:14px; width:38%">Total</td>
+                                <td style="padding:7px 4px; font-size:14px; color:#4ade80; text-align:right;">$${ v.total}</td>
+                            </tr>
+                            ${parseFloat(v.saldo) > 0 ? `
+                            <tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
+                                <td style="padding:7px 4px; color:#f87171; font-size:14px; text-transform:uppercase; font-size:14px;">Saldo Pendiente</td>
+                                <td style="padding:7px 4px; font-size:14px; color:#f87171; text-align:right;">$${ v.saldo}</td>
+                            </tr>` : ''}
+                            <tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
+                                <td style="padding:7px 4px; color:#93c5fd; font-size:14px; text-transform:uppercase; font-size:14px;">Estado</td>
+                                <td style="padding:7px 4px; text-align:right; font-size:14px;"><span style="color:${estadoColor};">${v.estado}</span></td>
+                            </tr>
+                            ${v.factura ? `
+                            <tr style="border-bottom:1px solid rgba(255,255,255,0.08);">
+                                <td style="padding:7px 4px; color:#93c5fd; font-size:14px; text-transform:uppercase; font-size:14px;">Factura</td>
+                                <td style="padding:7px 4px; font-size:14px; text-align:right;">${v.factura}</td>
+                            </tr>` : ''}
+                            ${v.observaciones ? `
+                            <tr>
+                                <td colspan="2" style="padding:10px 4px;">
+                                    <p style="color:#93c5fd; font-size:14px; text-transform:uppercase; font-size:14px; margin-bottom:4px;">Observaciones:</p>
+                                    <p style="margin:0; font-size:14px; color:#cbd5e1; font-style:italic;">${v.observaciones}</p>
+                                </td>
+                            </tr>` : ''}
+                        </table>
+                    </div>
+                `,
+                showCancelButton: false,
+                confirmButtonText: 'CERRAR',
+                confirmButtonColor: '#475569',
+                customClass: {
+                    popup: 'rounded-3xl border border-white/20 shadow-2xl',
+                    title: 'text-xl font-black uppercase tracking-tighter'
                 }
             });
         }
