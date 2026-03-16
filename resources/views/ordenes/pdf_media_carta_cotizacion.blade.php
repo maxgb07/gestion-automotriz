@@ -201,6 +201,41 @@
             </div>
         </div>
 
+        @if($orden->imagenes->count() > 0)
+        <div style="page-break-before: auto; margin-top: 15px;">
+            <div class="section-title">Evidencias Fotográficas</div>
+            <table style="width: 100%; border-collapse: collapse;">
+                @foreach($orden->imagenes->chunk(3) as $chunk)
+                <tr>
+                    @foreach($chunk as $img)
+                    <td style="width: 33.33%; padding: 5px; text-align: center;">
+                        @php
+                            $path = storage_path('app/public/' . $img->ruta);
+                            $base64 = '';
+                            if (file_exists($path)) {
+                                $imgData = base64_encode(file_get_contents($path));
+                                $base64 = 'data:image/' . pathinfo($path, PATHINFO_EXTENSION) . ';base64,' . $imgData;
+                            }
+                        @endphp
+                        @if($base64)
+                            <div style="border: 0.5px solid #e5e7eb; padding: 2px; border-radius: 3px;">
+                                <img src="{{ $base64 }}" style="width: 100%; height: 100px; object-fit: cover;">
+                                @if($img->descripcion)
+                                    <p style="font-size: 6px; margin-top: 2px; text-transform: uppercase; color: #6b7280;">{{ $img->descripcion }}</p>
+                                @endif
+                            </div>
+                        @endif
+                    </td>
+                    @endforeach
+                    @for($i = count($chunk); $i < 3; $i++)
+                        <td style="width: 33.33%;"></td>
+                    @endfor
+                </tr>
+                @endforeach
+            </table>
+        </div>
+        @endif
+
         <div class="footer">
             {{ config('app.name') }} - Esta cotización tiene una vigencia de 15 días.<br>
             Los precios están sujetos a cambios sin previo aviso según disponibilidad de refacciones.

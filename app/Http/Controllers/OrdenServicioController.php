@@ -138,6 +138,13 @@ class OrdenServicioController extends Controller
      */
     public function update(Request $request, OrdenServicio $ordene)
     {
+        if ($request->has('actualizar_observaciones_post')) {
+            $ordene->update([
+                'observaciones_post_reparacion' => $request->observaciones_post_reparacion ? mb_strtoupper($request->observaciones_post_reparacion, 'UTF-8') : null
+            ]);
+            return response()->json(['success' => true, 'message' => 'Observaciones actualizadas correctamente']);
+        }
+
         if ($request->has('finalizar_reparacion')) {
             $request->validate([
                 'kilometraje_entrega' => 'nullable|integer|min:' . $ordene->kilometraje_entrada,
@@ -389,12 +396,12 @@ class OrdenServicioController extends Controller
 
         $request->validate([
             'imagenes' => 'required|array',
-            'imagenes.*' => 'image|mimes:jpeg,png,jpg,gif|uploaded',
+            'imagenes.*' => 'image|mimes:jpeg,png,jpg,gif|max:2048',
             'descripcion' => 'nullable|string|max:255',
         ], [
             'imagenes.*.image' => 'El archivo debe ser una imagen.',
             'imagenes.*.mimes' => 'La imagen debe ser jpeg, png, jpg o gif.',
-            'imagenes.*.uploaded' => 'La imagen es demasiado grande (Límite servidor: 2MB). Intenta comprimirla o subirla desde una PC.',
+            'imagenes.*.max' => 'La imagen es demasiado grande (Máximo 2MB). El sistema ya la comprime, pero esta foto es excesivamente pesada.',
         ]);
 
         try {
@@ -545,7 +552,7 @@ class OrdenServicioController extends Controller
 
     public function descargarCotizacionPDF(OrdenServicio $orden)
     {
-        $orden->load(['cliente', 'vehiculo', 'detalles.producto', 'detalles.servicio']);
+        $orden->load(['cliente', 'vehiculo', 'detalles.producto', 'detalles.servicio', 'imagenes']);
         
         // =========================================================================
         // CONFIGURACIÓN DE FORMATO DE IMPRESIÓN (COTIZACIÓN)

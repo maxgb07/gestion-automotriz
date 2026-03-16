@@ -88,37 +88,41 @@
             </div>
         </div>
 
-        <div class="space-y-8 mb-8">
-                <!-- Info Cliente -->
-                <div class="bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl overflow-hidden mb-8">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-8">
+            <!-- Bloque Izquierdo: Info Cliente (5 columnas) -->
+            <div class="lg:col-span-5 flex flex-col gap-8">
+                <div class="bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl overflow-hidden h-full">
                     <div class="p-6 border-b border-white/10 bg-white/5">
                         <h3 class="text-md font-black text-blue-200 uppercase tracking-[0.2em]">Información del Cliente</h3>
                     </div>
-                    <div class="p-6 space-y-4">
+                    <div class="p-6 space-y-6">
                         <div>
-                            <p class="text-md text-blue-200/40 font-black uppercase tracking-widest mb-1">Nombre</p>
-                            <p class="text-white font-bold text-md uppercase">{{ $orden->cliente->nombre }}</p>
+                            <p class="text-md text-blue-200/40 font-black uppercase tracking-widest mb-1">Nombre Completo</p>
+                            <p class="text-md text-white font-bold uppercase">{{ $orden->cliente->nombre }}</p>
                         </div>
-                        <div class="grid grid-cols-2 gap-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
                             <div>
-                                <p class="text-md text-blue-200/40 font-black uppercase tracking-widest mb-1">Teléfono</p>
-                                <p class="text-white font-bold text-md uppercase">{{ $orden->cliente->celular }}</p>
+                                <p class="text-md text-blue-200/40 font-black uppercase tracking-widest mb-1">Teléfono / Celular</p>
+                                <p class="text-md text-white font-bold uppercase">{{ $orden->cliente->celular }}</p>
                             </div>
                             <div>
                                 <p class="text-md text-blue-200/40 font-black uppercase tracking-widest mb-1">RFC</p>
-                                <p class="text-white font-bold text-md uppercase">{{ $orden->cliente->rfc ?? '---' }}</p>
+                                <p class="text-md text-white font-bold uppercase">{{ $orden->cliente->rfc ?? '---' }}</p>
                             </div>
                         </div>
                     </div>
                 </div>
+            </div>
 
+            <!-- Bloque Derecho: Info Técnica (7 columnas) -->
+            <div class="lg:col-span-7 grid grid-cols-1 md:grid-cols-2 gap-8">
                 <!-- Info Vehículo -->
-                <div class="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl overflow-hidden mb-8">
+                <div class="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl overflow-hidden flex flex-col">
                     <div class="p-6 border-b border-white/10 bg-white/5">
                         <h3 class="text-md font-black text-blue-200 uppercase tracking-[0.2em]">Datos del Vehículo</h3>
                     </div>
-                    <div class="p-6 space-y-4">
-                        <div class="flex items-center gap-4">
+                    <div class="p-6 flex-grow space-y-4">
+                        <div class="flex items-center gap-4 mb-4">
                             <div class="w-12 h-12 rounded-xl bg-blue-500/10 border border-blue-500/20 flex items-center justify-center text-blue-400">
                                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"></path>
@@ -127,47 +131,62 @@
                             </div>
                             <div>
                                 <p class="text-white font-black text-md uppercase leading-tight">{{ $orden->vehiculo->marca }} {{ $orden->vehiculo->modelo }}</p>
-                                <p class="text-blue-200/40 text-md font-bold uppercase tracking-widest">{{ $orden->vehiculo->anio }} • PLACAS: {{ $orden->vehiculo->placas ?? '---' }}</p>
+                                <p class="text-md uppercase tracking-widest">{{ $orden->vehiculo->anio }} • PLACAS: {{ $orden->vehiculo->placas ?? '---' }}</p>
                             </div>
                         </div>
-                        <div class="grid grid-cols-2 gap-4 pt-2">
-                            <!-- <div class="bg-white/5 rounded-xl p-3 border border-white/5">
-                                <p class="text-md text-blue-200/40 font-black uppercase tracking-widest mb-1">Km Entrada</p>
-                                <p class="text-white font-bold text-md uppercase">{{ number_format($orden->kilometraje_entrada) }} KM</p>
-                            </div> -->
+                        <div class="grid grid-cols-1 gap-3">
                             <div class="bg-white/5 rounded-xl p-3 border border-white/5">
-                                <p class="text-md text-blue-200/40 font-black uppercase tracking-widest mb-1">Km Entrega</p>
-                                <p class="text-white font-bold text-md uppercase">{{ number_format($orden->kilometraje_entrega) }} KM</p>
+                                <p class="text-md font-black uppercase tracking-widest mb-1 text-center">KM Entrega</p>
+                                <p class="text-white font-bold text-md uppercase text-center">{{ number_format($orden->kilometraje_entrega) }} KM</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
-                <!-- Reporte de Falla -->
-                <div class="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl overflow-hidden group mb-8">
-                    <div class="p-6 border-b border-white/10 bg-white/5">
-                        <h3 class="text-md font-black text-blue-200 uppercase tracking-[0.2em]">Falla Reportada</h3>
-                    </div>
-                    <div class="p-6">
-                        <div class="bg-amber-500/5 border border-amber-500/10 rounded-xl p-4">
-                            <p class="text-amber-200/80 text-md font-medium uppercase leading-relaxed italic">
-                                "{{ $orden->falla_reportada }}"
-                            </p>
+                <!-- Bloque de Fallas y Observaciones -->
+                <div class="flex flex-col gap-8">
+                    <!-- Falla Reportada -->
+                    <div class="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl overflow-hidden flex-grow group">
+                        <div class="p-5 border-b border-white/10 bg-white/5">
+                            <h3 class="text-md font-black text-blue-200 uppercase tracking-[0.2em]">Falla Reportada</h3>
                         </div>
-                        @if($orden->observaciones)
-                           <div class="mt-4">
-                                <p class="text-md text-blue-200/40 font-black uppercase tracking-widest mb-1 ml-1">Observaciones de Recepción</p>
-                                <p class="text-white/60 text-md uppercase font-bold">{{ $orden->observaciones }}</p>
-                           </div>
-                        @endif
-                        @if($orden->observaciones_post_reparacion)
-                           <div class="mt-4">
-                                <p class="text-md text-green-400/40 font-black uppercase tracking-widest mb-1 ml-1">Observaciones Post-Reparación</p>
-                                <p class="text-white/60 text-md uppercase font-bold">{{ $orden->observaciones_post_reparacion }}</p>
-                           </div>
-                        @endif
+                        <div class="p-5">
+                            <div class="bg-amber-500/5 border border-amber-500/10 rounded-xl p-3">
+                                <p class="text-amber-200/80 text-md font-medium uppercase leading-relaxed">
+                                    "{{ $orden->falla_reportada }}"
+                                </p>
+                            </div>
+                            @if($orden->observaciones)
+                                <div class="mt-3">
+                                    <p class="text-md text-blue-200 font-black uppercase tracking-widest mb-1 ml-1">Observaciones Recepción</p>
+                                    <p class="text-white/60 text-md uppercase font-bold">{{ $orden->observaciones }}</p>
+                                </div>
+                            @endif
+                        </div>
+                    </div>
+
+                    <!-- Observaciones Post-Reparación -->
+                    <div class="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl overflow-hidden flex-grow group">
+                        <div class="p-5 border-b border-white/10 bg-white/5 flex items-center justify-between">
+                            <h3 class="text-md font-black uppercase text-blue-200 tracking-[0.2em]">Observaciones post-reparación</h3>
+                            <button onclick="abrirModalObservacionesPost()" class="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-md font-black rounded-lg transition-all uppercase tracking-widest flex items-center shadow-lg shadow-green-900/40">
+                                <svg class="w-3.5 h-3.5 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+                                </svg>
+                                AGREGAR/EDITAR
+                            </button>
+                        </div>
+                        <div class="p-5">
+                            @if($orden->observaciones_post_reparacion)
+                                <p class="text-md uppercase font-bold leading-relaxed">{{ $orden->observaciones_post_reparacion }}</p>
+                            @else
+                                <p class="text-md uppercase font-bold text-center py-2">Sin observaciones aún</p>
+                            @endif
+                        </div>
                     </div>
                 </div>
+            </div>
+        </div>
                 <!-- Gestión de Items (Productos y Servicios) -->
                 <div class="bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl overflow-hidden mb-8">
                     <div class="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
@@ -555,6 +574,9 @@
 @push('scripts')
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <!-- Librerías para robustez de imágenes -->
+    <script src="https://cdn.jsdelivr.net/npm/browser-image-compression@2.0.2/dist/browser-image-compression.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.js"></script>
     <script>
         function verImagen(url, descripcion) {
             Swal.fire({
@@ -864,25 +886,31 @@
             });
         }
 
-        function abrirModalImagen() {
-            Swal.fire({
+        async function abrirModalImagen() {
+            const { value: formValues } = await Swal.fire({
                 title: 'SUBIR EVIDENCIA FOTOGRÁFICA',
                 background: '#1e293b',
                 color: '#fff',
                 html: `
                     <div class="space-y-4 text-left p-2">
-                        <div>
-                            <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">Imágenes (JPG, PNG) *</label>
-                            <input type="file" id="swal-imagen" accept="image/*" multiple class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                        <div class="bg-blue-500/10 border border-blue-500/20 p-3 rounded-xl mb-4">
+                            <p class="text-[10px] text-blue-300 font-bold uppercase tracking-wider leading-tight">
+                                <i class="fas fa-info-circle mr-1"></i> Se recomienda subir máx 5 fotos a la vez. <br>
+                                Soporta JPG, PNG y HEIC (iPhone). Las fotos pesadas se comprimirán automáticamente.
+                            </p>
                         </div>
                         <div>
-                            <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">Descripción corta</label>
+                            <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">Seleccionar Imágenes *</label>
+                            <input type="file" id="swal-imagen" accept="image/*,.heic,.HEIC" multiple class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">Descripción corta (opcional)</label>
                             <input type="text" id="swal-desc" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="Ej: Falla motor, pieza dañada...">
                         </div>
                     </div>
                 `,
                 showCancelButton: true,
-                confirmButtonText: 'SUBIR',
+                confirmButtonText: 'COMPRIMIR Y SUBIR',
                 confirmButtonColor: '#3b82f6',
                 preConfirm: () => {
                     const files = document.getElementById('swal-imagen').files;
@@ -893,20 +921,56 @@
                     }
                     return { files, desc };
                 }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const formData = new FormData();
-                    formData.append('_token', '{{ csrf_token() }}');
-                    
-                    for (let i = 0; i < result.value.files.length; i++) {
-                        formData.append('imagenes[]', result.value.files[i]);
-                    }
-                    formData.append('descripcion', result.value.desc);
+            });
 
-                    Swal.fire({
-                        title: 'Subiendo...',
-                        didOpen: () => { Swal.showLoading(); }
-                    });
+            if (formValues) {
+                const { files, desc } = formValues;
+                const formData = new FormData();
+                formData.append('_token', '{{ csrf_token() }}');
+                formData.append('descripcion', desc);
+
+                Swal.fire({
+                    title: 'Procesando imágenes...',
+                    html: '<div class="mt-2 text-xs font-bold text-blue-300 uppercase tracking-widest" id="upload-status">Optimizando archivos para carga rápida...</div>',
+                    allowOutsideClick: false,
+                    didOpen: () => { Swal.showLoading(); }
+                });
+
+                try {
+                    const compressionOptions = {
+                        maxSizeMB: 1,           // Comprimir a máximo 1MB
+                        maxWidthOrHeight: 1920, // Resolución Full HD max
+                        useWebWorker: true
+                    };
+
+                    for (let i = 0; i < files.length; i++) {
+                        let file = files[i];
+                        const statusEl = document.getElementById('upload-status');
+                        if (statusEl) statusEl.innerText = `PROCESANDO IMAGEN ${i + 1} DE ${files.length}...`;
+
+                        // 1. Soporte HEIC
+                        if (file.name.toLowerCase().endsWith('.heic') || file.type === 'image/heic') {
+                            try {
+                                const blob = await heic2any({ blob: file, toType: "image/jpeg", quality: 0.8 });
+                                file = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", { type: "image/jpeg" });
+                            } catch (heicErr) {
+                                console.error("Error convirtiendo HEIC:", heicErr);
+                            }
+                        }
+
+                        // 2. Compresión
+                        try {
+                            const compressedFile = await imageCompression(file, compressionOptions);
+                            formData.append('imagenes[]', compressedFile, compressedFile.name);
+                        } catch (compressErr) {
+                            console.error("Error comprimiendo:", compressErr);
+                            formData.append('imagenes[]', file); // Fallback: subir original si falla compresión
+                        }
+                    }
+
+                    if (document.getElementById('upload-status')) {
+                        document.getElementById('upload-status').innerText = 'ENVIANDO AL SERVIDOR...';
+                    }
 
                     $.ajax({
                         url: '{{ route("ordenes.imagenes.store", $orden) }}',
@@ -919,12 +983,14 @@
                             location.reload();
                         },
                         error: (xhr) => {
-                            const msg = xhr.responseJSON?.message || 'No se pudo subir la imagen';
+                            const msg = xhr.responseJSON?.message || 'Error al subir. Posiblemente el servidor rechazó el tamaño del paquete.';
                             Swal.fire('Error', msg, 'error');
                         }
                     });
+                } catch (err) {
+                    Swal.fire('Error', 'Error crítico procesando imágenes: ' + err.message, 'error');
                 }
-            });
+            }
         }
 
 
@@ -1640,6 +1706,69 @@
                                 background: '#1e293b',
                                 color: '#fff'
                             });
+                        }
+                    });
+                }
+            });
+        }
+
+        function abrirModalObservacionesPost() {
+            Swal.fire({
+                title: 'OBSERVACIONES POST-REPARACIÓN',
+                background: '#1e293b',
+                color: '#fff',
+                html: `
+                    <div class="space-y-4 text-left p-2">
+                        <label class="block text-md font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">OBSERVACIONES SOBRE EL TRABAJO REALIZADO</label>
+                        <textarea id="modal-obs-post" rows="6" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-md font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all uppercase" placeholder="DESCRIPCIÓN DEL TRABAJO, RECOMENDACIONES, ETC...">{{ $orden->observaciones_post_reparacion }}</textarea>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'GUARDAR OBSERVACIONES',
+                cancelButtonText: 'CANCELAR',
+                confirmButtonColor: '#0d9488',
+                cancelButtonColor: '#ef4444',
+                customClass: {
+                    container: 'backdrop-blur-sm',
+                    popup: 'rounded-3xl border border-white/10 shadow-2xl',
+                    confirmButton: 'rounded-xl px-8 py-3 font-bold uppercase tracking-widest text-sm',
+                    cancelButton: 'rounded-xl px-8 py-3 font-bold uppercase tracking-widest text-sm'
+                },
+                preConfirm: () => {
+                    const observaciones = document.getElementById('modal-obs-post').value;
+                    return { observaciones_post_reparacion: observaciones };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Guardando...',
+                        allowOutsideClick: false,
+                        didOpen: () => { Swal.showLoading(); }
+                    });
+
+                    $.ajax({
+                        url: '{{ route("ordenes.update", $orden) }}',
+                        method: 'PUT',
+                        data: { 
+                            _token: '{{ csrf_token() }}', 
+                            actualizar_observaciones_post: true,
+                            ...result.value 
+                        },
+                        success: (response) => {
+                            if (response.success) {
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: '¡ACTUALIZADO!',
+                                    text: response.message,
+                                    timer: 1500,
+                                    showConfirmButton: false
+                                }).then(() => {
+                                    location.reload();
+                                });
+                            }
+                        },
+                        error: (xhr) => {
+                            Swal.fire('Error', xhr.responseJSON.message || 'Error al actualizar', 'error');
                         }
                     });
                 }
