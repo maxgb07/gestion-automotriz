@@ -46,6 +46,7 @@ Route::middleware('auth')->group(function () {
     Route::get('productos/pedimento', [ProductoController::class, 'pedimento'])->name('productos.pedimento');
     Route::get('productos/inventario/pdf', [ProductoController::class, 'exportarInventarioPDF'])->name('productos.inventario.pdf');
     Route::get('productos-buscar', [ProductoController::class, 'buscar'])->name('productos.buscar');
+    Route::get('productos/mas-vendidos', [ProductoController::class, 'masVendidos'])->name('productos.mas_vendidos');
     Route::resource('productos', ProductoController::class);
 
     // Proveedores

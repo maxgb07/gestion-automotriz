@@ -21,6 +21,12 @@
                 </svg>
                 Generar Pedimento
             </button>
+            <button onclick="abrirModalMasVendidos()" class="w-fit inline-flex items-center px-4 py-2 text-white font-black rounded-lg shadow-lg transition-all text-sm uppercase tracking-widest" style="background-color: #059669;">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                </svg>
+                Más Vendidos
+            </button>
             <a href="{{ route('productos.create') }}" class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none inline-flex items-center">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
@@ -451,6 +457,88 @@
                     if (marca) url += '?marca=' + encodeURIComponent(marca);
                     window.open(url, '_blank');
                 }
+            }
+        });
+    }
+
+    function abrirModalMasVendidos() {
+        const marcas = @json($marcas);
+        let options = '<option value="">TODAS</option>';
+        marcas.forEach(marca => {
+            options += `<option value="${marca}">${marca}</option>`;
+        });
+
+        Swal.fire({
+            title: 'MÁS VENDIDOS',
+            html: `
+                <div class="text-left space-y-4">
+                    <div>
+                        <p class="text-blue-200 text-sm mb-2 uppercase font-bold">1. Selecciona el periodo</p>
+                        <select id="mv-periodo" class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm font-bold focus:ring-2 focus:ring-emerald-500 outline-none uppercase">
+                            <option value="completo" class="bg-slate-800">HISTORIAL COMPLETO</option>
+                            <option value="hoy" class="bg-slate-800">HOY</option>
+                            <option value="semanal" class="bg-slate-800">SEMANAL (LUNES A HOY)</option>
+                            <option value="quincenal" class="bg-slate-800">QUINCENAL (2 SEMANAS)</option>
+                            <option value="mensual" class="bg-slate-800">MENSUAL (MES ACTUAL)</option>
+                            <option value="personalizado" class="bg-slate-800">PERSONALIZADO (FECHAS)</option>
+                        </select>
+                    </div>
+                    <div id="mv-div-fechas" class="hidden grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-blue-200 text-xs mb-1 uppercase font-bold">Inicio</p>
+                            <input type="date" id="mv-fecha-inicio" class="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm">
+                        </div>
+                        <div>
+                            <p class="text-blue-200 text-xs mb-1 uppercase font-bold">Fin</p>
+                            <input type="date" id="mv-fecha-fin" class="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm">
+                        </div>
+                    </div>
+                    <div>
+                        <p class="text-blue-200 text-sm mb-2 uppercase font-bold">2. Selecciona la marca (Opcional)</p>
+                        <select id="mv-marca" class="w-full">${options}</select>
+                    </div>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'VER RESULTADOS',
+            cancelButtonText: 'CANCELAR',
+            confirmButtonColor: '#10b981',
+            cancelButtonColor: '#475569',
+            background: '#1e293b',
+            color: '#fff',
+            customClass: {
+                popup: 'rounded-3xl border border-white/20 shadow-2xl overflow-visible',
+                title: 'text-xl font-black uppercase tracking-tighter'
+            },
+            didOpen: () => {
+                $('#mv-marca').select2({ width: '100%', dropdownParent: Swal.getPopup() });
+                $('#mv-periodo').on('change', function() {
+                    if ($(this).val() === 'personalizado') {
+                        $('#mv-div-fechas').removeClass('hidden');
+                    } else {
+                        $('#mv-div-fechas').addClass('hidden');
+                    }
+                });
+            },
+            preConfirm: () => {
+                const periodo = $('#mv-periodo').val();
+                const marca   = $('#mv-marca').val();
+                const fi      = $('#mv-fecha-inicio').val();
+                const ff      = $('#mv-fecha-fin').val();
+                if (periodo === 'personalizado' && (!fi || !ff)) {
+                    Swal.showValidationMessage('DEBES SELECCIONAR AMBAS FECHAS');
+                    return false;
+                }
+                return { periodo, marca, fi, ff };
+            }
+        }).then(result => {
+            if (result.isConfirmed) {
+                const { periodo, marca, fi, ff } = result.value;
+                let url = '{{ route("productos.mas_vendidos") }}?periodo=' + periodo;
+                if (marca) url += '&marca=' + encodeURIComponent(marca);
+                if (fi)    url += '&fecha_inicio=' + fi;
+                if (ff)    url += '&fecha_fin=' + ff;
+                window.location.href = url;
             }
         });
     }
