@@ -25,7 +25,12 @@ class ProductoController extends Controller
         'DOT4',
         'RES',
         'TUE',
-        'MGAS'
+        'MGAS',
+        'BAL',
+        'ACE',
+        'BAT3',
+        'BCAMFE',
+        'MAN"'
     ];
 
     public function index(Request $request)
@@ -367,7 +372,8 @@ class ProductoController extends Controller
         $periodo    = $request->get('periodo', 'completo');
         $marca      = $request->get('marca');
         $fecha_inicio = null;
-        $fecha_fin  = Carbon::now();
+        $fecha_fin    = Carbon::now();
+        $search       = $request->get('search');
 
         switch ($periodo) {
             case 'hoy':
@@ -479,14 +485,37 @@ class ProductoController extends Controller
             // Ensamblar en orden de cantidad descendente
             $ordenados = collect($rawResults)
                 ->filter(fn($r) => isset($productosList[$r->producto_id]))
-                ->map(function ($r) use ($productosList, $ultimasCompras) {
+                ->values()
+                ->map(function ($r, $index) use ($productosList, $ultimasCompras) {
                     $p = $productosList[$r->producto_id];
                     $p->cantidad_vendida = (int) $r->cantidad_vendida;
                     $p->ultima_venta     = $r->ultima_venta;
                     $p->ultima_compra    = $ultimasCompras[$r->producto_id]->ultima_compra ?? null;
+                    $p->ranking_real     = $index + 1;
                     return $p;
-                })
-                ->values();
+                });
+
+            // Filtrar por texto multi-término en resultados precalculados
+            if ($search) {
+                $terminos = array_filter(explode(' ', strtolower($search)));
+                
+                $ordenados = $ordenados->filter(function($p) use ($terminos) {
+                    foreach ($terminos as $termino) {
+                        $matchEnTermino = 
+                            str_contains(strtolower($p->nombre), $termino) ||
+                            str_contains(strtolower($p->descripcion ?? ''), $termino) ||
+                            str_contains(strtolower($p->aplicacion ?? ''), $termino) ||
+                            str_contains(strtolower($p->marca ?? ''), $termino) ||
+                            str_contains(strtolower($p->sku ?? ''), $termino) ||
+                            str_contains(strtolower($p->codigo_barras ?? ''), $termino);
+                        
+                        if (!$matchEnTermino) {
+                            return false;
+                        }
+                    }
+                    return true;
+                })->values();
+            }
 
             // Paginación manual
             $perPage     = 15;

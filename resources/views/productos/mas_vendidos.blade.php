@@ -60,6 +60,33 @@
         </div>
     </div>
 
+    {{-- Buscador Style Inventario --}}
+    <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 mb-8 shadow-xl">
+        <form action="{{ route('productos.mas_vendidos') }}" method="GET" class="flex flex-col md:flex-row gap-4">
+            <input type="hidden" name="periodo" value="{{ $periodo }}">
+            @if($marca)<input type="hidden" name="marca" value="{{ $marca }}">@endif
+            @if($fecha_inicio)<input type="hidden" name="fecha_inicio" value="{{ $fecha_inicio }}">@endif
+            @if($fecha_fin)<input type="hidden" name="fecha_fin" value="{{ $fecha_fin }}">@endif
+
+            <div class="flex-grow relative">
+                <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                    <svg class="h-5 w-5 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                    </svg>
+                </div>
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="BUSCAR POR SKU, MARCA, CLAVE, CÓDIGO O APLICACIÓN EN ESTOS RESULTADOS..." class="block w-full pl-12 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-200/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm uppercase">
+            </div>
+            <button type="submit" class="w-fit px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/20 transition-all uppercase tracking-widest">
+                BUSCAR
+            </button>
+            @if(request('search'))
+                <a href="{{ route('productos.mas_vendidos', request()->except('search')) }}" class="w-fit px-5 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-200 font-semibold rounded-xl border border-red-500/30 transition-all text-center uppercase tracking-widest flex items-center justify-center">
+                    LIMPIAR
+                </a>
+            @endif
+        </form>
+    </div>
+
     {{-- Tabla --}}
     <div class="bg-white/10 backdrop-blur-xl rounded-3xl overflow-hidden border border-white/20 shadow-2xl">
         <div class="overflow-x-auto">
@@ -97,7 +124,7 @@
                         <tr class="hover:bg-white/5 transition-colors group">
                             {{-- Ranking --}}
                             <td class="px-4 py-4 text-center">
-                                @php $rank = $offset + $loop->iteration; @endphp
+                                @php $rank = $producto->ranking_real ?? ($offset + $loop->iteration); @endphp
                                 @if($rank === 1)
                                     <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-yellow-500/20 border border-yellow-400/40 text-yellow-300 font-black text-md">🥇</span>
                                 @elseif($rank === 2)
@@ -438,6 +465,10 @@
                     if (marca) url += '&marca=' + encodeURIComponent(marca);
                     if (fi)    url += '&fecha_inicio=' + fi;
                     if (ff)    url += '&fecha_fin=' + ff;
+                    
+                    const search = new URLSearchParams(window.location.search).get('search');
+                    if (search) url += '&search=' + encodeURIComponent(search);
+
                     window.location.href = url;
                 }
             });
