@@ -23,7 +23,7 @@ class OrdenServicioController extends Controller
      */
     public function index(Request $request)
     {
-        $query = OrdenServicio::with(['cliente', 'vehiculo', 'pagos']);
+        $query = OrdenServicio::with(['cliente', 'vehiculo', 'pagos', 'detalles.producto', 'detalles.servicio']);
 
         if ($request->filled('buscar')) {
             $buscar = $request->get('buscar');

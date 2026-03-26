@@ -36,10 +36,10 @@
             <div class="md:flex-1 w-full">
                 <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-2 ml-1">Estado de la Orden</label>
                 <select name="estado" id="estado_filter" class="select2-filter">
-                    <option value="">TODOS LOS ESTADOS</option>
+                    <option value="">TODOS</option>
                     <option value="ENTREGADO" {{ request('estado') == 'ENTREGADO' ? 'selected' : '' }}>ENTREGADO</option>
                     <option value="FINALIZADO" {{ request('estado') == 'FINALIZADO' ? 'selected' : '' }}>FINALIZADO</option>
-                    <option value="PENDIENTE DE PAGO" {{ request('estado') == 'PENDIENTE DE PAGO' ? 'selected' : '' }}>PENDIENTE DE PAGO</option>
+                    <option value="PENDIENTE DE PAGO" {{ request('estado') == 'PENDIENTE DE PAGO' ? 'selected' : '' }}>PENDIENTE PAGO</option>
                     <option value="RECEPCION" {{ request('estado') == 'RECEPCION' ? 'selected' : '' }}>RECEPCIÓN</option>
                     <option value="REPARACION" {{ request('estado') == 'REPARACION' ? 'selected' : '' }}>REPARACIÓN</option>
                 </select>
@@ -56,8 +56,10 @@
                 @endif
             </div>
         </form>
+    </div>
+
     <!-- Tabs de Filtrado -->
-    <div class="flex flex-wrap items-center gap-2 mb-4 mt-8">
+    <div class="flex flex-wrap items-center gap-2 mb-4">
         @php
             $currentPeriod = request('periodo');
             // Si no hay periodo específico ni otros filtros, el activo es 'hoy'
@@ -106,7 +108,39 @@
                 </thead>
                 <tbody class="divide-y divide-white/10">
                     @forelse($ordenes as $orden)
-                        <tr class="hover:bg-white/5 transition-colors group">
+                        <tr class="hover:bg-white/5 transition-colors group"
+                            @if($orden->estado !== 'RECEPCION')
+                            data-orden="{{ json_encode([
+                                'folio' => $orden->folio,
+                                'fecha' => \Carbon\Carbon::parse($orden->fecha_entrada)->translatedFormat('d M, Y'),
+                                'cliente' => $orden->cliente->nombre ?? 'N/A',
+                                'telefono' => $orden->cliente->celular ?: ($orden->cliente->telefono ?: 'N/A'),
+                                'vehiculo' => [
+                                    'marca' => $orden->vehiculo->marca ?? 'N/A',
+                                    'modelo' => $orden->vehiculo->modelo ?? 'N/A',
+                                    'anio' => $orden->vehiculo->anio ?? 'N/A',
+                                    'placas' => $orden->placas ?: ($orden->vehiculo->placas ?? 'N/A'),
+                                    'km' => $orden->kilometraje_entrega ?: ($orden->kilometraje_entrada ?: 0)
+                                ],
+                                'detalles' => $orden->detalles->map(fn($d) => [
+                                    'cantidad' => number_format($d->cantidad, 2),
+                                    'tipo_pill_bg' => $d->producto_id ? 'bg-blue-500/20' : 'bg-purple-500/20',
+                                    'tipo_pill_text' => $d->producto_id ? 'text-blue-300' : 'text-purple-300',
+                                    'tipo' => $d->producto_id ? 'PRODUCTO' : 'SERVICIO',
+                                    'clave' => $d->producto_id ? ($d->producto->nombre ?? 'N/A') : ($d->servicio->nombre ?? 'N/A'),
+                                    'descripcion' => $d->producto_id ? ($d->producto->descripcion ?? '---') : ($d->servicio->descripcion ?? '---'),
+                                    'notas' => $d->notas ?? '---',
+                                    'precio' => number_format($d->precio_unitario, 2),
+                                    'importe' => number_format($d->subtotal, 2)
+                                ])->values(),
+                                'total' => number_format($orden->total, 2),
+                                'estado' => $orden->estado,
+                                'mecanico' => $orden->mecanico ? mb_strtoupper($orden->mecanico) : 'NO ASIGNADO',
+                                'falla_reportada' => $orden->falla_reportada ?? 'NO ESPECIFICADA',
+                                'observaciones_post' => $orden->observaciones_post_reparacion ?? ''
+                            ]) }}"
+                            @endif
+                        >
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 <span class="text-white font-bold text-md uppercase">{{ $orden->folio }}</span>
                             </td>
@@ -159,6 +193,14 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 <div class="flex justify-center items-center gap-2">
+                                    @if($orden->estado !== 'RECEPCION')
+                                        <button onclick="vistaRapidaOrden(this)" class="p-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 rounded-lg border border-purple-500/10 transition-all cursor-pointer" title="VISTA RÁPIDA">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </button>
+                                    @endif
+
                                     <a href="{{ route('ordenes.show', $orden) }}" class="p-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 rounded-lg border border-blue-500/10 transition-all cursor-pointer" title="VER DETALLE / REPARACIÓN">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -653,5 +695,159 @@
         }
 
         const popupClass = 'rounded-3xl border-none shadow-2xl';
+
+        function vistaRapidaOrden(btn) {
+            try {
+                const row = btn.closest('tr');
+                if (!row.dataset.orden) {
+                    console.error("Falta el atributo data-orden en el renglón.");
+                    return;
+                }
+                
+                const o = JSON.parse(row.dataset.orden);
+                let estadoColor = '#ef4444'; // Default red
+                if (o.estado === 'FINALIZADO') estadoColor = '#2dd4bf'; // teal
+                if (o.estado === 'REPARACION') estadoColor = '#f59e0b'; // amber
+                if (o.estado === 'ENTREGADO') estadoColor = '#4ade80'; // green
+
+                Swal.fire({
+                    title: 'ORDEN ' + o.folio,
+                    width: '1400px',
+                    background: '#1e293b',
+                    color: '#fff',
+                    html: `
+                        <div style="text-align:left; margin-top:6px;">
+                            <!-- Fechas y Cliente -->
+                            <div class="grid grid-cols-2 gap-4 mb-4 border-b border-white/10 pb-4">
+                                <div>
+                                    <p class="text-blue-300 uppercase font-black text-md">Fecha de Reparación</p>
+                                    <p class="text-white text-md">${o.fecha}</p>
+                                </div>
+                                <div class="text-right">
+                                    <p class="text-blue-300 uppercase font-black text-md">Estado</p>
+                                    <p class="text-md font-bold" style="color: ${estadoColor}">${o.estado}</p>
+                                </div>
+                                <div class="col-span-2 grid grid-cols-2 gap-4">
+                                    <div>
+                                        <p class="text-blue-300 uppercase font-black text-md mb-1">Cliente</p>
+                                        <p class="text-white text-md font-bold uppercase">${o.cliente}</p>
+                                    </div>
+                                    <div>
+                                        <p class="text-blue-300 uppercase font-black text-md mb-1">Teléfono / Celular</p>
+                                        <p class="text-white text-md font-bold uppercase">${o.telefono}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Datos del Vehículo -->
+                            <div class="mb-4 border-b border-white/10 pb-4">
+                                <p class="text-blue-300 uppercase font-black text-md mb-2">Datos del Vehículo</p>
+                                <div class="grid grid-cols-3 gap-2 bg-white/5 p-3 rounded-xl border border-white/10 text-center">
+                                    <div>
+                                        <p class="text-blue-200 uppercase font-black text-md">Marca/Modelo</p>
+                                        <p class="text-white text-md font-bold whitespace-nowrap">${o.vehiculo.marca} ${o.vehiculo.modelo} (${o.vehiculo.anio})</p>
+                                    </div>
+                                    <div class="border-l border-white/10">
+                                        <p class="text-blue-200 uppercase font-black text-md">Placas</p>
+                                        <p class="text-white text-md font-bold">${o.vehiculo.placas}</p>
+                                    </div>
+                                    <div class="border-l border-white/10">
+                                        <p class="text-blue-200 uppercase font-black text-md">KM Entrega</p>
+                                        <p class="text-white text-md font-bold">${o.vehiculo.km}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Falla Reportada -->
+                            <div class="mb-4">
+                                <p class="text-blue-300 uppercase font-black text-md mb-2">Falla Reportada / Motivo de Ingreso</p>
+                                <div class="bg-amber-500/5 border border-amber-500/10 rounded-xl p-3">
+                                    <p class="text-amber-200/80 text-md font-bold uppercase leading-relaxed">
+                                        "${o.falla_reportada}"
+                                    </p>
+                                </div>
+                            </div>
+
+                            <!-- Detalle de Reparación -->
+                            <div class="flex justify-between items-end mb-2">
+                                <p class="text-blue-300 uppercase font-black text-md">Detalle de Reparación / Cotización</p>
+                                ${o.mecanico !== 'NO ASIGNADO' ? `
+                                <div class="flex items-center gap-2 bg-blue-500/20 px-4 py-2 rounded-xl border border-blue-500/30">
+                                    <svg class="w-4 h-4 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                                    </svg>
+                                    <span class="text-xs font-black text-blue-100 uppercase tracking-widest">MECÁNICO: <span class="text-white">${o.mecanico}</span></span>
+                                </div>
+                                ` : ''}
+                            </div>
+                            <div class="overflow-x-auto rounded-xl border border-white/10 mb-4 bg-white/5">
+                                <table class="w-full text-center border-collapse">
+                                    <thead class="bg-white/5 border-b border-white/10 text-sm font-bold text-blue-200 uppercase tracking-widest text-left">
+                                        <tr>
+                                            <th class="px-2 py-4 w-28 text-center whitespace-nowrap">CANTIDAD</th>
+                                            <th class="px-6 py-4 whitespace-nowrap">TIPO</th>
+                                            <th class="px-6 py-4 whitespace-nowrap">CLAVE</th>
+                                            <th class="px-6 py-4 whitespace-nowrap">DESCRIPCIÓN</th>
+                                            <th class="px-6 py-4 whitespace-nowrap">NOTAS</th>
+                                            <th class="px-4 py-4 w-32 text-center whitespace-nowrap">PRECIO</th>
+                                            <th class="px-6 py-4 w-40 text-right whitespace-nowrap">IMPORTE</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody class="divide-y divide-white/5 text-md text-white text-left">
+                                        ${o.detalles.length === 0 ? '<tr><td colspan="7" class="px-8 py-16 text-center text-blue-200/30 uppercase font-black tracking-widest italic">NO HAY CONCEPTOS</td></tr>' : o.detalles.map(d => `
+                                            <tr class="hover:bg-white/5 transition-colors">
+                                                <td class="px-3 py-4 text-center font-bold text-white whitespace-nowrap">${d.cantidad}</td>
+                                                <td class="px-3 py-4 whitespace-nowrap">
+                                                    <span class="inline-block px-2 py-1 text-md font-black uppercase tracking-wider rounded-lg ${d.tipo_pill_bg} ${d.tipo_pill_text}">
+                                                        ${d.tipo}
+                                                    </span>
+                                                </td>
+                                                <td class="px-3 py-4 font-bold text-white whitespace-nowrap">${d.clave}</td>
+                                                <td class="px-3 py-4 font-bold text-white">${d.descripcion}</td>
+                                                <td class="px-3 py-4 font-medium text-blue-200/60 uppercase">${d.notas}</td>
+                                                <td class="px-3 py-4 text-center font-mono font-bold text-blue-100 whitespace-nowrap">$${d.precio}</td>
+                                                <td class="px-3 py-4 text-right font-mono font-black text-white whitespace-nowrap">$${d.importe}</td>
+                                            </tr>
+                                        `).join('')}
+                                    </tbody>
+                                    <tfoot class="bg-white/5 border-t border-white/10">
+                                        <tr>
+                                            <td colspan="6" class="px-8 py-6 text-right">
+                                                <span class="text-blue-200 text-lg uppercase font-black tracking-[0.2em] mb-2 block">TOTAL:</span>
+                                            </td>
+                                            <td class="px-8 py-6 text-right">
+                                                <div class="text-lg font-black text-white leading-none tracking-tighter">$${o.total}</div>
+                                            </td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+
+                            <!-- Observaciones Post-Reparación -->
+                            <div class="mb-4 mt-4">
+                                <p class="text-blue-300 uppercase font-black text-md mb-2">Observaciones Post-Reparación</p>
+                                <div class="bg-white/5 border border-white/10 rounded-xl p-3">
+                                    <p class="text-white/80 text-md font-bold uppercase leading-relaxed">
+                                        ${o.observaciones_post ? o.observaciones_post : '<span class="italic text-white/30">SIN OBSERVACIONES</span>'}
+                                    </p>
+                                </div>
+                            </div>
+
+                        </div>
+                    `,
+                    showCancelButton: false,
+                    confirmButtonText: 'CERRAR',
+                    confirmButtonColor: '#475569',
+                    customClass: {
+                        popup: 'rounded-3xl border border-white/20 shadow-2xl',
+                        title: 'text-2xl font-black uppercase pt-4',
+                        confirmButton: 'rounded-xl px-12 py-3 font-bold uppercase tracking-widest text-md mt-4'
+                    }
+                });
+            } catch (e) {
+                console.error("Error al abrir la modal:", e);
+                Swal.fire('Error', 'No se pudieron procesar los detalles visuales de esta orden.', 'error');
+            }
+        }
     </script>
 @endpush
