@@ -23,12 +23,40 @@ class OrdenServicioController extends Controller
      */
     public function index(Request $request)
     {
-        $query = OrdenServicio::with(['cliente', 'vehiculo', 'pagos', 'detalles.producto', 'detalles.servicio']);
+        $sort = $request->get('sort', 'folio');
+        $direction = $request->get('direction', 'desc');
+
+        // Mapeo seguro de columnas para evitar inyección SQL
+        $sortMapping = [
+            'folio'   => 'ordenes_servicio.id', // Usamos ID para folio interno si es numérico, o folio string
+            'entrada' => 'ordenes_servicio.fecha_entrada',
+            'cliente' => 'clientes.nombre',
+            'vehiculo'=> 'vehiculos.marca',
+            'total'   => 'ordenes_servicio.total',
+            'saldo'   => 'ordenes_servicio.saldo_pendiente',
+            'factura' => 'ordenes_servicio.folio_factura',
+            'estado'  => 'ordenes_servicio.estado',
+        ];
+
+        // Especial para Folio: si el folio es OR-0001, ordenamos por ID o por el folio mismo
+        if ($sort === 'folio') {
+            $column = 'ordenes_servicio.id';
+        } else {
+            $column = $sortMapping[$sort] ?? 'ordenes_servicio.id';
+        }
+
+        $dir = in_array(strtolower($direction), ['asc', 'desc']) ? $direction : 'desc';
+
+        $query = OrdenServicio::query()
+            ->select('ordenes_servicio.*')
+            ->leftJoin('clientes', 'ordenes_servicio.cliente_id', '=', 'clientes.id')
+            ->leftJoin('vehiculos', 'ordenes_servicio.vehiculo_id', '=', 'vehiculos.id')
+            ->with(['pagos', 'detalles.producto', 'detalles.servicio']);
 
         if ($request->filled('buscar')) {
             $buscar = $request->get('buscar');
             $query->where(function($q) use ($buscar) {
-                $q->where('folio', 'like', "%{$buscar}%")
+                $q->where('ordenes_servicio.folio', 'like', "%{$buscar}%")
                   ->orWhereHas('cliente', function($q2) use ($buscar) {
                       $q2->where('nombre', 'like', "%{$buscar}%");
                   })
@@ -41,22 +69,21 @@ class OrdenServicioController extends Controller
         }
 
         if ($request->filled('estado')) {
-            $query->where('estado', $request->estado);
+            $query->where('ordenes_servicio.estado', $request->estado);
         }
 
         if ($request->filled('cliente_id')) {
-            $query->where('cliente_id', $request->cliente_id);
+            $query->where('ordenes_servicio.cliente_id', $request->cliente_id);
         }
 
         if ($request->filled('vehiculo_id')) {
-            $query->where('vehiculo_id', $request->vehiculo_id);
+            $query->where('ordenes_servicio.vehiculo_id', $request->vehiculo_id);
         }
 
         // Filtro por Periodo
         $periodo = $request->get('periodo');
         
         // Si no hay ningún parámetro de búsqueda ni periodo, por defecto es HOY
-        // Si el periodo es 'todos', no aplicamos filtro de fecha
         if (!$request->has('periodo') && !$request->filled('buscar') && !$request->filled('estado') && !$request->filled('cliente_id') && !$request->filled('vehiculo_id')) {
             $periodo = 'hoy';
         }
@@ -65,19 +92,19 @@ class OrdenServicioController extends Controller
             $now = now();
             
             if ($periodo == 'hoy') {
-                $query->whereDate('fecha_entrada', $now->toDateString());
+                $query->whereDate('ordenes_servicio.fecha_entrada', $now->toDateString());
             } elseif ($periodo == 'semana') {
-                $query->whereBetween('fecha_entrada', [
+                $query->whereBetween('ordenes_servicio.fecha_entrada', [
                     $now->startOfWeek()->toDateString(), 
                     $now->endOfWeek()->toDateString()
                 ]);
             } elseif ($periodo == 'mes') {
-                $query->whereYear('fecha_entrada', $now->year)
-                      ->whereMonth('fecha_entrada', $now->month);
+                $query->whereYear('ordenes_servicio.fecha_entrada', $now->year)
+                      ->whereMonth('ordenes_servicio.fecha_entrada', $now->month);
             }
         }
 
-        $ordenes = $query->latest()->paginate(10)->withQueryString();
+        $ordenes = $query->orderBy($column, $dir)->paginate(10)->withQueryString();
 
         return view('ordenes.index', compact('ordenes'));
     }

@@ -90,19 +90,69 @@
     </div>
 
     <!-- Ordenes Table -->
+    @php
+        $currentSort = request('sort', 'folio');
+        $currentDir = request('direction', 'desc');
+
+        $sortUrl = function($column) use ($currentSort, $currentDir) {
+            $newDir = ($currentSort === $column && $currentDir === 'asc') ? 'desc' : 'asc';
+            return request()->fullUrlWithQuery(['sort' => $column, 'direction' => $newDir]);
+        };
+
+        $sortIcon = function($column) use ($currentSort, $currentDir) {
+            $isActive = ($currentSort === $column);
+            $upColor = ($isActive && $currentDir === 'asc') ? 'text-blue-400' : 'text-blue-200/20';
+            $downColor = ($isActive && $currentDir === 'desc') ? 'text-blue-400' : 'text-blue-200/20';
+            
+            return '
+                <span class="inline-flex flex-col ml-2 transform translate-y-0.5">
+                    <svg class="w-2 h-2 ' . $upColor . ' fill-current" viewBox="0 0 24 24"><path d="M12 5l-8 8h16l-8-8z"/></svg>
+                    <svg class="w-2 h-2 ' . $downColor . ' fill-current" viewBox="0 0 24 24"><path d="M12 19l8-8H4l8 8z"/></svg>
+                </span>
+            ';
+        };
+    @endphp
     <div class="bg-white/10 backdrop-blur-xl rounded-2xl overflow-hidden border border-white/20 shadow-2xl">
         <div class="overflow-x-auto">
             <table class="w-full text-center border-collapse">
                 <thead class="bg-white/5 border-b border-white/10 font-bold uppercase tracking-widest">
                     <tr>
-                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Folio</th>
-                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Entrada</th>
-                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Cliente</th>
-                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Vehículo</th>
+                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">
+                            <a href="{{ $sortUrl('folio') }}" class="inline-flex items-center hover:text-white transition-colors">
+                                Folio {!! $sortIcon('folio') !!}
+                            </a>
+                        </th>
+                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">
+                            <a href="{{ $sortUrl('entrada') }}" class="inline-flex items-center hover:text-white transition-colors">
+                                Entrada {!! $sortIcon('entrada') !!}
+                            </a>
+                        </th>
+                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">
+                            <a href="{{ $sortUrl('cliente') }}" class="inline-flex items-center hover:text-white transition-colors">
+                                Cliente {!! $sortIcon('cliente') !!}
+                            </a>
+                        </th>
+                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">
+                            <a href="{{ $sortUrl('vehiculo') }}" class="inline-flex items-center hover:text-white transition-colors">
+                                Vehículo {!! $sortIcon('vehiculo') !!}
+                            </a>
+                        </th>
                         <!-- <th class="px-6 py-4 text-sm font-semibold text-blue-200 uppercase tracking-wider text-center">Kilometraje</th> -->
-                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Total / Saldo</th>
-                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Factura</th>
-                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Estado</th>
+                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">
+                            <a href="{{ $sortUrl('total') }}" class="inline-flex items-center hover:text-white transition-colors">
+                                Total / Saldo {!! $sortIcon('total') !!}
+                            </a>
+                        </th>
+                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">
+                            <a href="{{ $sortUrl('factura') }}" class="inline-flex items-center hover:text-white transition-colors">
+                                Factura {!! $sortIcon('factura') !!}
+                            </a>
+                        </th>
+                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">
+                            <a href="{{ $sortUrl('estado') }}" class="inline-flex items-center hover:text-white transition-colors">
+                                Estado {!! $sortIcon('estado') !!}
+                            </a>
+                        </th>
                         <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Acciones</th>
                     </tr>
                 </thead>

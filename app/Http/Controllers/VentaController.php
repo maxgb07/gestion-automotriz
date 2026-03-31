@@ -18,12 +18,33 @@ class VentaController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Venta::with(['cliente', 'detalles.producto', 'detalles.servicio'])->withCount('detalles');
+        $sort = $request->get('sort', 'folio');
+        $direction = $request->get('direction', 'desc');
+
+        // Mapeo seguro de columnas
+        $sortMapping = [
+            'folio'   => 'ventas.id',
+            'fecha'   => 'ventas.fecha',
+            'cliente' => 'clientes.nombre',
+            'total'   => 'ventas.total',
+            'metodo'  => 'ventas.metodo_pago',
+            'estado'  => 'ventas.estado',
+            'factura' => 'ventas.folio_factura',
+        ];
+
+        $column = $sortMapping[$sort] ?? 'ventas.id';
+        $dir = in_array(strtolower($direction), ['asc', 'desc']) ? $direction : 'desc';
+
+        $query = Venta::query()
+            ->select('ventas.*')
+            ->leftJoin('clientes', 'ventas.cliente_id', '=', 'clientes.id')
+            ->with(['cliente', 'detalles.producto', 'detalles.servicio'])
+            ->withCount('detalles');
 
         if ($request->has('buscar') && $request->buscar != '') {
             $buscar = $request->get('buscar');
             $query->where(function($q) use ($buscar) {
-                $q->where('folio', 'like', "%{$buscar}%")
+                $q->where('ventas.folio', 'like', "%{$buscar}%")
                   ->orWhereHas('cliente', function($q2) use ($buscar) {
                       $q2->where('nombre', 'like', "%{$buscar}%");
                   });
@@ -31,18 +52,17 @@ class VentaController extends Controller
         }
 
         if ($request->has('cliente_id') && $request->cliente_id != '') {
-            $query->where('cliente_id', $request->cliente_id);
+            $query->where('ventas.cliente_id', $request->cliente_id);
         }
 
         if ($request->has('metodo_pago') && $request->metodo_pago != '') {
-            $query->where('metodo_pago', $request->metodo_pago);
+            $query->where('ventas.metodo_pago', $request->metodo_pago);
         }
 
         // Filtro por Periodo
         $periodo = $request->get('periodo');
         
         // Si no hay ningún parámetro de búsqueda ni periodo, por defecto es HOY
-        // Si el periodo es 'todos', no aplicamos filtro de fecha
         if (!$request->has('periodo') && !$request->filled('buscar') && !$request->filled('cliente_id') && !$request->filled('metodo_pago')) {
             $periodo = 'hoy';
         }
@@ -51,19 +71,19 @@ class VentaController extends Controller
             $now = now();
             
             if ($periodo == 'hoy') {
-                $query->whereDate('fecha', $now->toDateString());
+                $query->whereDate('ventas.fecha', $now->toDateString());
             } elseif ($periodo == 'semana') {
-                $query->whereBetween('fecha', [
+                $query->whereBetween('ventas.fecha', [
                     $now->startOfWeek()->toDateString(), 
                     $now->endOfWeek()->toDateString()
                 ]);
             } elseif ($periodo == 'mes') {
-                $query->whereYear('fecha', $now->year)
-                      ->whereMonth('fecha', $now->month);
+                $query->whereYear('ventas.fecha', $now->year)
+                      ->whereMonth('ventas.fecha', $now->month);
             }
         }
 
-        $ventas = $query->latest()->paginate(15)->withQueryString();
+        $ventas = $query->orderBy($column, $dir)->paginate(15)->withQueryString();
         return view('ventas.index', compact('ventas'));
     }
 
