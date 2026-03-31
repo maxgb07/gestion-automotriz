@@ -280,6 +280,16 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 <div class="flex justify-center items-center gap-2">
+                                    @if($venta->estado === 'PENDIENTE')
+                                        <button onclick="registrarPagoVenta({{ $venta->id }}, '{{ $venta->folio }}', {{ $venta->saldo_pendiente }})" 
+                                                class="p-2 bg-green-500/10 hover:bg-green-500/20 text-green-300 rounded-lg border border-green-500/10 transition-all cursor-pointer" 
+                                                title="REGISTRAR PAGO">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                            </svg>
+                                        </button>
+                                    @endif
+
                                     <button onclick="vistaRapida(this)" class="p-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 rounded-lg border border-purple-500/10 transition-all cursor-pointer" title="VISTA RÁPIDA">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -646,6 +656,140 @@
                     popup: 'rounded-3xl border border-white/10 shadow-2xl transition-all duration-300',
                     title: 'text-xl font-black uppercase tracking-tighter pt-6',
                     confirmButton: 'rounded-xl px-12 py-3 font-bold uppercase tracking-widest text-sm'
+                }
+            });
+        }
+
+        function registrarPagoVenta(ventaId, folio, saldoPendiente) {
+            const fechaHoy = "{{ date('Y-m-d\TH:i') }}";
+
+            Swal.fire({
+                title: 'REGISTRAR PAGO - ' + folio,
+                background: '#1e293b',
+                color: '#fff',
+                html: `
+                    <div class="text-left mt-4 space-y-6">
+                        <div class="p-4 bg-white/5 rounded-2xl border border-white/10 text-center mb-6">
+                            <p class="text-[10px] font-black text-blue-300/40 uppercase tracking-widest mb-1">Saldo Pendiente</p>
+                            <p class="text-3xl font-black text-white">$${new Intl.NumberFormat('es-MX', {minimumFractionDigits: 2}).format(saldoPendiente)}</p>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                            <div class="space-y-2">
+                                <label class="block text-[10px] font-black text-blue-200 uppercase tracking-widest ml-1 text-center">Monto a abonar *</label>
+                                <input type="number" step="0.01" id="pago_monto" value="${saldoPendiente}" max="${saldoPendiente}" 
+                                    class="block w-full px-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white font-black text-xl text-center focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all shadow-inner" required>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-[10px] font-black text-blue-200 uppercase tracking-widest ml-1 text-center">Fecha del Pago *</label>
+                                <input type="datetime-local" id="pago_fecha" value="${fechaHoy}" 
+                                    class="block w-full px-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white font-bold text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all uppercase shadow-inner" required>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-6">
+                            <div class="space-y-2">
+                                <label class="block text-[10px] font-black text-blue-200 uppercase tracking-widest ml-1 text-center">Método de Pago *</label>
+                                <select id="pago_metodo" class="block w-full px-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white font-bold text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all uppercase shadow-inner cursor-pointer" required>
+                                    <option value="EFECTIVO" style="color: black !important;">EFECTIVO</option>
+                                    <option value="TARJETA DE DÉBITO" style="color: black !important;">TARJETA DE DÉBITO</option>
+                                    <option value="TARJETA DE CRÉDITO" style="color: black !important;">TARJETA DE CRÉDITO</option>
+                                    <option value="TRANSFERENCIA" style="color: black !important;">TRANSFERENCIA</option>
+                                    <option value="CHEQUE" style="color: black !important;">CHEQUE</option>
+                                </select>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="block text-[10px] font-black text-blue-200 uppercase tracking-widest ml-1 text-center">Referencia</label>
+                                <input type="text" id="pago_referencia" class="block w-full px-4 py-4 bg-white/5 border border-white/10 rounded-2xl text-white font-bold text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all uppercase placeholder-white/20 shadow-inner" placeholder="PAGO VENTA ...">
+                            </div>
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'REGISTRAR PAGO',
+                cancelButtonText: 'CANCELAR',
+                confirmButtonColor: '#3b82f6',
+                cancelButtonColor: '#475569',
+                customClass: {
+                    container: 'backdrop-blur-sm',
+                    popup: 'rounded-3xl border border-white/10 shadow-2xl transition-all duration-300',
+                    title: 'text-xl font-black uppercase tracking-tighter pt-6',
+                    confirmButton: 'rounded-xl px-12 py-3 font-bold uppercase tracking-widest text-sm',
+                    cancelButton: 'rounded-xl px-12 py-3 font-bold uppercase tracking-widest text-sm'
+                },
+                preConfirm: () => {
+                    const monto = document.getElementById('pago_monto').value;
+                    const fecha = document.getElementById('pago_fecha').value;
+                    const metodo = document.getElementById('pago_metodo').value;
+                    const referencia = document.getElementById('pago_referencia').value;
+
+                    if (!monto || monto <= 0) {
+                        Swal.showValidationMessage('El monto es inválido');
+                        return false;
+                    }
+                    if (monto > saldoPendiente) {
+                        Swal.showValidationMessage('El monto no puede exceder el saldo');
+                        return false;
+                    }
+                    if (!fecha) {
+                        Swal.showValidationMessage('La fecha es obligatoria');
+                        return false;
+                    }
+
+                    return { monto, fecha, metodo, referencia };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Procesando pago...',
+                        background: '#1e293b',
+                        color: '#fff',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                    fetch(`/ventas/${ventaId}/pagos`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                            'Accept': 'application/json',
+                            'X-Requested-With': 'XMLHttpRequest'
+                        },
+                        body: JSON.stringify({
+                            monto: result.value.monto,
+                            fecha_pago: result.value.fecha,
+                            metodo_pago: result.value.metodo,
+                            referencia: result.value.referencia
+                        })
+                    })
+                    .then(response => response.json().then(data => ({ status: response.status, data })))
+                    .then(({ status, data }) => {
+                        if (status === 200 || status === 201) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '¡PAGO REGISTRADO!',
+                                text: data.message,
+                                background: '#1e293b',
+                                color: '#fff',
+                                timer: 2000,
+                                showConfirmButton: false
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            throw new Error(data.message || 'Error al procesar el pago');
+                        }
+                    })
+                    .catch(error => {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'ERROR',
+                            text: error.message || 'Error al procesar el pago',
+                            background: '#1e293b',
+                            color: '#fff'
+                        });
+                    });
                 }
             });
         }

@@ -54,9 +54,18 @@ class PagoVentaController extends Controller
 
             $venta->save();
 
+            // Recalcular el método de pago de la venta para que deje de ser "CREDITO" una vez pagada o abonada
+            $metodos = $venta->pagos()->pluck('metodo_pago')->unique();
+            if ($metodos->count() > 1) {
+                $venta->metodo_pago = 'MIXTO';
+            } elseif ($metodos->count() === 1) {
+                $venta->metodo_pago = $metodos->first();
+            }
+            $venta->save();
+
             DB::commit();
 
-            if ($request->ajax()) {
+            if ($request->expectsJson()) {
                 return response()->json([
                     'success' => true,
                     'message' => 'Pago registrado correctamente.',
@@ -68,7 +77,7 @@ class PagoVentaController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            if ($request->ajax()) {
+            if ($request->expectsJson()) {
                 return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
             }
             return back()->with('error', 'Error al registrar el pago: ' . $e->getMessage());
