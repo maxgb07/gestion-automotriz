@@ -249,6 +249,16 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                             </svg>
                                         </button>
+                                        
+                                        @if(in_array(auth()->id(), [1, 4]) && ($orden->estado === 'FINALIZADO' || ($orden->estado === 'PENDIENTE DE PAGO' && $orden->pagos->count() === 0)))
+                                            <button onclick="revertirOrden({{ $orden->id }}, '{{ $orden->folio }}')" 
+                                                    class="p-2 bg-orange-500/10 hover:bg-orange-500/20 text-orange-400 rounded-lg border border-orange-500/20 transition-all cursor-pointer" 
+                                                    title="REGRESAR A REPARACIÓN">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"></path>
+                                                </svg>
+                                            </button>
+                                        @endif
                                     @endif
 
                                     <a href="{{ route('ordenes.show', $orden) }}" class="p-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 rounded-lg border border-blue-500/10 transition-all cursor-pointer" title="VER DETALLE / REPARACIÓN">
@@ -745,6 +755,69 @@
         }
 
         const popupClass = 'rounded-3xl border-none shadow-2xl';
+
+        function revertirOrden(id, folio) {
+            Swal.fire({
+                title: '¿REGRESAR A REPARACIÓN?',
+                text: `La orden ${folio} volverá al estado de taller. Esta acción solo es permitida por administración.`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonText: 'SÍ, REGRESAR A TALLER',
+                cancelButtonText: 'CANCELAR',
+                confirmButtonColor: '#f97316',
+                cancelButtonColor: '#475569',
+                background: '#1e293b',
+                color: '#fff',
+                customClass: {
+                    container: 'backdrop-blur-sm',
+                    popup: 'rounded-3xl border border-white/10 shadow-2xl transition-all duration-300',
+                    title: 'text-xl font-black uppercase tracking-tighter pt-6',
+                    confirmButton: 'rounded-xl px-8 py-3 font-bold uppercase tracking-widest text-sm',
+                    cancelButton: 'rounded-xl px-8 py-3 font-bold uppercase tracking-widest text-sm'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({
+                        title: 'Procesando...',
+                        background: '#1e293b',
+                        color: '#fff',
+                        allowOutsideClick: false,
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                    $.ajax({
+                        url: `/ordenes/${id}/revertir`,
+                        method: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}'
+                        },
+                        success: function(data) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: '¡LISTO!',
+                                text: data.message,
+                                background: '#1e293b',
+                                color: '#fff',
+                                timer: 2000,
+                                showConfirmButton: false
+                            }).then(() => {
+                                window.location.reload();
+                            });
+                        },
+                        error: function(xhr) {
+                            const data = xhr.responseJSON;
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'ERROR',
+                                text: data.message || 'Error al procesar la solicitud',
+                                background: '#1e293b',
+                                color: '#fff'
+                            });
+                        }
+                    });
+                }
+            });
+        }
 
         function vistaRapidaOrden(btn) {
             try {

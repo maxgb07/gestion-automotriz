@@ -69,6 +69,7 @@ Route::middleware('auth')->group(function () {
     Route::get('clientes-buscar', [ClienteController::class, 'buscar'])->name('clientes.buscar');
     Route::get('vehiculos-buscar', [VehiculoController::class, 'buscar'])->name('vehiculos.buscar');
     Route::resource('ordenes', \App\Http\Controllers\OrdenServicioController::class);
+    Route::post('ordenes/{orden}/revertir', [\App\Http\Controllers\OrdenServicioController::class, 'revertirAReparacion'])->name('ordenes.revertir');
     Route::post('ordenes/{orden}/pagos', [\App\Http\Controllers\OrdenServicioController::class, 'registrarPago'])->name('ordenes.pagos.store');
     Route::post('ordenes/{orden}/facturar', [\App\Http\Controllers\OrdenServicioController::class, 'registrarFactura'])->name('ordenes.factura.store');
     Route::get('ordenes/{orden}/pdf', [\App\Http\Controllers\OrdenServicioController::class, 'descargarPDF'])->name('ordenes.pdf');

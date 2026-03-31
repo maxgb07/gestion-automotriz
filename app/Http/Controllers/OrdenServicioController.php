@@ -644,6 +644,35 @@ class OrdenServicioController extends Controller
         }
     }
 
+    public function revertirAReparacion(OrdenServicio $orden)
+    {
+        // Restricción por ID de usuario (1 y 4)
+        if (!in_array(auth()->id(), [1, 4])) {
+            return response()->json(['success' => false, 'message' => 'No tiene permisos para realizar esta acción especial.'], 403);
+        }
+
+        // Reglas: FINALIZADO (siempre) o PENDIENTE DE PAGO (solo si no tiene abonos)
+        $puedeRevertir = false;
+        if ($orden->estado === 'FINALIZADO') {
+            $puedeRevertir = true;
+        } elseif ($orden->estado === 'PENDIENTE DE PAGO' && $orden->pagos()->count() === 0) {
+            $puedeRevertir = true;
+        }
+
+        if ($puedeRevertir) {
+            $orden->update(['estado' => 'REPARACION']);
+            return response()->json([
+                'success' => true,
+                'message' => 'La orden ha sido regresada a estado de REPARACIÓN exitosamente.'
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => 'No es posible revertir esta orden. Solo se permiten órdenes finalizadas o pendientes sin abonos.'
+        ], 422);
+    }
+
     private function generarFolio()
     {
         $ultimo = OrdenServicio::withTrashed()->latest()->first();
