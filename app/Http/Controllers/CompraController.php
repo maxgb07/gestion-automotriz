@@ -13,7 +13,7 @@ class CompraController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Compra::with('proveedor');
+        $query = Compra::with(['proveedor', 'detalles.producto']);
 
         if ($request->filled('buscar')) {
             $buscar = $request->get('buscar');

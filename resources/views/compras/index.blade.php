@@ -63,33 +63,44 @@
                 <thead class="bg-white/5 border-b border-white/10">
                     <tr>
                         <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Folio</th>
-                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Factura</th>
                         <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Fecha</th>
                         <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Proveedor</th>
+                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Factura</th>
                         <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Total</th>
                         <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-white/10">
                     @forelse($compras as $compra)
-                        <tr class="hover:bg-white/5 transition-colors group">
+                        <tr class="hover:bg-white/5 transition-colors group" 
+                            data-compra="{{ json_encode([
+                                'id' => $compra->id,
+                                'folio' => $compra->folio ?? '---',
+                                'fecha' => \Carbon\Carbon::parse($compra->fecha_compra)->translatedFormat('d M, Y'),
+                                'proveedor' => $compra->proveedor->nombre,
+                                'factura' => $compra->factura ?? 'SIN FACTURA',
+                                'total' => number_format($compra->total, 2),
+                                'detalles' => $compra->detalles->map(fn($d) => [
+                                    'cantidad' => $d->cantidad,
+                                    'producto' => $d->producto?->nombre ?? 'N/A',
+                                    'descripcion' => $d->producto?->descripcion ?? '---',
+                                    'importe' => number_format($d->cantidad * $d->precio_compra, 2)
+                                ])
+                            ]) }}">
                              <td class="px-6 py-4 whitespace-nowrap text-center">
                                 <span class="text-white font-bold font-medium uppercase">{{ $compra->folio ?? '---' }}</span>
-                            </td>
-                             <td class="px-6 py-4 whitespace-nowrap text-center">
-                                <div class="flex flex-col items-center">
-                                    <span class="text-white font-bold font-medium uppercase">{{ $compra->factura ?? 'SIN FACTURA' }}</span>
-                                </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 <span class="text-white font-medium uppercase">{{ \Carbon\Carbon::parse($compra->fecha_compra)->translatedFormat('d M, Y') }}</span>
                             </td>
                             <td class="px-6 py-4 text-center">
                                 <div class="flex items-center justify-center gap-2">
-                                    <!-- <div class="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center text-blue-300 font-bold uppercase text-xs">
-                                        {{ substr($compra->proveedor->nombre, 0, 1) }}
-                                    </div> -->
                                     <span class="text-white font-bold uppercase font-medium">{{ $compra->proveedor->nombre }}</span>
+                                </div>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                <div class="flex flex-col items-center">
+                                    <span class="text-white font-bold font-medium uppercase">{{ $compra->factura ?? 'SIN FACTURA' }}</span>
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
@@ -97,6 +108,11 @@
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 <div class="flex justify-center items-center gap-2">
+                                    <button onclick="vistaRapidaCompra(this)" class="p-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 rounded-xl transition-all" title="VISTA RÁPIDA">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                        </svg>
+                                    </button>
                                     <a href="{{ route('compras.show', $compra) }}" class="p-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-300 rounded-xl transition-all" title="VER DETALLE">
                                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
@@ -198,6 +214,74 @@
 @endpush
 
 <script>
+    function vistaRapidaCompra(btn) {
+        try {
+            const row = btn.closest('tr');
+            const c = JSON.parse(row.dataset.compra);
+
+            Swal.fire({
+                title: 'COMPRA: ' + c.folio,
+                background: '#1e293b',
+                color: '#fff',
+                width: '850px',
+                html: `
+                    <div style="text-align:left; margin-top:6px;">
+                        <div style="display:grid; grid-template-cols:1fr 1fr; gap:15px; margin-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:15px;">
+                            <div>
+                                <p class="text-md" style="color:#93c5fd; text-transform:uppercase; font-weight:900; margin-bottom:4px;">Proveedor</p>
+                                <p class="text-md" style="font-weight:700; color:#fff;">${c.proveedor}</p>
+                            </div>
+                            <div style="text-align:right;">
+                                <p class="text-md" style="color:#93c5fd; text-transform:uppercase; font-weight:900; margin-bottom:4px;">Fecha</p>
+                                <p class="text-md" style="color:#fff;">${c.fecha}</p>
+                            </div>
+                            <div>
+                                <p class="text-md" style="color:#93c5fd; text-transform:uppercase; font-weight:900; margin-bottom:4px;">Factura</p>
+                                <p class="text-md" style="color:#fff; font-weight:700;">${c.factura}</p>
+                            </div>
+                        </div>
+
+                        <p class="text-md" style="color:#93c5fd; text-transform:uppercase; font-weight:900; margin-bottom:8px;">Detalle de Artículos</p>
+                        <table style="width:100%; border-collapse:collapse; margin-bottom:15px;">
+                            <thead>
+                                <tr style="color:#93c5fd; text-align:center;">
+                                    <th class="text-md" style="padding:8px 4px; border-bottom:1px solid rgba(255,255,255,0.1); width:15%;">CANTIDAD</th>
+                                    <th class="text-md" style="padding:8px 4px; border-bottom:1px solid rgba(255,255,255,0.1); text-align:left; width:25%;">PRODUCTO</th>
+                                    <th class="text-md" style="padding:8px 4px; border-bottom:1px solid rgba(255,255,255,0.1); text-align:left;">DESCRIPCIÓN</th>
+                                    <th class="text-md" style="padding:8px 4px; border-bottom:1px solid rgba(255,255,255,0.1); text-align:right; width:20%;">IMPORTE</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${c.detalles.map(d => `
+                                    <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                                        <td class="text-md" style="padding:10px 4px; text-align:center; font-weight:700; color:#fff;">${d.cantidad}</td>
+                                        <td class="text-md" style="padding:10px 4px; text-transform:uppercase; font-weight:700; color:#fff;">${d.producto}</td>
+                                        <td class="text-md" style="padding:10px 4px; text-transform:uppercase; font-weight:700; color:#fff;">${d.descripcion}</td>
+                                        <td class="text-md" style="padding:10px 4px; text-align:right; font-weight:700; color:#fff;">$${d.importe}</td>
+                                    </tr>
+                                `).join('')}
+                            </tbody>
+                        </table>
+
+                        <div style="display:flex; justify-content:flex-end; align-items:center; gap:20px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.1);">
+                            <span class="text-md" style="color:#93c5fd; text-transform:uppercase; font-weight:900;">Total Compra:</span>
+                            <span style="font-size:24px; font-weight:900; color:#4ade80;">$${c.total}</span>
+                        </div>
+                    </div>
+                `,
+                showCancelButton: false,
+                confirmButtonText: 'CERRAR',
+                confirmButtonColor: '#475569',
+                customClass: {
+                    popup: 'backdrop-blur-xl border border-white/20 rounded-3xl shadow-2xl',
+                    title: 'text-2xl font-black uppercase tracking-tighter pt-6'
+                }
+            });
+        } catch (e) {
+            console.error("Error al abrir la modal:", e);
+        }
+    }
+
     function eliminarCompra(id) {
         Swal.fire({
             title: '¿ELIMINAR REGISTRO DE COMPRA?',
