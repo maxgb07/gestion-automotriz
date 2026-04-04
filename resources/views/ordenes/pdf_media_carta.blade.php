@@ -141,7 +141,7 @@
                     <h1 class="title">ORDEN DE SERVICIO</h1>
                     <p style="margin: 2px 0;">
                         Folio: <strong>{{ $orden->folio }}</strong><br>
-                        Fecha: {{ $orden->fecha_entrega ? $orden->fecha_entrega->format('d/m/Y') : 'PENDIENTE' }}
+                        Fecha: {{ $orden->fecha_entrada->format('d/m/Y') }}
                         @if($orden->estado !== 'FINALIZADO')
                             <br>Método de Pago: {{ $orden->pagos->pluck('metodo_pago')->unique()->implode(', ') ?: 'PENDIENTE' }}
                         @endif
@@ -225,6 +225,23 @@
                 <strong>POST-REPARACIÓN:</strong> {{ $orden->observaciones_post_reparacion }}
             </div>
         </div>
+        @endif
+
+        @php
+            // CRÉDITO 15 DÍAS: el controlador NO crea registro de pago (monto=0),
+            // por eso detectamos por estado + sin pagos registrados.
+            $esCredito      = $orden->estado === 'PENDIENTE DE PAGO' && $orden->pagos->isEmpty();
+            $fechaPagoOrden = $esCredito ? \Carbon\Carbon::parse($orden->fecha_entrada)->addDays(15)->format('d/m/Y') : null;
+        @endphp
+
+        @if($esCredito)
+            @include('partials.pagare', [
+                'cliente'      => $orden->cliente,
+                'total'        => $orden->total,
+                'folio'        => $orden->folio,
+                'fechaPago'    => $fechaPagoOrden,
+                'fechaEmision' => $orden->fecha_entrada->format('d/m/Y'),
+            ])
         @endif
 
         <div class="footer">

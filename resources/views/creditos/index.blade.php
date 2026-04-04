@@ -93,6 +93,16 @@
         </form>
     </div>
 
+    <!-- Actions Section -->
+    <div class="flex flex-col md:flex-row justify-end gap-4 mb-6">
+        <button onclick="abrirModalReporte()" class="w-fit px-8 py-3 h-[50px] bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/20 transition-all uppercase flex items-center justify-center gap-2">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 2v-6m-9 9h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v11a2 2 0 002 2z"></path>
+            </svg>
+            GENERAR REPORTE
+        </button>
+    </div>
+
     <!-- Clients Table -->
     <div class="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl overflow-hidden">
         <div class="overflow-x-auto">
@@ -246,7 +256,7 @@
                             <span class="text-[10px] font-black uppercase tracking-widest text-white">Cargando historial...</span>
                         </div>
                     </div>
-
+ 
                     <div class="space-y-3 pt-4 border-t border-white/5">
                         <label class="block text-[10px] font-black text-blue-300/40 uppercase tracking-[0.2em] ml-2">Nuevo Comentario</label>
                         <textarea id="swal-nuevo-comentario" rows="3" 
@@ -319,8 +329,8 @@
             }
         });
     }
-
-
+ 
+ 
     function sendWhatsApp(id, telefono) {
         if (!telefono) {
             Swal.fire('Error', 'El cliente no tiene un número registrado.', 'error');
@@ -330,13 +340,13 @@
         // Limpiar teléfono
         telefono = telefono.replace(/\D/g, '');
         if (telefono.length === 10) telefono = '52' + telefono;
-
+ 
         const urlEstadoCuenta = `{{ url('/creditos/') }}/${id}/pdf`;
         const mensaje = encodeURIComponent(`Hola, le envío su estado de cuenta actualizado de nuestro taller automotriz. Puede consultarlo aquí: ${urlEstadoCuenta}`);
         
         window.open(`https://wa.me/${telefono}?text=${mensaje}`, '_blank');
     }
-
+ 
     function showDocDetails(data) {
         let itemsHtml = `
             <div class="mt-6 text-left text-base">
@@ -352,7 +362,7 @@
                     </div>
                     ` : ''}
                 </div>
-
+ 
                 <div class="bg-white/5 rounded-2xl overflow-hidden border border-white/10 shadow-xl">
                     <table class="w-full text-left border-collapse">
                         <thead class="bg-white/10 text-base">
@@ -383,7 +393,7 @@
                 </div>
             </div>
         `;
-
+ 
         Swal.fire({
             title: `${data.tipo}: ${data.folio}`,
             html: itemsHtml,
@@ -398,7 +408,7 @@
             }
         });
     }
-
+ 
     function abrirModalPago(id, tipo, total, saldo) {
         Swal.fire({
             title: 'REGISTRAR PAGO',
@@ -410,7 +420,7 @@
                         <span class="text-md font-black text-slate-500 uppercase tracking-widest">TOTAL A PAGAR:</span>
                         <span class="text-xl font-black text-green-400 font-mono italic">$ ${new Intl.NumberFormat('es-MX', {minimumFractionDigits: 2}).format(saldo)}</span>
                     </div>
-
+ 
                     <div>
                         <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">MÉTODO DE PAGO *</label>
                         <select id="modal_metodo_pago" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all uppercase" onchange="toggleMontoPago(this.value, ${saldo})">
@@ -456,17 +466,17 @@
                 const monto = document.getElementById('modal_monto').value;
                 const factura = document.getElementById('modal_requiere_factura').value;
                 const referencia = document.getElementById('modal_referencia').value;
-
+ 
                 if (!metodo) {
                     Swal.showValidationMessage('Debe seleccionar un método de pago');
                     return false;
                 }
-
+ 
                 if (metodo !== 'CRÉDITO 15 DÍAS' && (!monto || monto <= 0)) {
                     Swal.showValidationMessage('El monto debe ser mayor a 0');
                     return false;
                 }
-
+ 
                 return { 
                     metodo_pago: metodo, 
                     monto: monto, 
@@ -484,9 +494,9 @@
                     allowOutsideClick: false,
                     didOpen: () => { Swal.showLoading(); }
                 });
-
+ 
                 const url = tipo === 'VENTA' ? `/ventas/${id}/pagos` : `/ordenes/${id}/pagos`;
-
+ 
                 fetch(url, {
                     method: 'POST',
                     headers: {
@@ -535,7 +545,7 @@
             }
         });
     }
-
+ 
     function toggleMontoPago(metodo, saldo) {
         const inputMonto = document.getElementById('modal_monto');
         if (metodo === 'CRÉDITO 15 DÍAS') {
@@ -549,6 +559,62 @@
         }
     }
 
+    function abrirModalReporte() {
+        Swal.fire({
+            title: 'REPORTE DE COBRANZA',
+            html: `
+                <div class="p-2 space-y-4 text-left">
+                    <p class="text-blue-300/40 text-md font-black uppercase tracking-widest mb-4 border-b border-white/5 pb-2">Seleccione el contenido del reporte</p>
+                    <div class="grid grid-cols-1 gap-3">
+                        <button onclick="generarReporte('AMBOS')" class="group p-4 bg-white/5 hover:bg-blue-600/20 border border-white/10 hover:border-blue-500/50 rounded-2xl transition-all duration-300 flex items-center justify-between">
+                            <div class="text-left">
+                                <span class="block text-white font-black uppercase tracking-tighter text-md group-hover:text-blue-400 leading-tight">ORDENES Y VENTAS</span>
+                                <span class="text-md text-blue-300/40 font-bold uppercase tracking-widest">REPORTE CONSOLIDADO COMPLETO</span>
+                            </div>
+                            <div class="w-10 h-10 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-400 group-hover:scale-110 transition-transform">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            </div>
+                        </button>
+
+                        <button onclick="generarReporte('ORDENES')" class="group p-4 bg-white/5 hover:bg-emerald-600/20 border border-white/10 hover:border-emerald-500/50 rounded-2xl transition-all duration-300 flex items-center justify-between">
+                            <div class="text-left">
+                                <span class="block text-white font-black uppercase tracking-tighter text-md group-hover:text-emerald-400 leading-tight">SOLO ÓRDENES</span>
+                                <span class="text-md text-emerald-300/40 font-bold uppercase tracking-widest">REPORTES DE TALLER / SERVICIO</span>
+                            </div>
+                            <div class="w-10 h-10 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 group-hover:scale-110 transition-transform">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg>
+                            </div>
+                        </button>
+
+                        <button onclick="generarReporte('VENTAS')" class="group p-4 bg-white/5 hover:bg-indigo-600/20 border border-white/10 hover:border-indigo-500/50 rounded-2xl transition-all duration-300 flex items-center justify-between">
+                            <div class="text-left">
+                                <span class="block text-white font-black uppercase tracking-tighter text-md group-hover:text-indigo-400 leading-tight">SOLO VENTAS</span>
+                                <span class="text-md text-indigo-300/40 font-bold uppercase tracking-widest">REPORTE DE MOSTRADOR Y REFACCIONES</span>
+                            </div>
+                            <div class="w-10 h-10 rounded-full bg-indigo-500/20 flex items-center justify-center text-indigo-400 group-hover:scale-110 transition-transform">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+            `,
+            width: '500px',
+            background: '#1e293b',
+            color: '#fff',
+            showConfirmButton: false,
+            showCloseButton: true,
+            customClass: {
+                popup: 'rounded-[2.5rem] border border-white/20 shadow-2xl',
+                title: 'text-2xl font-black uppercase tracking-tighter pt-10 px-8 text-left'
+            }
+        });
+    }
+
+    function generarReporte(tipo) {
+        Swal.close();
+        window.open(`{{ route('creditos.reporte_cobranza') }}?tipo=${tipo}`, '_blank');
+    }
+ 
     document.addEventListener('DOMContentLoaded', function() {
         $('#cliente_id').select2({
             width: '100%',
@@ -557,7 +623,7 @@
         });
     });
 </script>
-
+ 
 <style>
     @keyframes fadeIn {
         from { opacity: 0; transform: translateY(-10px); }

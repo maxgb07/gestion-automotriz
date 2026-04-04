@@ -274,10 +274,6 @@
                             ...result.value
                         },
                         success: function(response) {
-                            // Asumimos que el store redirige, pero para AJAX necesitamos que devuelva el ID o usar otra ruta.
-                            // Como el store actual de ClienteController es standard redireccion, 
-                            // tendríamos que modificarlo o usar una ruta específica para AJAX.
-                            // Por brevedad, lo buscamos de nuevo o usamos un alert.
                             Swal.fire('¡Éxito!', 'Cliente registrado. Por favor búscalo por su nombre.', 'success');
                         },
                         error: function() {

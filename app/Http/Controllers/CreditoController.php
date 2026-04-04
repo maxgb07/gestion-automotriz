@@ -202,4 +202,79 @@ class CreditoController extends Controller
 
         return $pdf->stream('Estado_Cuenta_' . \Illuminate\Support\Str::slug($cliente->nombre) . '.pdf');
     }
+
+    public function reporteGeneral(Request $request)
+    {
+        $tipo = $request->get('tipo', 'AMBOS'); // AMBOS, VENTAS, ORDENES
+
+        $clientes = Cliente::where('activo', 1)
+            ->where(function ($q) {
+                $q->whereHas('ventas', fn($q) => $q->where('saldo_pendiente', '>', 0))
+                  ->orWhereHas('ordenesServicio', fn($q) => $q
+                      ->where('estado', 'PENDIENTE DE PAGO')
+                      ->where('saldo_pendiente', '>', 0));
+            })
+            ->with([
+                'ventas' => fn($q) => $q->where('saldo_pendiente', '>', 0)->latest('fecha'),
+                'ordenesServicio' => fn($q) => $q->where('estado', 'PENDIENTE DE PAGO')->where('saldo_pendiente', '>', 0)->latest('fecha_entrada')
+            ])
+            ->orderBy('nombre')
+            ->get();
+
+        $datos = $clientes->map(function ($cliente) use ($tipo) {
+            $documentos = collect();
+
+            if (in_array($tipo, ['AMBOS', 'ORDENES'])) {
+                $ordenes = $cliente->ordenesServicio->map(function ($o) {
+                    return [
+                        'folio' => $o->folio ?? 'ORD-' . $o->id,
+                        'tipo' => 'ORDEN',
+                        'fecha_emision' => $o->fecha_entrada,
+                        'fecha_vencimiento' => $o->fecha_entrada->copy()->addDays(15),
+                        'total' => $o->total,
+                        'saldo' => $o->saldo_pendiente,
+                        'id_sort' => 1 // Prioridad 1 para órdenes
+                    ];
+                });
+                $documentos = $documentos->concat($ordenes);
+            }
+
+            if (in_array($tipo, ['AMBOS', 'VENTAS'])) {
+                $ventas = $cliente->ventas->map(function ($v) {
+                    return [
+                        'folio' => $v->folio ?? 'VTA-' . $v->id,
+                        'tipo' => 'VENTA',
+                        'fecha_emision' => $v->fecha,
+                        'fecha_vencimiento' => $v->fecha->copy()->addDays(15),
+                        'total' => $v->total,
+                        'saldo' => $v->saldo_pendiente,
+                        'id_sort' => 2 // Prioridad 2 para ventas
+                    ];
+                });
+                $documentos = $documentos->concat($ventas);
+            }
+
+            // Ordenar por prioridad (id_sort) y luego por fecha reciente (desc)
+            $documentos = $documentos->sort(function ($a, $b) {
+                if ($a['id_sort'] !== $b['id_sort']) {
+                    return $a['id_sort'] <=> $b['id_sort'];
+                }
+                return $b['fecha_emision'] <=> $a['fecha_emision'];
+            });
+
+            return [
+                'nombre' => $cliente->nombre,
+                'documentos' => $documentos,
+                'total_cliente' => $documentos->sum('saldo')
+            ];
+        })->filter(fn($c) => $c['documentos']->count() > 0);
+
+        $pdf = Pdf::loadView('creditos.pdf_reporte_cobranza', [
+            'datos' => $datos,
+            'tipo_reporte' => $tipo,
+            'fecha_reporte' => now()->format('d/m/Y H:i')
+        ]);
+
+        return $pdf->stream('Reporte_General_Cobranza_' . now()->format('dmY_His') . '.pdf');
+    }
 }

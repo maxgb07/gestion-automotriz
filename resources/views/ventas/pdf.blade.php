@@ -195,6 +195,21 @@
             </div>
         </div>
 
+        @php
+            $esCredito      = mb_strtoupper($venta->metodo_pago ?? '', 'UTF-8') === 'CREDITO';
+            $fechaPagoVenta = $venta->fecha_vencimiento ? $venta->fecha_vencimiento->format('d/m/Y') : null;
+        @endphp
+
+        @if($esCredito)
+            @include('partials.pagare', [
+                'cliente'      => $venta->cliente,
+                'total'        => $venta->total,
+                'folio'        => $venta->folio,
+                'fechaPago'    => $fechaPagoVenta,
+                'fechaEmision' => $venta->fecha->format('d/m/Y'),
+            ])
+        @endif
+
         <div class="footer">
             {{ config('app.name') }} - Gracias por su preferencia.<br>
             Este documento no representa un comprobante fiscal.

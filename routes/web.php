@@ -84,6 +84,7 @@ Route::middleware('auth')->group(function () {
     // Cuentas por Cobrar
     Route::prefix('creditos')->name('creditos.')->group(function () {
         Route::get('/', [CreditoController::class, 'index'])->name('index');
+        Route::get('/reporte-cobranza', [CreditoController::class, 'reporteGeneral'])->name('reporte_cobranza');
         Route::get('/{cliente}', [CreditoController::class, 'show'])->name('show');
         Route::post('/{cliente}/comentario', [CreditoController::class, 'storeComentario'])->name('comentario.store');
         Route::get('/{cliente}/historial', [CreditoController::class, 'historialComentarios'])->name('historial');
