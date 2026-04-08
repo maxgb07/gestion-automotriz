@@ -495,8 +495,10 @@ class OrdenServicioController extends Controller
                 $orden->decrement('saldo_pendiente', $monto);
             }
 
-            // Actualizar requiere_factura
-            $orden->requiere_factura = $request->requiere_factura;
+            // Actualizar requiere_factura si se liquida
+            if ($orden->fresh()->saldo_pendiente <= 0) {
+                $orden->requiere_factura = $request->requiere_factura;
+            }
 
             // Determinar nuevo estado
             $nuevoEstado = ($metodo === 'CRÉDITO 15 DÍAS' || $orden->fresh()->saldo_pendiente > 0) ? 'PENDIENTE DE PAGO' : 'ENTREGADO';

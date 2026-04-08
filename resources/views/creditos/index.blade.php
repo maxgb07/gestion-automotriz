@@ -547,15 +547,22 @@
     }
  
     function toggleMontoPago(metodo, saldo) {
-        const inputMonto = document.getElementById('modal_monto');
+        const popup = Swal.getPopup();
+        if (!popup) return;
+        const inputMonto = popup.querySelector('#modal_monto');
         if (metodo === 'CRÉDITO 15 DÍAS') {
+            if (parseFloat(inputMonto.value) > 0) {
+                inputMonto.dataset.oldValue = inputMonto.value;
+            }
             inputMonto.value = 0;
             inputMonto.readOnly = true;
             inputMonto.classList.add('bg-white/5', 'text-slate-500');
         } else {
-            inputMonto.value = saldo;
             inputMonto.readOnly = false;
             inputMonto.classList.remove('bg-white/5', 'text-slate-500');
+            if (parseFloat(inputMonto.value) === 0) {
+                inputMonto.value = inputMonto.dataset.oldValue ? inputMonto.dataset.oldValue : saldo;
+            }
         }
     }
 
@@ -614,6 +621,186 @@
         Swal.close();
         window.open(`{{ route('creditos.reporte_cobranza') }}?tipo=${tipo}`, '_blank');
     }
+
+    // --- Lógica de Pago en Lote ---
+    let docsSeleccionadosLote = [];
+
+    function toggleAllCheckboxes(clienteId, elem) {
+        let isChecked = elem.checked;
+        const checkboxes = document.querySelectorAll(`.doc-checkbox-${clienteId}`);
+        checkboxes.forEach(cb => cb.checked = isChecked);
+        updateLoteTotal(clienteId);
+    }
+
+    function updateLoteTotal(clienteId) {
+        let total = 0;
+        let count = 0;
+        docsSeleccionadosLote = [];
+        const checkboxes = document.querySelectorAll(`.doc-checkbox-${clienteId}`);
+        
+        // Comprobar estado global de checkboxes
+        let allChecked = true;
+        
+        checkboxes.forEach(cb => {
+            if (cb.checked) {
+                total += parseFloat(cb.dataset.saldo);
+                count++;
+                docsSeleccionadosLote.push({
+                    id: cb.dataset.id,
+                    tipo: cb.dataset.tipo
+                });
+            } else {
+                allChecked = false;
+            }
+        });
+
+        const checkAll = document.getElementById(`check-all-${clienteId}`);
+        if(checkAll && checkboxes.length > 0) {
+            checkAll.checked = allChecked;
+        }
+
+        const countElem = document.getElementById(`lote-count-${clienteId}`);
+        const totalElem = document.getElementById(`lote-total-${clienteId}`);
+        const actionBar = document.getElementById(`lote-action-bar-${clienteId}`);
+
+        if (count > 0) {
+            actionBar.classList.remove('hidden');
+            countElem.innerText = count;
+            totalElem.innerText = '$' + new Intl.NumberFormat('es-MX', {minimumFractionDigits: 2}).format(total);
+        } else {
+            actionBar.classList.add('hidden');
+        }
+    }
+
+    function toggleMontoLote(metodo, maxSaldo) {
+        const popup = Swal.getPopup();
+        if (!popup) return;
+        const inputMonto = popup.querySelector('#modal_lote_monto');
+        if (metodo === 'CRÉDITO 15 DÍAS') {
+            inputMonto.value = 0;
+            inputMonto.readOnly = true;
+            inputMonto.classList.add('bg-white/5', 'text-slate-500');
+            Swal.showValidationMessage('No puede seleccionar crédito a 15 días en pagos masivos.');
+        } else {
+            Swal.resetValidationMessage();
+            inputMonto.readOnly = false;
+            inputMonto.classList.remove('bg-white/5', 'text-slate-500');
+            if (parseFloat(inputMonto.value || 0) === 0) {
+                inputMonto.value = maxSaldo.toFixed(2);
+            }
+        }
+    }
+
+    function prepararPagoLote(clienteId) {
+        const items = [];
+        let totalSaldo = 0;
+        const checkboxes = document.querySelectorAll(`.doc-checkbox-${clienteId}:checked`);
+        
+        checkboxes.forEach(cb => {
+            const id = cb.dataset.id;
+            const tipo = cb.dataset.tipo;
+            const saldo = parseFloat(cb.dataset.saldo || 0);
+            items.push({ id, tipo, saldo });
+            totalSaldo += saldo;
+        });
+
+        if (items.length === 0) return;
+
+        Swal.fire({
+            title: `COBRAR EN LOTE (${items.length} DOCS)`,
+            background: '#1e293b',
+            color: '#fff',
+            html: `
+                <div class="p-4 text-left space-y-5">
+                    <div class="bg-blue-600/20 border border-blue-500/30 rounded-2xl p-4 flex justify-between items-center mb-6">
+                        <div class="text-left font-black tracking-widest text-blue-200 uppercase text-[10px]">Total Seleccionado</div>
+                        <div class="text-2xl font-black font-mono text-white">$${totalSaldo.toLocaleString('es-MX', {minimumFractionDigits: 2})}</div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Método</label>
+                            <select id="modal_lote_metodo" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold text-sm focus:ring-2 focus:ring-blue-500 outline-none uppercase" onchange="toggleMontoLote(this.value, ${totalSaldo})">
+                                <option value="EFECTIVO" class="text-black">EFECTIVO</option>
+                                <option value="TRANSFERENCIA" class="text-black" selected>TRANSFERENCIA</option>
+                                <option value="TARJETA DE DÉBITO" class="text-black">TARJETA DE DÉBITO</option>
+                                <option value="TARJETA DE CRÉDITO" class="text-black">TARJETA DE CRÉDITO</option>
+                                <option value="OTRO / MIXTO" class="text-black">OTRO / MIXTO</option>
+                                <option value="CRÉDITO 15 DÍAS" class="text-black">CRÉDITO 15 DÍAS</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-red-400/60 uppercase tracking-widest mb-2 ml-1 italic">Monto manual a cobrar</label>
+                            <input type="number" id="modal_lote_monto" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold text-xl focus:ring-2 focus:ring-blue-500 outline-none" value="${totalSaldo.toFixed(2)}" step="0.01">
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">¿Lleva Factura?</label>
+                            <select id="modal_lote_factura" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold text-sm focus:ring-2 focus:ring-blue-500 outline-none uppercase">
+                                <option value="NO" class="text-black">NO</option>
+                                <option value="SI" class="text-black">SI</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Fecha Pago</label>
+                            <input type="date" id="modal_lote_fecha" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold text-sm focus:ring-2 focus:ring-blue-500 outline-none" value="${new Date().toISOString().split('T')[0]}">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">Ref / Notas</label>
+                        <input type="text" id="modal_lote_referencia" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold uppercase focus:ring-2 focus:ring-blue-500 outline-none" placeholder="...">
+                    </div>
+                </div>
+            `,
+            showCancelButton: true,
+            confirmButtonText: 'PROCESAR PAGO',
+            cancelButtonText: 'CANCELAR',
+            confirmButtonColor: '#2563eb',
+            cancelButtonColor: '#ef4444',
+            customClass: {
+                container: 'backdrop-blur-sm',
+                popup: 'rounded-[2.5rem] border border-white/10 shadow-2xl',
+                confirmButton: 'rounded-xl px-8 py-3 font-bold uppercase tracking-widest text-[10px]',
+                cancelButton: 'rounded-xl px-8 py-3 font-bold uppercase tracking-widest text-[10px]'
+            },
+            preConfirm: () => {
+                const popup = Swal.getPopup();
+                const metodo = popup.querySelector('#modal_lote_metodo').value;
+                const monto = popup.querySelector('#modal_lote_monto').value;
+                const factura = popup.querySelector('#modal_lote_factura').value;
+                const referencia = popup.querySelector('#modal_lote_referencia').value;
+                const fecha = popup.querySelector('#modal_lote_fecha').value;
+
+                console.log("SENDING BATCH PAYMENT:", { items, metodo, monto, fecha });
+
+                if (!metodo) { Swal.showValidationMessage('Seleccione método'); return false; }
+                if (metodo !== 'CRÉDITO 15 DÍAS' && (!monto || monto <= 0)) {
+                    Swal.showValidationMessage('Monto inválido');
+                    return false;
+                }
+
+                return { documentos: items, metodo_pago: metodo, monto_total: monto, requiere_factura: factura, referencia, fecha_pago: fecha };
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                Swal.fire({ title: 'Procesando...', background: '#1e293b', color: '#fff', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+                fetch(`{{ route('creditos.pago_lote') }}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' },
+                    body: JSON.stringify(result.value)
+                })
+                .then(r => r.json())
+                .then(response => {
+                    if (response.success) {
+                        Swal.fire({ icon: 'success', title: 'PAGO REGISTRADO', text: response.message, background: '#1e293b', color: '#fff' }).then(() => { window.location.reload(); });
+                    } else {
+                        Swal.fire({ icon: 'error', title: 'ERROR', text: response.message, background: '#1e293b', color: '#fff' });
+                    }
+                });
+            }
+        });
+    }
+
  
     document.addEventListener('DOMContentLoaded', function() {
         $('#cliente_id').select2({

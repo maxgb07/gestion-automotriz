@@ -277,4 +277,122 @@ class CreditoController extends Controller
 
         return $pdf->stream('Reporte_General_Cobranza_' . now()->format('dmY_His') . '.pdf');
     }
+
+    public function registrarPagoLote(Request $request)
+    {
+        \Illuminate\Support\Facades\Log::info('RECIBIDO PAGO LOTE:', $request->all());
+
+        $request->validate([
+            'documentos' => 'required|array|min:1',
+            'documentos.*.id' => 'required|integer',
+            'documentos.*.tipo' => 'required|in:VENTA,ORDEN',
+            'monto_total' => 'required|numeric|min:0',
+            'metodo_pago' => 'required|string',
+            'referencia' => 'nullable|string|max:100',
+            'requiere_factura' => 'required|in:SI,NO',
+            'fecha_pago' => 'nullable|date',
+        ]);
+
+        try {
+            \Illuminate\Support\Facades\DB::beginTransaction();
+
+            $documentosRequest = collect($request->documentos);
+            $montoRestante = floatval($request->monto_total);
+            $metodo = $request->metodo_pago;
+
+            if ($metodo === 'CRÉDITO 15 DÍAS') {
+                throw new \Exception("No puede abonar cuentas usando crédito a 15 días.");
+            }
+
+            if ($montoRestante <= 0) {
+                throw new \Exception("El monto total debe ser mayor a 0.");
+            }
+
+            $ventasIds = $documentosRequest->where('tipo', 'VENTA')->pluck('id')->toArray();
+            $ordenesIds = $documentosRequest->where('tipo', 'ORDEN')->pluck('id')->toArray();
+
+            $ventas = Venta::whereIn('id', $ventasIds)->where('saldo_pendiente', '>', 0)->get()->map(function($v) {
+                $v->tipo_doc = 'VENTA';
+                $v->fecha_doc = $v->fecha;
+                return $v;
+            });
+
+            $ordenes = OrdenServicio::whereIn('id', $ordenesIds)->where('saldo_pendiente', '>', 0)->where('estado', 'PENDIENTE DE PAGO')->get()->map(function($o) {
+                $o->tipo_doc = 'ORDEN';
+                $o->fecha_doc = $o->fecha_entrada;
+                return $o;
+            });
+
+            $documentos = $ventas->concat($ordenes)->sortBy('fecha_doc')->values();
+            
+            if ($documentos->isEmpty()) {
+                throw new \Exception("Los documentos seleccionados ya no tienen saldo pendiente.");
+            }
+
+            foreach ($documentos as $doc) {
+                if ($montoRestante <= 0) break;
+
+                $abono = min($doc->saldo_pendiente, $montoRestante);
+                \Illuminate\Support\Facades\Log::info("  PROCESANDO DOC {$doc->tipo_doc} ID {$doc->id}: Saldo original {$doc->saldo_pendiente}, Abono {$abono}, Queda por distribuir " . ($montoRestante - $abono));
+                
+                $montoRestante -= $abono;
+
+                if ($doc->tipo_doc === 'VENTA') {
+                    $pago = \App\Models\VentaPago::create([
+                        'venta_id' => $doc->id,
+                        'monto' => $abono,
+                        'fecha_pago' => $request->fecha_pago ?? now()->format('Y-m-d'),
+                        'metodo_pago' => $metodo,
+                        'referencia' => mb_strtoupper($request->referencia ?? '', 'UTF-8'),
+                    ]);
+
+                    $doc->saldo_pendiente -= $pago->monto; // Usar el monto del registro creado
+                    $doc->estado = ($doc->saldo_pendiente <= 0) ? 'PAGADA' : 'PENDIENTE';
+                    
+                    if ($doc->saldo_pendiente <= 0) {
+                        $doc->requiere_factura = $request->requiere_factura;
+                    }
+                    
+                    // Recalcular método (leemos de la relación fresca)
+                    $metodos = $pago->venta->pagos()->pluck('metodo_pago')->unique();
+                    $doc->metodo_pago = $metodos->count() > 1 ? 'MIXTO' : ($metodos->first() ?? $doc->metodo_pago);
+
+                    unset($doc->tipo_doc);
+                    unset($doc->fecha_doc);
+                    $doc->save();
+                } else {
+                    $pago = $doc->pagos()->create([
+                        'monto' => $abono,
+                        'fecha_pago' => $request->fecha_pago ?? now()->format('Y-m-d'),
+                        'metodo_pago' => $metodo,
+                        'referencia' => mb_strtoupper($request->referencia ?? '', 'UTF-8'),
+                    ]);
+
+                    $doc->saldo_pendiente -= $pago->monto;
+                    
+                    if ($doc->saldo_pendiente <= 0) {
+                        $doc->requiere_factura = $request->requiere_factura;
+                    }
+
+                    // Aseguramos que el estado sea el correcto para Ordenes
+                    $doc->estado = ($doc->saldo_pendiente > 0) ? 'PENDIENTE DE PAGO' : 'ENTREGADO';
+                    
+                    unset($doc->tipo_doc);
+                    unset($doc->fecha_doc);
+                    $doc->save();
+                }
+            }
+
+            \Illuminate\Support\Facades\DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Pagos procesados correctamente.'
+            ]);
+
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\DB::rollBack();
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
 }

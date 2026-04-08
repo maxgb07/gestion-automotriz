@@ -1,7 +1,33 @@
-<div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-xl animate-fadeIn">
-    <table class="w-full text-left border-collapse">
+<div class="bg-white/5 border border-white/10 rounded-2xl overflow-hidden shadow-xl animate-fadeIn relative">
+    
+    <!-- Barra de Acción para Cobro en Lote -->
+    <div id="lote-action-bar-{{ $cliente->id }}" class="hidden bg-blue-600/90 backdrop-blur-md border-b border-blue-400/30 p-4 transition-all animate-fadeIn sticky top-0 z-10">
+        <div class="flex justify-between items-center">
+            <div class="text-white font-black uppercase tracking-widest text-sm flex items-center gap-2">
+                <span id="lote-count-{{ $cliente->id }}" class="bg-white/20 px-2 py-1 rounded-md">0</span> Selección
+            </div>
+            <div class="flex items-center gap-4">
+                <div class="text-right hidden sm:block">
+                    <span class="text-blue-200 text-[10px] font-bold uppercase tracking-widest block">Total</span>
+                    <span id="lote-total-{{ $cliente->id }}" class="text-white text-lg font-black font-mono">$0.00</span>
+                </div>
+                <button onclick="prepararPagoLote({{ $cliente->id }})" class="w-fit px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/20 transition-all uppercase flex items-center justify-center gap-2">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    COBRAR SELECCIONADAS
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="overflow-x-auto pb-1">
+        <table class="w-full text-left border-collapse">
         <thead class="bg-white/5 border-b border-white/10 font-bold uppercase tracking-widest">
             <tr>
+                <th class="px-6 py-4 w-12 text-center">
+                    <input type="checkbox" id="check-all-{{ $cliente->id }}" onclick="toggleAllCheckboxes({{ $cliente->id }}, this)" class="w-4 h-4 rounded border-white/20 bg-white/5 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-900 cursor-pointer">
+                </th>
                 <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider">Tipo</th>
                 <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider">Folio</th>
                 <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Emisión</th>
@@ -15,6 +41,13 @@
         <tbody class="divide-y divide-white/5">
             @foreach($documentos as $doc)
                 <tr class="hover:bg-white/5 transition-colors group">
+                    <td class="px-6 py-4 text-center">
+                        <input type="checkbox" class="doc-checkbox-{{ $cliente->id }} w-4 h-4 rounded border-white/20 bg-white/5 text-blue-500 focus:ring-blue-500 focus:ring-offset-slate-900 cursor-pointer" 
+                               data-id="{{ $doc->id }}" 
+                               data-tipo="{{ $doc->tipo_doc }}" 
+                               data-saldo="{{ $doc->saldo_pendiente }}"
+                               onchange="updateLoteTotal({{ $cliente->id }})">
+                    </td>
                     <td class="px-6 py-4">
                         <span class="px-2 py-0.5 rounded-md {{ $doc->tipo_doc == 'VENTA' ? 'bg-indigo-500/20 text-indigo-300' : 'bg-blue-500/20 text-blue-300' }} text-[9px] font-black uppercase tracking-widest border border-white/5">
                             {{ $doc->tipo_doc }}
@@ -95,4 +128,5 @@
             @endforeach
         </tbody>
     </table>
+    </div>
 </div>

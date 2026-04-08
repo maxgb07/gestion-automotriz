@@ -48,7 +48,7 @@ class PagoVentaController extends Controller
                 $venta->estado = 'PENDIENTE';
             }
             
-            if ($request->has('requiere_factura')) {
+            if ($venta->saldo_pendiente <= 0 && $request->has('requiere_factura')) {
                 $venta->requiere_factura = $request->requiere_factura;
             }
 

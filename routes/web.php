@@ -88,6 +88,7 @@ Route::middleware('auth')->group(function () {
         Route::get('/{cliente}', [CreditoController::class, 'show'])->name('show');
         Route::post('/{cliente}/comentario', [CreditoController::class, 'storeComentario'])->name('comentario.store');
         Route::get('/{cliente}/historial', [CreditoController::class, 'historialComentarios'])->name('historial');
+        Route::post('/pago-lote', [CreditoController::class, 'registrarPagoLote'])->name('pago_lote');
         Route::get('/{cliente}/pdf', [CreditoController::class, 'generarEstadoCuenta'])->name('pdf');
     });
 
