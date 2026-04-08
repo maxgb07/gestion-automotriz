@@ -37,6 +37,8 @@
                         'PAGADA' => 'bg-green-500/20 text-green-300 border-green-500/30',
                         'PENDIENTE' => 'bg-amber-500/20 text-amber-300 border-amber-500/30',
                         'CANCELADA' => 'bg-red-500/20 text-red-300 border-red-500/30',
+                        'PRESTAMO' => 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+                        'DEVUELTO' => 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30',
                     };
                 @endphp
                 <span class="px-4 py-1.5 rounded-full text-xl font-black uppercase border {{ $color }}">

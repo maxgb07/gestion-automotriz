@@ -62,6 +62,7 @@ Route::middleware('auth')->group(function () {
     Route::get('ventas/{venta}/pdf', [VentaController::class, 'downloadPDF'])->name('ventas.pdf');
     Route::post('ventas/{venta}/facturar', [VentaController::class, 'registrarFactura'])->name('ventas.factura.store');
     Route::post('ventas/{venta}/cancelar', [VentaController::class, 'cancelar'])->name('ventas.cancelar');
+    Route::post('ventas/{venta}/resolver', [VentaController::class, 'resolverPrestamo'])->name('ventas.resolver_prestamo');
     Route::resource('ventas', VentaController::class);
     Route::post('ventas/{venta}/pagos', [PagoVentaController::class, 'store'])->name('ventas.pagos.store');
 

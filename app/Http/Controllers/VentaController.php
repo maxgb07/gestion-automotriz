@@ -102,7 +102,7 @@ class VentaController extends Controller
         $request->validate([
             'cliente_id' => 'required|exists:clientes,id',
             'fecha' => 'required|date',
-            'metodo_pago' => 'required|in:EFECTIVO,TARJETA DE DÉBITO,TARJETA DE CRÉDITO,TRANSFERENCIA,CHEQUE,CREDITO',
+            'metodo_pago' => 'required|in:EFECTIVO,TARJETA DE DÉBITO,TARJETA DE CRÉDITO,TRANSFERENCIA,CHEQUE,CREDITO,PRESTAMO',
             'items' => 'required|array|min:1',
             'items.*.tipo' => 'required|in:producto,servicio',
             'items.*.id' => 'required',
@@ -138,6 +138,7 @@ class VentaController extends Controller
             }
 
             $esCredito = $request->metodo_pago === 'CREDITO';
+            $esPrestamo = $request->metodo_pago === 'PRESTAMO';
             
             $venta = Venta::create([
                 'cliente_id' => $request->cliente_id,
@@ -147,7 +148,7 @@ class VentaController extends Controller
                 'descuento' => $totalDescuentoVenta,
                 'saldo_pendiente' => $esCredito ? $totalVenta : 0,
                 'metodo_pago' => $request->metodo_pago,
-                'estado' => $esCredito ? 'PENDIENTE' : 'PAGADA',
+                'estado' => $esCredito ? 'PENDIENTE' : ($esPrestamo ? 'PRESTAMO' : 'PAGADA'),
                 'fecha_vencimiento' => $esCredito ? \Carbon\Carbon::parse($request->fecha)->addDays(15) : null,
                 'requiere_factura' => $request->requiere_factura,
                 'observaciones' => $request->observaciones,
@@ -228,9 +229,17 @@ class VentaController extends Controller
         }
     }
 
-    public function show(Venta $venta)
+    public function show(Request $request, Venta $venta)
     {
         $venta->load(['cliente', 'detalles.producto', 'detalles.servicio', 'pagos']);
+
+        if ($request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'venta' => $venta
+            ]);
+        }
+
         return view('ventas.ver', compact('venta'));
     }
 
@@ -254,7 +263,7 @@ class VentaController extends Controller
         
         // TAMAÑO MEDIA CARTA:
         // Descomente las siguientes dos líneas para usar Media Carta y comente las de arriba
-        $vista = 'ventas.pdf_media_carta';
+        $vista = ($venta->metodo_pago === 'PRESTAMO') ? 'ventas.pdf_media_carta_prestamo' : 'ventas.pdf_media_carta';
         $papel = array(0, 0, 396, 612); // 5.5 x 8.5 pulgadas
         // =========================================================================
 
@@ -340,6 +349,86 @@ class VentaController extends Controller
             return response()->json([
                 'success' => false,
                 'message' => 'Error al cancelar la venta: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    public function resolverPrestamo(Request $request, Venta $venta)
+    {
+        if ($venta->estado !== 'PRESTAMO') {
+            return response()->json([
+                'success' => false,
+                'message' => 'Esta venta no es un préstamo o ya fue resuelta.'
+            ], 422);
+        }
+
+        $request->validate([
+            'resolucion' => 'required|in:devolucion,pago',
+            'metodo_pago' => 'required_if:resolucion,pago|in:EFECTIVO,TARJETA DE DÉBITO,TARJETA DE CRÉDITO,TRANSFERENCIA,CHEQUE,CREDITO',
+            'requiere_factura' => 'required_if:resolucion,pago|in:SI,NO',
+            'items' => 'required_if:resolucion,pago|array',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            if ($request->resolucion === 'devolucion') {
+                foreach ($venta->detalles as $detalle) {
+                    if ($detalle->producto_id) {
+                        $producto = $detalle->producto;
+                        $producto->increment('stock', $detalle->cantidad);
+                    }
+                }
+
+                $venta->update([
+                    'estado' => 'DEVUELTO',
+                    'updated_at' => now()
+                ]);
+
+                $mensaje = 'Préstamo devuelto correctamente. El stock ha sido reintegrado.';
+            } else {
+                // Resolución como PAGO
+                $nuevoTotal = 0;
+                $nuevoDescuento = 0;
+
+                foreach ($request->items as $itemId => $itemData) {
+                    $detalle = $venta->detalles()->findOrFail($itemId);
+                    $nuevoPrecio = floatval($itemData['precio']);
+                    $nuevoSubtotal = $nuevoPrecio * $detalle->cantidad;
+
+                    $detalle->update([
+                        'precio_unitario' => $nuevoPrecio,
+                        'subtotal' => $nuevoSubtotal,
+                        'descuento' => 0 // Reset descuento en esta instancia si lo desea el usuario (simplificado)
+                    ]);
+
+                    $nuevoTotal += $nuevoSubtotal;
+                }
+
+                $venta->update([
+                    'metodo_pago' => $request->metodo_pago,
+                    'requiere_factura' => $request->requiere_factura,
+                    'total' => $nuevoTotal,
+                    'saldo_pendiente' => ($request->metodo_pago === 'CREDITO') ? $nuevoTotal : 0,
+                    'estado' => ($request->metodo_pago === 'CREDITO') ? 'PENDIENTE' : 'PAGADA',
+                    'updated_at' => now()
+                ]);
+
+                $mensaje = 'Préstamo convertido a venta exitosamente.';
+            }
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => $mensaje
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al procesar la resolución: ' . $e->getMessage()
             ], 500);
         }
     }

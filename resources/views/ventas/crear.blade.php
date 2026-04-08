@@ -79,6 +79,7 @@
                                 <option value="TRANSFERENCIA">TRANSFERENCIA</option>
                                 <option value="CHEQUE">CHEQUE</option>
                                 <option value="CREDITO">CRÉDITO (15 DÍAS)</option>
+                                <option value="PRESTAMO">PRÉSTAMO DE MATERIAL</option>
                             </select>
                         </div>
 
@@ -227,11 +228,13 @@
                 
                 const clienteId = parseInt($('#cliente_id').val());
                 const metodoPago = $('#metodo_pago').val();
+                const esCredito = metodoPago === 'CREDITO';
+                const esPrestamo = metodoPago === 'PRESTAMO';
                 
-                if (metodoPago === 'CREDITO' && clienteId === PUBLICO_GENERAL_ID) {
+                if ((esCredito || esPrestamo) && clienteId === PUBLICO_GENERAL_ID) {
                     Swal.fire({
                         title: 'MÉTODO DE PAGO INVÁLIDO',
-                        text: 'El método de pago a CRÉDITO no puede ser otorgado al cliente "Público en General". Por favor, seleccione el cliente correcto en el menú desplegable o cambie el método de pago.',
+                        text: `El método de pago a ${esCredito ? 'CRÉDITO' : 'PRÉSTAMO'} no puede ser otorgado al cliente "Público en General". Por favor, seleccione el cliente correcto en el menú desplegable o cambie el método de pago.`,
                         icon: 'warning',
                         confirmButtonColor: '#3b82f6',
                         background: '#1e293b',
@@ -250,7 +253,6 @@
                 const observaciones = $('#observaciones').val().trim();
                 const totalTexto = document.getElementById('total-general').textContent.trim();
                 const numArticulos = document.querySelectorAll('#items-table tbody tr').length;
-                const esCredito = metodoPago === 'CREDITO';
                 
                 // Fecha de vencimiento estimada (15 días)
                 const fechaVencimiento = (() => {
@@ -274,10 +276,19 @@
                                 <td style="padding:8px 4px; color:#93c5fd; font-size:14px; text-transform:uppercase; font-weight:700;">Método de Pago</td>
                                 <td style="padding:8px 4px; font-weight:600;">${metodoPagoTexto}</td>
                             </tr>
-                            <tr style="${esCredito ? 'border-bottom:1px solid rgba(255,255,255,0.1);' : ''}">
-                                <td style="padding:8px 4px; color:#93c5fd; font-size:14px; text-transform:uppercase; font-weight:700;">Total</td>
+                            <tr style="${(esCredito || esPrestamo) ? 'border-bottom:1px solid rgba(255,255,255,0.1);' : ''}">
+                                <td style="padding:8px 4px; color:#93c5fd; font-size:14px; text-transform:uppercase; font-weight:700;">${esPrestamo ? 'Valor Estimado' : 'Total'}</td>
                                 <td style="padding:8px 4px; font-weight:900; font-size:18px; color:#4ade80;">${totalTexto}</td>
                             </tr>
+                            ${esPrestamo ? `
+                            <tr>
+                                <td colspan="2" style="padding:10px 4px;">
+                                    <div style="background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.4); border-radius:10px; padding:10px;">
+                                        <p style="margin:0 0 4px 0; color:#60a5fa; font-weight:900; font-size:14px; text-transform:uppercase;">ℹ Préstamo de Material</p>
+                                        <p style="margin:0; font-size:14px; color:#93c5fd;">Esta operación registrará el préstamo de artículos. El stock se descontará y podrá ser reintegrado al inventario cuando el cliente lo devuelva.</p>
+                                    </div>
+                                </td>
+                            </tr>` : ''}
                             ${esCredito ? `
                             <tr>
                                 <td colspan="2" style="padding:10px 4px;">

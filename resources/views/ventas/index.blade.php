@@ -94,6 +94,7 @@
                     <option value="TARJETA DE CRÉDITO" {{ request('metodo_pago') == 'TARJETA DE CRÉDITO' ? 'selected' : '' }}>TARJETA DE CRÉDITO</option>
                     <option value="TRANSFERENCIA" {{ request('metodo_pago') == 'TRANSFERENCIA' ? 'selected' : '' }}>TRANSFERENCIA</option>
                     <option value="CHEQUE" {{ request('metodo_pago') == 'CHEQUE' ? 'selected' : '' }}>CHEQUE</option>
+                    <option value="PRESTAMO" {{ request('metodo_pago') == 'PRESTAMO' ? 'selected' : '' }}>PRÉSTAMO</option>
                 </select>
             </div>
 
@@ -254,10 +255,12 @@
                                         'PAGADA' => 'bg-green-500/20 text-green-300 border-green-500/30',
                                         'PENDIENTE' => 'bg-amber-500/20 text-amber-300 border-amber-500/30',
                                         'CANCELADA' => 'bg-red-500/20 text-red-300 border-red-500/30',
+                                        'PRESTAMO' => 'bg-blue-500/20 text-blue-300 border-blue-500/30',
+                                        'DEVUELTO' => 'bg-teal-500/20 text-teal-300 border-teal-500/30',
                                     };
                                 @endphp
                                 <span class="px-3 py-1 rounded-full text-sm border {{ $color }}">
-                                    {{ $venta->estado == 'PENDIENTE' ? 'PENDIENTE DE PAGO' : $venta->estado }}
+                                    {{ $venta->estado == 'PENDIENTE' ? 'PENDIENTE DE PAGO' : ($venta->estado == 'PRESTAMO' ? 'EN PRÉSTAMO' : $venta->estado) }}
                                 </span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
@@ -290,6 +293,8 @@
                                         </button>
                                     @endif
 
+
+
                                     <button onclick="vistaRapida(this)" class="p-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 rounded-lg border border-purple-500/10 transition-all cursor-pointer" title="VISTA RÁPIDA">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -319,6 +324,16 @@
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
                                             </svg>
                                         </a>
+
+                                        @if($venta->estado === 'PRESTAMO')
+                                            <button onclick="resolverPrestamo({{ $venta->id }}, '{{ $venta->folio }}')" 
+                                                    class="p-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-300 rounded-lg border border-blue-500/10 transition-all cursor-pointer" 
+                                                    title="RESOLVER PRÉSTAMO">
+                                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 15v-1a4 4 0 00-4-4H8m0 0l3 3m-3-3l3-3m9 14V5a2 2 0 00-2-2H6a2 2 0 00-2 2v16l4-2 4 2 4-2 4 2z"></path>
+                                                </svg>
+                                            </button>
+                                        @endif
 
                                         <button onclick="cancelarVenta({{ $venta->id }}, '{{ $venta->folio }}')" 
                                                 class="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-300 rounded-lg border border-red-500/10 transition-all cursor-pointer"
@@ -789,6 +804,233 @@
                             background: '#1e293b',
                             color: '#fff'
                         });
+                    });
+                }
+            });
+        }
+
+        function resolverPrestamo(ventaId, folio) {
+            Swal.fire({
+                title: 'RESOLUCIÓN DE PRÉSTAMO',
+                text: `¿Cómo desea finalizar el préstamo ${folio}?`,
+                icon: 'question',
+                background: '#1e293b',
+                color: '#fff',
+                showCancelButton: true,
+                showDenyButton: true,
+                confirmButtonText: '<div class="flex flex-col"><span>DEVOLVER MATERIAL</span><small class="opacity-70">Reintegrar al stock</small></div>',
+                denyButtonText: '<div class="flex flex-col"><span>CONVERTIR A PAGO</span><small class="opacity-70">El cliente lo compra</small></div>',
+                cancelButtonText: 'CANCELAR',
+                confirmButtonColor: '#10b981',
+                denyButtonColor: '#3b82f6',
+                cancelButtonColor: '#475569',
+                customClass: {
+                    container: 'backdrop-blur-sm',
+                    popup: 'rounded-3xl border border-white/10 shadow-2xl transition-all duration-300',
+                    confirmButton: 'rounded-xl px-6 py-3 font-bold uppercase tracking-widest text-xs min-w-[180px]',
+                    denyButton: 'rounded-xl px-6 py-3 font-bold uppercase tracking-widest text-xs min-w-[180px]',
+                    cancelButton: 'rounded-xl px-6 py-3 font-bold uppercase tracking-widest text-xs'
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // DEVOLUCIÓN FÍSICA
+                    procesarResolucion(ventaId, { resolucion: 'devolucion' });
+                } else if (result.isDenied) {
+                    // CONVERTIR A PAGO
+                    abrirModalPagoPrestamo(ventaId, folio);
+                }
+            });
+        }
+
+        function abrirModalPagoPrestamo(ventaId, folio) {
+            Swal.fire({
+                title: 'PROCESANDO DATOS...',
+                background: '#1e293b',
+                didOpen: () => Swal.showLoading()
+            });
+
+            // Obtener detalles de la venta
+            $.get(`/ventas/${ventaId}`, function(response) {
+                const venta = response.venta;
+                let rowsHtml = '';
+                let totalInicial = 0;
+                
+                venta.detalles.forEach(detalle => {
+                    const nombre = detalle.producto ? detalle.producto.nombre : (detalle.servicio ? detalle.servicio.nombre : 'SERVICIO');
+                    const subtotal = detalle.cantidad * detalle.precio_unitario;
+                    totalInicial += subtotal;
+                    
+                    rowsHtml += `
+                        <tr class="border-b border-white/5 hover:bg-white/5 transition-colors">
+                            <td class="py-3 px-2 text-center text-white font-mono text-md font-bold">${detalle.cantidad}</td>
+                            <td class="py-3 px-2 text-left">
+                                <p class="text-md font-black text-blue-300 uppercase leading-none">${nombre}</p>
+                                <p class="text-md text-white/50 uppercase mt-1 italic">${detalle.producto ? (detalle.producto.descripcion || '') : (detalle.servicio ? (detalle.servicio.descripcion || '') : '')}</p>
+                            </td>
+                            <td class="py-3 px-2">
+                                <div class="flex items-center gap-1 bg-black/20 rounded-lg px-2 border border-white/10 focus-within:border-blue-500 transition-all">
+                                    <span class="text-white/40 text-md font-bold">$</span>
+                                    <input type="number" step="0.01" 
+                                        class="item-precio w-full bg-transparent border-none py-2 text-md text-right text-white font-black focus:ring-0 outline-none" 
+                                        data-id="${detalle.id}" 
+                                        data-cantidad="${detalle.cantidad}"
+                                        value="${detalle.precio_unitario}"
+                                        oninput="recalcularTotalModal()">
+                                </div>
+                            </td>
+                            <td class="py-3 px-2 text-right">
+                                <span class="item-subtotal text-md font-black text-white font-mono" id="subtotal-${detalle.id}">
+                                    $${subtotal.toLocaleString('es-MX', {minimumFractionDigits: 2})}
+                                </span>
+                            </td>
+                        </tr>
+                    `;
+                });
+
+                Swal.fire({
+                    title: `COBRO DE PRÉSTAMO ${folio}`,
+                    background: '#1e293b',
+                    color: '#fff',
+                    width: '850px',
+                    html: `
+                        <div class="text-left mb-6">
+                            <table class="w-full border-collapse">
+                                <thead>
+                                    <tr class="border-b border-white/20">
+                                        <th class="py-2 px-2 text-blue-200 text-xs font-black uppercase tracking-widest text-center" style="width: 10%">Cant.</th>
+                                        <th class="py-2 px-2 text-blue-200 text-xs font-black uppercase tracking-widest text-left" style="width: 50%">Descripción</th>
+                                        <th class="py-2 px-2 text-blue-200 text-xs font-black uppercase tracking-widest text-center" style="width: 20%">Precio Unit.</th>
+                                        <th class="py-2 px-2 text-blue-200 text-xs font-black uppercase tracking-widest text-right" style="width: 20%">Importe</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="modal-items-body">
+                                    ${rowsHtml}
+                                </tbody>
+                                <tfoot>
+                                    <tr class="bg-white/5">
+                                        <td colspan="3" class="py-4 px-4 text-right">
+                                            <span class="text-blue-200 text-sm font-black uppercase tracking-[0.2em]">Total a Pagar</span>
+                                        </td>
+                                        <td class="py-4 px-4 text-right">
+                                            <span id="modal-total-final" class="text-2xl font-black text-green-400 font-mono tracking-tighter">
+                                                $${totalInicial.toLocaleString('es-MX', {minimumFractionDigits: 2})}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-6 text-left p-4 bg-white/5 rounded-2xl border border-white/10">
+                            <div>
+                                <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-2 ml-1">Método de Pago</label>
+                                <select id="res-metodo" class="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-4 text-md text-white font-black uppercase outline-none focus:ring-2 focus:ring-blue-500 shadow-inner cursor-pointer">
+                                    <option value="EFECTIVO" class="text-black">EFECTIVO</option>
+                                    <option value="TRANSFERENCIA" class="text-black">TRANSFERENCIA</option>
+                                    <option value="TARJETA DE DÉBITO" class="text-black">TARJETA DE DÉBITO</option>
+                                    <option value="TARJETA DE CRÉDITO" class="text-black">TARJETA DE CRÉDITO</option>
+                                    <option value="CHEQUE" class="text-black">CHEQUE</option>
+                                    <option value="CREDITO" class="text-black">CRÉDITO</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-2 ml-1">¿Requiere Factura?</label>
+                                <select id="res-factura" class="w-full bg-black/40 border border-white/20 rounded-xl px-4 py-4 text-md text-white font-black uppercase outline-none focus:ring-2 focus:ring-blue-500 shadow-inner cursor-pointer">
+                                    <option value="NO" class="text-black" ${venta.requiere_factura === 'NO' ? 'selected' : ''}>NO</option>
+                                    <option value="SI" class="text-black" ${venta.requiere_factura === 'SI' ? 'selected' : ''}>SÍ</option>
+                                </select>
+                            </div>
+                        </div>
+                    `,
+                    showCancelButton: true,
+                    confirmButtonText: 'CONFIRMAR PAGO',
+                    cancelButtonText: 'VOLVER',
+                    confirmButtonColor: '#10b981',
+                    cancelButtonColor: '#475569',
+                    customClass: {
+                        container: 'backdrop-blur-sm',
+                        popup: 'rounded-[2.5rem] border border-white/10 shadow-2xl',
+                        confirmButton: 'rounded-xl px-12 py-4 font-black uppercase tracking-widest text-md shadow-lg shadow-green-900/20',
+                        cancelButton: 'rounded-xl px-12 py-4 font-bold uppercase tracking-widest text-md'
+                    },
+                    preConfirm: () => {
+                        const items = {};
+                        document.querySelectorAll('.item-precio').forEach(input => {
+                            items[input.dataset.id] = { precio: input.value };
+                        });
+                        return {
+                            resolucion: 'pago',
+                            metodo_pago: document.getElementById('res-metodo').value,
+                            requiere_factura: document.getElementById('res-factura').value,
+                            items: items
+                        };
+                    }
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        procesarResolucion(ventaId, result.value);
+                    }
+                });
+            });
+        }
+
+        // Función para recalcular el subtotal de cada fila y el total general en el modal
+        function recalcularTotalModal() {
+            let totalGeneral = 0;
+            document.querySelectorAll('.item-precio').forEach(input => {
+                const id = input.dataset.id;
+                const cant = parseFloat(input.dataset.cantidad) || 0;
+                const precio = parseFloat(input.value) || 0;
+                const subtotal = cant * precio;
+                
+                totalGeneral += subtotal;
+                
+                const subtotalEl = document.getElementById(`subtotal-${id}`);
+                if (subtotalEl) {
+                    subtotalEl.innerText = '$' + subtotal.toLocaleString('es-MX', {minimumFractionDigits: 2});
+                }
+            });
+
+            const totalEl = document.getElementById('modal-total-final');
+            if (totalEl) {
+                totalEl.innerText = '$' + totalGeneral.toLocaleString('es-MX', {minimumFractionDigits: 2});
+            }
+        }
+
+        function procesarResolucion(ventaId, data) {
+            Swal.fire({
+                title: 'Procesando...',
+                background: '#1e293b',
+                didOpen: () => Swal.showLoading()
+            });
+
+            $.ajax({
+                url: `/ventas/${ventaId}/resolver`,
+                method: 'POST',
+                data: {
+                    _token: '{{ csrf_token() }}',
+                    ...data
+                },
+                success: function(response) {
+                    Swal.fire({
+                        icon: 'success',
+                        title: '¡ÉXITO!',
+                        text: response.message,
+                        background: '#1e293b',
+                        color: '#fff',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        window.location.reload();
+                    });
+                },
+                error: function(xhr) {
+                    const error = xhr.responseJSON;
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'ERROR',
+                        text: error.message || 'Error al procesar la resolución',
+                        background: '#1e293b',
+                        color: '#fff'
                     });
                 }
             });
