@@ -240,7 +240,93 @@ class VentaController extends Controller
             ]);
         }
 
-        return view('ventas.ver', compact('venta'));
+        $productos = Producto::orderBy('nombre')->get();
+        $servicios = Servicio::orderBy('nombre')->get();
+
+        return view('ventas.ver', compact('venta', 'productos', 'servicios'));
+    }
+
+    public function storeItems(Request $request, Venta $venta)
+    {
+        $request->validate([
+            'items' => 'required|array|min:1',
+            'items.*.tipo' => 'required|in:producto,servicio',
+            'items.*.item_id' => 'required',
+            'items.*.cantidad' => 'required|numeric|min:0.01',
+            'items.*.precio_unitario' => 'required|numeric|min:0',
+        ], [
+            'items.*.item_id.required' => 'Debe seleccionar un producto o servicio.',
+            'items.required' => 'Debe agregar al menos un ítem.'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $totalAgregado = 0;
+            $productosSinStock = [];
+
+            foreach ($request->items as $item) {
+                // Cálculo de subtotal considerando que puede venir de JS ya calculado
+                $baseCalculada = $item['cantidad'] * $item['precio_unitario'];
+                $subtotalItem = $item['subtotal'] ?? $baseCalculada;
+                
+                VentaDetalle::create([
+                    'venta_id' => $venta->id,
+                    'producto_id' => $item['tipo'] === 'producto' ? $item['item_id'] : null,
+                    'servicio_id' => $item['tipo'] === 'servicio' ? $item['item_id'] : null,
+                    'cantidad' => $item['cantidad'],
+                    'precio_unitario' => $item['precio_unitario'],
+                    'descuento_porcentaje' => 0,
+                    'descuento_monto' => 0,
+                    'subtotal' => $subtotalItem,
+                    'notas' => $item['notas'] ?? null,
+                ]);
+
+                $totalAgregado += $subtotalItem;
+
+                if ($item['tipo'] === 'producto') {
+                    $producto = Producto::find($item['item_id']);
+                    
+                    if ($producto->stock < $item['cantidad']) {
+                        StockAlerta::create([
+                            'producto_id' => $producto->id,
+                            'user_id' => Auth::id() ?? 1,
+                            'stock_previo' => $producto->stock,
+                            'cantidad_solicitada' => $item['cantidad'],
+                            'referencia_tipo' => 'VENTA_EXT',
+                            'referencia_id' => $venta->id,
+                            'fecha' => now(),
+                        ]);
+                        $productosSinStock[] = $producto->nombre;
+                    }
+
+                    $producto->stock = max(0, $producto->stock - $item['cantidad']);
+                    $producto->save();
+                }
+            }
+
+            // Actualizar Cabecera de la Venta
+            $venta->total += $totalAgregado;
+            if ($venta->estado === 'PENDIENTE') {
+                $venta->saldo_pendiente += $totalAgregado;
+            }
+            $venta->save();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Ítems agregados correctamente.',
+                'productos_sin_stock' => $productosSinStock
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al agregar ítems: ' . $e->getMessage()
+            ], 500);
+        }
     }
 
     public function downloadPDF(Venta $venta)

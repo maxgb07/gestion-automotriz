@@ -15,7 +15,45 @@
             transform: translateY(-1px);
             box-shadow: 0 10px 15px -3px rgba(37, 99, 235, 0.5) !important;
         }
+        .btn-premium-success {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%) !important;
+            border: none !important;
+            display: inline-flex !important;
+            cursor: pointer !important;
+        }
+        .btn-premium-success:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+            box-shadow: 0 10px 15px -3px rgba(16, 185, 129, 0.5) !important;
+        }
+        /* Estilos Select2 idénticos a Ordenes */
+        .select2-container--default .select2-selection--single {
+            background-color: rgba(255, 255, 255, 0.1) !important;
+            border: 1px solid rgba(255, 255, 255, 0.2) !important;
+            border-radius: 0.75rem !important;
+            height: 42px !important;
+            padding: 8px 12px !important;
+            color: white !important;
+        }
+        .select2-container--default .select2-selection--single .select2-selection__rendered {
+            color: white !important;
+            text-transform: uppercase;
+        }
+        .select2-dropdown {
+            background-color: #ffffff !important;
+            color: #000000 !important;
+            border-radius: 0.75rem !important;
+        }
+        .select2-results__option {
+            text-transform: uppercase;
+            color: black !important;
+        }
+        select option {
+            background-color: white !important;
+            color: black !important;
+        }
     </style>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 @endpush
 
 @section('content')
@@ -137,12 +175,34 @@
                 <div class="bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl overflow-hidden">
                     <div class="p-6 border-b border-white/10 bg-white/5 flex items-center justify-between">
                         <h2 class="text-xl font-bold text-white uppercase tracking-tight">Resumen de Cuenta</h2>
-                        <a href="{{ route('ventas.pdf', $venta) }}" target="_blank" class="btn-premium-blue px-4 py-2 text-white text-xs font-black rounded-lg shadow-lg shadow-blue-500/20 transition-all uppercase tracking-widest flex items-center justify-center">
-                            <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
-                            </svg>
-                            Imprimir Comprobante
-                        </a>
+                        <div class="flex items-center gap-3">
+                            @if($venta->estado === 'PRESTAMO' || $venta->estado === 'PENDIENTE')
+                                <button type="button" onclick="abrirModalNuevoItem()" class="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-xs font-black rounded-lg transition-all uppercase tracking-widest flex items-center justify-center cursor-pointer shadow-lg shadow-purple-900/40">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                    </svg>
+                                    Nuevo Item
+                                </button>
+                                <button type="button" onclick="addRow()" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black rounded-lg transition-all uppercase tracking-widest flex items-center justify-center cursor-pointer shadow-lg shadow-blue-900/40">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                    </svg>
+                                    Agregar Fila
+                                </button>
+                                <button type="button" onclick="guardarItems()" class="btn-premium-success px-4 py-2 text-white text-xs font-black rounded-lg shadow-lg shadow-green-500/20 transition-all uppercase tracking-widest flex items-center justify-center">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                    </svg>
+                                    Guardar
+                                </button>
+                            @endif
+                            <a href="{{ route('ventas.pdf', $venta) }}" target="_blank" class="btn-premium-blue px-4 py-2 text-white text-xs font-black rounded-lg shadow-lg shadow-blue-500/20 transition-all uppercase tracking-widest flex items-center justify-center">
+                                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+                                </svg>
+                                Imprimir Comprobante
+                            </a>
+                        </div>
                     </div>
                     <div class="overflow-x-auto">
                         <table class="w-full">
@@ -154,9 +214,12 @@
                                     <th class="px-6 py-5 text-md font-bold text-blue-200 uppercase tracking-widest text-center">Precio Unitario</th>
                                     <!-- <th class="px-6 py-5 text-md font-bold text-blue-200 uppercase tracking-widest text-center">Descuento</th> -->
                                     <th class="px-8 py-5 text-md font-bold text-blue-200 uppercase tracking-widest text-right">Importe</th>
+                                    @if($venta->estado === 'PRESTAMO' || $venta->estado === 'PENDIENTE')
+                                        <th class="px-4 py-5 w-16"></th>
+                                    @endif
                                 </tr>
                             </thead>
-                            <tbody class="divide-y divide-white/10">
+                            <tbody class="divide-y divide-white/10" id="items-table-body">
                                 @foreach($venta->detalles as $detalle)
                                     <tr class="hover:bg-white/5 transition-colors">
                                         <td class="px-6 py-5 text-center">
@@ -182,8 +245,11 @@
                                             <span class="text-blue-100 font-mono text-md font-bold">{{ $detalle->descuento_porcentaje }}%</span>
                                         </td> -->
                                         <td class="px-8 py-5 text-right">
-                                            <span class="text-white font-black font-mono text-md">${{ number_format($detalle->subtotal, 2) }}</span>
+                                            <span class="text-white font-black font-mono text-md existing-subtotal" data-valor="{{ $detalle->subtotal }}">${{ number_format($detalle->subtotal, 2) }}</span>
                                         </td>
+                                        @if($venta->estado === 'PRESTAMO' || $venta->estado === 'PENDIENTE')
+                                            <td class="px-4 py-5 text-center"></td>
+                                        @endif
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -211,8 +277,11 @@
                                         <span class="text-blue-200 text-md uppercase font-black tracking-widest">Total de la Venta</span>
                                     </td>
                                     <td class="px-8 py-6 text-right">
-                                        <span class="text-white font-black text-md tracking-tighter">${{ number_format($venta->total, 2) }}</span>
+                                        <span class="text-white font-black text-md tracking-tighter" id="total-main">${{ number_format($venta->total, 2) }}</span>
                                     </td>
+                                    @if($venta->estado === 'PRESTAMO' || $venta->estado === 'PENDIENTE')
+                                        <td></td>
+                                    @endif
                                 </tr>
                             </tfoot>
                         </table>
@@ -280,6 +349,8 @@
         </div>
     </div>
 
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <script>
         function abrirModalPago() {
             const ventaId = {{ $venta->id }};
@@ -417,5 +488,269 @@
                 }
             });
         }
+
+        // --- Lógica para Agregar Ítems ---
+        let rowIndex = 0;
+        const PRODUCTOS = @json($productos);
+        const SERVICIOS = @json($servicios);
+
+        function addRow() {
+            const tbody = document.getElementById('items-table-body');
+            const template = document.getElementById('row-template');
+            const clone = template.content.cloneNode(true);
+            
+            clone.querySelectorAll('[name*="INDEX"]').forEach(el => {
+                el.name = el.name.replace('INDEX', rowIndex);
+            });
+
+            const newRow = clone.querySelector('tr');
+            tbody.appendChild(newRow);
+            
+            const typeSelect = newRow.querySelector('.tipo-select');
+            $(typeSelect).select2({ width: '100%' });
+            changeType(typeSelect);
+            
+            rowIndex++;
+        }
+
+        function changeType(select) {
+            const row = select.closest('tr');
+            const itemSelect = row.querySelector('.item-select');
+            const type = select.value;
+            const data = type === 'producto' ? PRODUCTOS : SERVICIOS;
+
+            if ($(itemSelect).data('select2')) {
+                $(itemSelect).select2('destroy');
+            }
+
+            itemSelect.innerHTML = '<option value="" disabled selected>SELECCIONAR...</option>';
+            data.forEach(item => {
+                const option = document.createElement('option');
+                option.value = item.id;
+                option.textContent = (item.nombre || item.sku) + ' - ' + (item.descripcion || '');
+                option.dataset.precio = item.precio_venta || item.precio || 0;
+                option.dataset.descripcion = item.descripcion || item.nombre;
+                itemSelect.appendChild(option);
+            });
+
+            $(itemSelect).select2({ width: '100%' });
+        }
+
+        function updateItemData(select) {
+            const row = select.closest('tr');
+            const option = select.options[select.selectedIndex];
+            const precioInput = row.querySelector('[name*="[precio_unitario]"]');
+            
+            if (option.dataset.precio) {
+                precioInput.value = option.dataset.precio;
+            }
+            calculateRow(row.querySelector('[name*="[cantidad]"]'));
+        }
+
+        function calculateRow(input) {
+            const row = input.closest('tr');
+            const cant = parseFloat(row.querySelector('[name*="[cantidad]"]').value) || 0;
+            const price = parseFloat(row.querySelector('[name*="[precio_unitario]"]').value) || 0;
+            const subtotalInput = row.querySelector('.subtotal-input');
+            
+            const total = cant * price;
+            subtotalInput.value = total.toFixed(2);
+            calculateTotal();
+        }
+
+        function calculateTotal() {
+            let total = 0;
+            // Existentes
+            document.querySelectorAll('.existing-subtotal').forEach(el => {
+                total += parseFloat(el.dataset.valor) || 0;
+            });
+            // Nuevos
+            document.querySelectorAll('#items-table-body .subtotal-input').forEach(input => {
+                total += parseFloat(input.value) || 0;
+            });
+
+            document.getElementById('total-main').textContent = '$' + total.toLocaleString('es-MX', {minimumFractionDigits: 2});
+        }
+
+        function removeRow(btn) {
+            btn.closest('tr').remove();
+            calculateTotal();
+        }
+
+        function guardarItems() {
+            const rows = document.querySelectorAll('#items-table-body tr.new-row');
+            if (rows.length === 0) {
+                Swal.fire('Atención', 'No hay ítems nuevos para guardar.', 'info');
+                return;
+            }
+
+            Swal.fire({
+                title: '¿Guardar nuevos ítems?',
+                text: "Esta acción actualizará el total de la venta y afectará el stock.",
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#475569',
+                confirmButtonText: 'SÍ, GUARDAR',
+                cancelButtonText: 'CANCELAR'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const formData = new FormData();
+                    formData.append('_token', '{{ csrf_token() }}');
+                    
+                    rows.forEach((row, index) => {
+                        formData.append(`items[${index}][tipo]`, row.querySelector('.tipo-select').value);
+                        formData.append(`items[${index}][item_id]`, row.querySelector('.item-select').value);
+                        formData.append(`items[${index}][cantidad]`, row.querySelector('[name*="[cantidad]"]').value);
+                        formData.append(`items[${index}][precio_unitario]`, row.querySelector('[name*="[precio_unitario]"]').value);
+                        formData.append(`items[${index}][subtotal]`, row.querySelector('.subtotal-input').value);
+                        formData.append(`items[${index}][notas]`, row.querySelector('[name*="[notas]"]')?.value || '');
+                    });
+
+                    Swal.fire({ title: 'Guardando...', didOpen: () => Swal.showLoading() });
+
+                    fetch('{{ route("ventas.items.store", $venta) }}', {
+                        method: 'POST',
+                        body: formData,
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            Swal.fire('¡Éxito!', data.message, 'success').then(() => {
+                                window.location.reload();
+                            });
+                        } else {
+                            throw new Error(data.message);
+                        }
+                    })
+                    .catch(error => {
+                        Swal.fire('Error', error.message, 'error');
+                    });
+                }
+            });
+        }
+
+        // --- Registro Rápido ---
+        function toggleSwalFields(tipo) {
+            const popup = Swal.getPopup();
+            if (!popup) return;
+            const divStock = popup.querySelector('#div-stock');
+            const labelNombre = popup.querySelector('#label-nombre');
+            if (tipo === 'servicio') {
+                if (divStock) divStock.classList.add('hidden');
+                if (labelNombre) labelNombre.textContent = 'NOMBRE DEL SERVICIO *';
+            } else {
+                if (divStock) divStock.classList.remove('hidden');
+                if (labelNombre) labelNombre.textContent = 'SKU / CLAVE *';
+            }
+        }
+
+        function abrirModalNuevoItem() {
+            Swal.fire({
+                title: 'REGISTRAR NUEVO ÍTEM',
+                background: '#1e293b',
+                color: '#fff',
+                html: `
+                    <div class="flex gap-8 justify-center mb-6 p-4 bg-white/5 rounded-2xl border border-white/10">
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="radio" name="swal-tipo" value="producto" checked onchange="toggleSwalFields(this.value)">
+                            <span class="text-xs font-black uppercase tracking-widest text-blue-100">Producto</span>
+                        </label>
+                        <label class="flex items-center gap-3 cursor-pointer">
+                            <input type="radio" name="swal-tipo" value="servicio" onchange="toggleSwalFields(this.value)">
+                            <span class="text-xs font-black uppercase tracking-widest text-blue-100">Servicio</span>
+                        </label>
+                    </div>
+                    <div class="space-y-4 text-left">
+                        <div>
+                            <label id="label-nombre" class="block text-[10px] font-black text-blue-200 uppercase mb-1 ml-1">SKU / CLAVE *</label>
+                            <input type="text" id="swal-nombre" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm font-bold uppercase outline-none" placeholder="EJ: BALATA-TR-01">
+                        </div>
+                        <div>
+                            <label class="block text-[10px] font-black text-blue-200 uppercase mb-1 ml-1">PRECIO VENTA *</label>
+                            <input type="number" id="swal-precio" step="0.01" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm font-bold outline-none" placeholder="0.00">
+                        </div>
+                        <div id="div-stock">
+                            <label class="block text-[10px] font-black text-blue-200 uppercase mb-1 ml-1">EXISTENCIA INICIAL *</label>
+                            <input type="number" id="swal-stock" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm font-bold outline-none" value="1">
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'REGISTRAR',
+                cancelButtonText: 'CANCELAR',
+                preConfirm: () => {
+                    const tipo = document.querySelector('input[name="swal-tipo"]:checked').value;
+                    const nombre = document.getElementById('swal-nombre').value;
+                    const precio = document.getElementById('swal-precio').value;
+                    const stock = document.getElementById('swal-stock').value;
+                    if (!nombre || !precio) {
+                        Swal.showValidationMessage('Campos obligatorios faltantes');
+                        return false;
+                    }
+                    return { tipo, nombre, precio, stock };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const { tipo, nombre, precio, stock } = result.value;
+                    const url = tipo === 'producto' ? '{{ route("productos.store") }}' : '{{ route("servicios.store") }}';
+                    
+                    $.ajax({
+                        url: url,
+                        method: 'POST',
+                        data: {
+                            _token: '{{ csrf_token() }}',
+                            nombre: nombre,
+                            precio_venta: tipo === 'producto' ? precio : null,
+                            precio: tipo === 'servicio' ? precio : null,
+                            stock: stock,
+                            stock_minimo: 0
+                        },
+                        success: function(response) {
+                            if (response.success) {
+                                if (tipo === 'producto') PRODUCTOS.push(response.data);
+                                else SERVICIOS.push(response.data);
+                                Swal.fire('¡Éxito!', 'Ítem registrado. Ya puedes buscarlo en la tabla.', 'success');
+                            }
+                        }
+                    });
+                }
+            });
+        }
     </script>
+
+
+    <template id="row-template">
+        <tr class="hover:bg-white/5 transition-colors new-row">
+            <td class="px-2 py-4">
+                <input type="number" name="items[INDEX][cantidad]" value="1" min="0.01" step="any" oninput="calculateRow(this)" class="block w-full px-2 py-2 bg-white/10 border border-white/20 rounded-xl text-white text-center text-sm font-bold outline-none" required>
+            </td>
+            <td class="px-2 py-4" style="min-width: 140px;">
+                <select name="items[INDEX][tipo]" onchange="changeType(this)" class="tipo-select block w-full px-2 py-2 bg-white/10 border border-white/20 rounded-xl text-white text-xs uppercase focus:outline-none">
+                    <option value="producto" class="text-black bg-white">PRODUCTO</option>
+                    <option value="servicio" class="text-black bg-white">SERVICIO</option>
+                </select>
+            </td>
+            <td class="px-2 py-4" style="min-width: 250px;">
+                <select name="items[INDEX][item_id]" onchange="updateItemData(this)" class="item-select block w-full" required>
+                    <option value="" disabled selected>SELECCIONAR...</option>
+                </select>
+            </td>
+            <td class="px-2 py-4">
+                <input type="number" step="any" name="items[INDEX][precio_unitario]" value="0.00" oninput="calculateRow(this)" class="block w-full px-2 py-2 bg-white/10 border border-white/20 rounded-xl text-white text-center text-sm font-bold outline-none" required>
+            </td>
+            <td class="px-2 py-4 text-right">
+                <input type="number" step="any" name="items[INDEX][subtotal]" value="0.00" class="subtotal-input block w-full px-2 py-2 bg-white/5 border border-white/10 rounded-xl text-white text-right text-sm font-black font-mono outline-none" readonly>
+            </td>
+            <td class="px-2 py-4 text-center">
+                <button type="button" onclick="removeRow(this)" class="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-xl transition-all">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                    </svg>
+                </button>
+            </td>
+        </tr>
+    </template>
+
 @endsection

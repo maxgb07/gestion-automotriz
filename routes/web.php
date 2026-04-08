@@ -65,6 +65,7 @@ Route::middleware('auth')->group(function () {
     Route::post('ventas/{venta}/resolver', [VentaController::class, 'resolverPrestamo'])->name('ventas.resolver_prestamo');
     Route::resource('ventas', VentaController::class);
     Route::post('ventas/{venta}/pagos', [PagoVentaController::class, 'store'])->name('ventas.pagos.store');
+    Route::post('ventas/{venta}/items', [VentaController::class, 'storeItems'])->name('ventas.items.store');
 
     // Órdenes de Servicio
     Route::get('clientes-buscar', [ClienteController::class, 'buscar'])->name('clientes.buscar');
