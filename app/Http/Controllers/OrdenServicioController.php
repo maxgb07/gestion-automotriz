@@ -466,9 +466,13 @@ class OrdenServicioController extends Controller
     public function registrarPago(Request $request, OrdenServicio $orden)
     {
         $request->validate([
-            'monto' => 'required|numeric|min:0',
+            'pagos' => 'nullable|array',
+            'pagos.*.metodo_pago' => 'required|string',
+            'pagos.*.monto' => 'required|numeric|min:0',
+            'pagos.*.referencia' => 'nullable|string|max:255',
+            'monto' => 'required_without:pagos|numeric|min:0',
             'fecha_pago' => 'required|date',
-            'metodo_pago' => 'required|string',
+            'metodo_pago' => 'required_without:pagos|string',
             'referencia' => 'nullable|string|max:255',
             'requiere_factura' => 'required|string|in:SI,NO',
         ]);
@@ -476,32 +480,54 @@ class OrdenServicioController extends Controller
         try {
             DB::beginTransaction();
 
-            $metodo = $request->metodo_pago;
-            $monto = floatval($request->monto);
+            $fechaPago = $request->fecha_pago;
+            $totalPagadoEnSesion = 0;
 
-            // Validar monto según método
-            if ($metodo === 'CRÉDITO 15 DÍAS') {
-                $monto = 0;
+            if ($request->has('pagos') && !empty($request->pagos)) {
+                foreach ($request->pagos as $pagoData) {
+                    $monto = floatval($pagoData['monto']);
+                    if ($monto > 0) {
+                        $orden->pagos()->create([
+                            'monto' => $monto,
+                            'fecha_pago' => $fechaPago,
+                            'metodo_pago' => $pagoData['metodo_pago'],
+                            'referencia' => isset($pagoData['referencia']) ? mb_strtoupper($pagoData['referencia'], 'UTF-8') : null,
+                        ]);
+                        $totalPagadoEnSesion += $monto;
+                    }
+                }
+            } else {
+                // Lógica legacy para un solo pago
+                $metodo = $request->metodo_pago;
+                $monto = floatval($request->monto);
+
+                if ($metodo === 'CRÉDITO 15 DÍAS') {
+                    $monto = 0;
+                }
+
+                if ($monto > 0) {
+                    $orden->pagos()->create([
+                        'monto' => $monto,
+                        'fecha_pago' => $fechaPago,
+                        'metodo_pago' => $metodo,
+                        'referencia' => mb_strtoupper($request->referencia, 'UTF-8'),
+                    ]);
+                    $totalPagadoEnSesion += $monto;
+                }
             }
 
-            if ($monto > 0) {
-                $orden->pagos()->create([
-                    'monto' => $monto,
-                    'fecha_pago' => $request->fecha_pago,
-                    'metodo_pago' => $metodo,
-                    'referencia' => mb_strtoupper($request->referencia, 'UTF-8'),
-                ]);
-
-                $orden->decrement('saldo_pendiente', $monto);
+            if ($totalPagadoEnSesion > 0) {
+                $orden->decrement('saldo_pendiente', $totalPagadoEnSesion);
             }
 
-            // Actualizar requiere_factura si se liquida
-            if ($orden->fresh()->saldo_pendiente <= 0) {
-                $orden->requiere_factura = $request->requiere_factura;
-            }
+            // Actualizar requiere_factura
+            $orden->requiere_factura = $request->requiere_factura;
 
             // Determinar nuevo estado
-            $nuevoEstado = ($metodo === 'CRÉDITO 15 DÍAS' || $orden->fresh()->saldo_pendiente > 0) ? 'PENDIENTE DE PAGO' : 'ENTREGADO';
+            $ordenRefrescada = $orden->fresh();
+            $ultimoMetodo = $request->metodo_pago; // Solo de referencia para lógica legacy
+
+            $nuevoEstado = ($ultimoMetodo === 'CRÉDITO 15 DÍAS' || $ordenRefrescada->saldo_pendiente > 0) ? 'PENDIENTE DE PAGO' : 'ENTREGADO';
             $orden->estado = $nuevoEstado;
             
             $orden->save();
@@ -511,12 +537,12 @@ class OrdenServicioController extends Controller
             if ($request->ajax()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Pago registrado correctamente. Estado: ' . $nuevoEstado,
+                    'message' => 'Pagos registrados correctamente. Estado: ' . $nuevoEstado,
                     'pdf_url' => route('ordenes.pdf', $orden)
                 ]);
             }
 
-            return redirect()->back()->with('success', 'Pago registrado exitosamente');
+            return redirect()->back()->with('success', 'Pagos registrados exitosamente');
 
         } catch (\Exception $e) {
             DB::rollBack();

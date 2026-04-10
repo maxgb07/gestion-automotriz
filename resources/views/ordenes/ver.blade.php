@@ -1114,55 +1114,162 @@
         }
 
         function abrirModalPago(ordenId, total, saldo, siempreMostrarPDF = false) {
-            Swal.fire({
-                title: 'REGISTRAR PAGO',
-                background: '#1e293b',
-                color: '#fff',
-                html: `
-                    <div class="p-4 space-y-4 text-left">
-                        <div class="flex justify-between items-center bg-white/5 p-4 rounded-xl border border-white/5 mb-4">
-                            <span class="text-md font-black text-slate-500 uppercase tracking-widest">TOTAL A PAGAR:</span>
-                            <span class="text-xl font-black text-green-400 font-mono italic">$ ${new Intl.NumberFormat('es-MX', {minimumFractionDigits: 2}).format(saldo)}</span>
-                        </div>
+            let pagos = [
+                { metodo: '', monto: saldo, referencia: '' }
+            ];
 
-                        <div>
-                            <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">MÉTODO DE PAGO *</label>
-                            <select id="modal_metodo_pago" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all uppercase" onchange="toggleMontoPago(this.value, ${saldo})">
-                                <option value="" class="text-black">-- SELECCIONA UNA OPCIÓN --</option>
-                                <option value="EFECTIVO" class="text-black">EFECTIVO</option>
-                                <option value="CHEQUE" class="text-black">CHEQUE</option>
-                                <option value="TRANSFERENCIA" class="text-black">TRANSFERENCIA</option>
-                                <option value="TARJETA DE DÉBITO" class="text-black">TARJETA DE DÉBITO</option>
-                                <option value="TARJETA DE CRÉDITO" class="text-black">TARJETA DE CRÉDITO</option>
-                                <option value="CRÉDITO 15 DÍAS" class="text-black">CRÉDITO 15 DÍAS</option>
-                            </select>
-                        </div>
-
-                        <div>
-                            <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">MONTO A PAGAR *</label>
-                            <input type="number" id="modal_monto" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" value="${parseFloat(saldo).toFixed(2)}" step="0.01">
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4">
+            const renderPagos = () => {
+                let html = `
+                    <div class="p-2 space-y-4 text-left">
+                        <div class="grid grid-cols-2 gap-4 mb-4">
                             <div>
-                                <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">FECHA PAGO *</label>
+                                <label class="block text-md font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">FECHA PAGO *</label>
                                 <input type="date" id="modal_fecha_pago" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-mono" value="{{ date('Y-m-d') }}">
                             </div>
                             <div>
-                                <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">¿REQUIERE FACTURA?</label>
+                                <label class="block text-md font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">¿REQUIERE FACTURA?</label>
                                 <select id="modal_requiere_factura" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all uppercase">
                                     <option value="NO" class="text-black">NO</option>
-                                    <option value="SI" class="text-black">SI</option>
+                                    <option value="SI" class="text-black" ${'{{ $orden->requiere_factura }}' === 'SI' ? 'selected' : ''}>SI</option>
                                 </select>
                             </div>
                         </div>
 
-                        <div>
-                            <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-2 ml-1 text-center">REFERENCIA / NOTAS</label>
-                            <input type="text" id="modal_referencia" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold uppercase focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="EJ: ÚLTIMOS 4 DÍGITOS, FOLIO, ETC.">
+                        <div class="flex justify-between items-center bg-white/5 p-4 rounded-xl border border-white/5 mb-4">
+                            <span class="text-md font-black text-slate-500 uppercase tracking-widest">Saldo Pendiente:</span>
+                            <span class="text-xl font-black text-blue-400 font-mono italic">$ ${new Intl.NumberFormat('es-MX', {minimumFractionDigits: 2}).format(saldo)}</span>
+                        </div>
+
+                        <div class="overflow-x-auto rounded-xl border border-white/10 bg-white/5 mb-4">
+                            <table class="w-full text-center border-collapse">
+                                <thead class="bg-white/5 border-b border-white/10 text-md font-bold text-blue-300 uppercase tracking-widest">
+                                    <tr>
+                                        <th class="px-4 py-3 text-center">MÉTODO</th>
+                                        <th class="px-4 py-3 w-40 text-center">MONTO</th>
+                                        <th class="px-4 py-3 text-center">REFERENCIA</th>
+                                        <th class="px-2 py-3 w-10"></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="lista-pagos" class="divide-y divide-white/5 text-white">
+                                    ${pagos.map((p, index) => `
+                                        <tr class="group hover:bg-white/5 transition-colors">
+                                            <td class="px-2 py-3">
+                                                <select onchange="window.updatePago(${index}, 'metodo', this.value)" class="w-full px-2 py-2 bg-slate-800 border border-white/10 rounded-lg text-white text-md font-bold focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all uppercase">
+                                                    <option value="">-- SELECCIONAR --</option>
+                                                    <option value="EFECTIVO" ${p.metodo === 'EFECTIVO' ? 'selected' : ''}>EFECTIVO</option>
+                                                    <option value="CHEQUE" ${p.metodo === 'CHEQUE' ? 'selected' : ''}>CHEQUE</option>
+                                                    <option value="TRANSFERENCIA" ${p.metodo === 'TRANSFERENCIA' ? 'selected' : ''}>TRANSFERENCIA</option>
+                                                    <option value="TARJETA DE DÉBITO" ${p.metodo === 'TARJETA DE DÉBITO' ? 'selected' : ''}>TARJETA DE DÉBITO</option>
+                                                    <option value="TARJETA DE CRÉDITO" ${p.metodo === 'TARJETA DE CRÉDITO' ? 'selected' : ''}>TARJETA DE CRÉDITO</option>
+                                                    <option value="CRÉDITO 15 DÍAS" ${p.metodo === 'CRÉDITO 15 DÍAS' ? 'selected' : ''}>CRÉDITO 15 DÍAS</option>
+                                                </select>
+                                            </td>
+                                            <td class="px-2 py-3">
+                                                <input type="number" step="0.01" value="${parseFloat(p.monto).toFixed(2)}" onfocus="this.select()" oninput="window.updatePago(${index}, 'monto', this.value)" ${p.metodo === 'CRÉDITO 15 DÍAS' ? 'readonly' : ''} class="w-full px-2 py-2 bg-slate-800 border border-white/10 rounded-lg text-white text-md font-bold focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all text-center font-mono">
+                                            </td>
+                                            <td class="px-2 py-3">
+                                                <input type="text" value="${p.referencia}" oninput="window.updatePago(${index}, 'referencia', this.value)" class="w-full px-2 py-2 bg-slate-800 border border-white/10 rounded-lg text-white text-md font-bold uppercase focus:outline-none focus:ring-1 focus:ring-blue-500 transition-all" placeholder="REFERENCIA">
+                                            </td>
+                                            <td class="px-2 py-3 text-center">
+                                                ${pagos.length > 1 ? `
+                                                    <button onclick="window.removePago(${index})" class="p-1.5 bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white rounded-lg transition-all">
+                                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12"></path></svg>
+                                                    </button>
+                                                ` : ''}
+                                            </td>
+                                        </tr>
+                                    `).join('')}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div id="resumen-pago" class="p-4 bg-white/5 rounded-2xl border border-white/10 mt-4 space-y-2">
+                            <div class="flex justify-between items-center text-md font-black uppercase tracking-widest">
+                                <span class="text-slate-500">Total Ingresado:</span>
+                                <span id="total-ingresado" class="text-white text-md">$ 0.00</span>
+                            </div>
+                            <div class="flex justify-between items-center text-md font-black uppercase tracking-widest">
+                                <span class="text-slate-500">Restante:</span>
+                                <span id="monto-restante" class="text-green-400 text-md">$ 0.00</span>
+                            </div>
+                        </div>
+
+                        <div class="flex justify-center mt-4">
+                            <button type="button" onclick="window.addPago()" class="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black rounded-2xl transition-all uppercase tracking-widest flex items-center justify-center cursor-pointer shadow-lg shadow-blue-900/40 border border-white/10">
+                                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                                Agregar Otro Método
+                            </button>
                         </div>
                     </div>
-                `,
+                `;
+                return html;
+            };
+
+            const updateResumen = () => {
+                const totalIngresado = pagos.reduce((acc, p) => acc + (parseFloat(p.monto) || 0), 0);
+                const restante = saldo - totalIngresado;
+
+                const totalEl = document.getElementById('total-ingresado');
+                const restanteEl = document.getElementById('monto-restante');
+
+                if (totalEl) totalEl.textContent = `$ ${new Intl.NumberFormat('es-MX', {minimumFractionDigits: 2}).format(totalIngresado)}`;
+                if (restanteEl) {
+                    restanteEl.textContent = `$ ${new Intl.NumberFormat('es-MX', {minimumFractionDigits: 2}).format(restante)}`;
+                    if (restante < 0) {
+                        restanteEl.classList.remove('text-green-400');
+                        restanteEl.classList.add('text-red-400');
+                    } else {
+                        restanteEl.classList.remove('text-red-400');
+                        restanteEl.classList.add('text-green-400');
+                    }
+                }
+            };
+
+            window.updatePago = (index, field, value) => {
+                if (field === 'metodo' && value === 'CRÉDITO 15 DÍAS') {
+                    pagos[index].monto = 0;
+                }
+                pagos[index][field] = value;
+                
+                // Si cambiamos el método y ya no es crédito, restauramos saldo si el monto era 0
+                if (field === 'metodo' && value !== 'CRÉDITO 15 DÍAS' && pagos[index].monto == 0) {
+                    // Calculamos cuánto falta para completar el saldo
+                    const sumOthers = pagos.reduce((acc, p, i) => i !== index ? acc + (parseFloat(p.monto) || 0) : acc, 0);
+                    pagos[index].monto = Math.max(0, saldo - sumOthers);
+                }
+
+                const popup = Swal.getPopup();
+                if (popup) {
+                    // No queremos re-renderizar todo para no perder el foco, solo actualizamos el resumen
+                    // pero si cambiamos el método y queremos que el input de monto sea readonly, sí hay que actualizar ese elemento
+                    if (field === 'metodo') {
+                        Swal.update({ html: renderPagos() });
+                    }
+                }
+                updateResumen();
+            };
+
+            window.addPago = () => {
+                const totalIngresado = pagos.reduce((acc, p) => acc + (parseFloat(p.monto) || 0), 0);
+                const nuevoMonto = Math.max(0, saldo - totalIngresado);
+                pagos.push({ metodo: '', monto: nuevoMonto, referencia: '' });
+                Swal.update({ html: renderPagos() });
+                updateResumen();
+            };
+
+            window.removePago = (index) => {
+                pagos.splice(index, 1);
+                Swal.update({ html: renderPagos() });
+                updateResumen();
+            };
+
+            Swal.fire({
+                title: 'REGISTRAR PAGO',
+                background: '#1e293b',
+                color: '#fff',
+                html: renderPagos(),
                 showCancelButton: true,
                 confirmButtonText: 'REGISTRAR PAGO',
                 cancelButtonText: 'CANCELAR',
@@ -1170,19 +1277,31 @@
                 cancelButtonColor: '#ef4444',
                 customClass: {
                     container: 'backdrop-blur-sm',
-                    popup: 'rounded-3xl border border-white/10 shadow-2xl',
+                    popup: 'rounded-3xl border border-white/10 shadow-2xl w-[95%] max-w-4xl',
                     confirmButton: 'rounded-xl px-8 py-3 font-bold uppercase tracking-widest text-sm',
                     cancelButton: 'rounded-xl px-8 py-3 font-bold uppercase tracking-widest text-sm'
                 },
+                width: '850px',
+                didOpen: () => {
+                    updateResumen();
+                },
                 preConfirm: () => {
-                    const metodo = document.getElementById('modal_metodo_pago').value;
-                    const monto = document.getElementById('modal_monto').value;
+                    const totalIngresado = pagos.reduce((acc, p) => acc + (parseFloat(p.monto) || 0), 0);
                     const fecha = document.getElementById('modal_fecha_pago').value;
                     const factura = document.getElementById('modal_requiere_factura').value;
-                    const referencia = document.getElementById('modal_referencia').value;
 
-                    if (!metodo) {
-                        Swal.showValidationMessage('Debe seleccionar un método de pago');
+                    if (pagos.some(p => p.metodo === '')) {
+                        Swal.showValidationMessage('Todos los pagos deben tener un método seleccionado');
+                        return false;
+                    }
+
+                    if (totalIngresado > saldo + 0.01) {
+                        Swal.showValidationMessage('La suma de los pagos no puede superar el saldo pendiente');
+                        return false;
+                    }
+
+                    if (totalIngresado <= 0 && !pagos.some(p => p.metodo === 'CRÉDITO 15 DÍAS')) {
+                        Swal.showValidationMessage('Debe ingresar al menos un monto de pago</h2>');
                         return false;
                     }
 
@@ -1191,16 +1310,13 @@
                         return false;
                     }
 
-                    if (metodo !== 'CRÉDITO 15 DÍAS' && (!monto || monto <= 0)) {
-                        Swal.showValidationMessage('El monto debe ser mayor a 0');
-                        return false;
-                    }
-
                     return { 
-                        metodo_pago: metodo, 
-                        monto: monto, 
+                        pagos: pagos.map(p => ({
+                            metodo_pago: p.metodo,
+                            monto: p.monto,
+                            referencia: p.referencia
+                        })),
                         requiere_factura: factura,
-                        referencia: referencia,
                         fecha_pago: fecha
                     };
                 }
@@ -1221,7 +1337,8 @@
                         data: JSON.stringify({ _token: '{{ csrf_token() }}', ...result.value }),
                         success: (response) => {
                             if (response.success) {
-                                const isFullPayment = parseFloat(result.value.monto) >= parseFloat(saldo);
+                                const totalIngresado = pagos.reduce((acc, p) => acc + (parseFloat(p.monto) || 0), 0);
+                                const isFullPayment = totalIngresado >= saldo - 0.01;
                                 const mostrarPDF = siempreMostrarPDF || isFullPayment;
                                 
                                 Swal.fire({
@@ -1252,21 +1369,14 @@
                         }
                     });
                 }
+                // Limpiar funciones globales para no contaminar posteriores aperturas
+                delete window.addPago;
+                delete window.removePago;
+                delete window.updatePago;
             });
         }
 
-        function toggleMontoPago(metodo, saldo) {
-            const inputMonto = document.getElementById('modal_monto');
-            if (metodo === 'CRÉDITO 15 DÍAS') {
-                inputMonto.value = 0;
-                inputMonto.readOnly = true;
-                inputMonto.classList.add('bg-white/5', 'text-slate-500');
-            } else {
-                inputMonto.value = saldo;
-                inputMonto.readOnly = false;
-                inputMonto.classList.remove('bg-white/5', 'text-slate-500');
-            }
-        }
+
 
         function actualizarMontoOrden(select) {
             const total = {{ $orden->total }};
