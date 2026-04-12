@@ -40,18 +40,20 @@
                 <p class="text-purple-200 text-sm">Registro de ventas y gestión de créditos</p>
             </a>
 
-            <!-- Órdenes de Servicio Card -->
-            <a href="{{ route('ordenes.index') }}" class="group bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20 cursor-pointer block">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="p-3 bg-blue-500/20 rounded-xl group-hover:bg-blue-500/30 transition-colors">
-                        <svg class="w-8 h-8 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                        </svg>
+            @if(auth()->user()->hasFullAccess())
+                <!-- Órdenes de Servicio Card -->
+                <a href="{{ route('ordenes.index') }}" class="group bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20 cursor-pointer block">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="p-3 bg-blue-500/20 rounded-xl group-hover:bg-blue-500/30 transition-colors">
+                            <svg class="w-8 h-8 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
                     </div>
-                </div>
-                <h3 class="text-xl font-bold text-white mb-2 uppercase">Órdenes de Servicio</h3>
-                <p class="text-blue-200 text-sm">Recepción, reparación y entrega de vehículos</p>
-            </a>
+                    <h3 class="text-xl font-bold text-white mb-2 uppercase">Órdenes de Servicio</h3>
+                    <p class="text-blue-200 text-sm">Recepción, reparación y entrega de vehículos</p>
+                </a>
+            @endif
 
             <!-- Inventario Card -->
             <a href="{{ route('productos.index') }}" class="group bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-green-500/20 cursor-pointer block">
@@ -66,33 +68,37 @@
                 <p class="text-blue-200 text-sm">Control de productos y existencias</p>
             </a>
 
-            <!-- Servicios Card -->
-            <a href="{{ route('servicios.index') }}" class="group bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-indigo-500/20 cursor-pointer block">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="p-3 bg-indigo-500/20 rounded-xl group-hover:bg-indigo-500/30 transition-colors">
-                        <svg class="w-8 h-8 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                        </svg>
+            @if(auth()->user()->hasFullAccess())
+                <!-- Servicios Card -->
+                <a href="{{ route('servicios.index') }}" class="group bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-indigo-500/20 cursor-pointer block">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="p-3 bg-indigo-500/20 rounded-xl group-hover:bg-indigo-500/30 transition-colors">
+                            <svg class="w-8 h-8 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                            </svg>
+                        </div>
                     </div>
-                </div>
-                <h3 class="text-xl font-bold text-white mb-2 uppercase">Servicios</h3>
-                <p class="text-blue-200 text-sm">Catálogo de servicios del taller</p>
-            </a>
+                    <h3 class="text-xl font-bold text-white mb-2 uppercase">Servicios</h3>
+                    <p class="text-blue-200 text-sm">Catálogo de servicios del taller</p>
+                </a>
+            @endif
 
 
-            <!-- Reportes Card -->
-            <a href="{{ route('reportes.index') }}" class="group bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-cyan-500/20 cursor-pointer block">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="p-3 bg-cyan-500/20 rounded-xl group-hover:bg-cyan-500/30 transition-colors">
-                        <svg class="w-8 h-8 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                        </svg>
+            @if(auth()->user()->hasFullAccess())
+                <!-- Reportes Card -->
+                <a href="{{ route('reportes.index') }}" class="group bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-cyan-500/20 cursor-pointer block">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="p-3 bg-cyan-500/20 rounded-xl group-hover:bg-cyan-500/30 transition-colors">
+                            <svg class="w-8 h-8 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                            </svg>
+                        </div>
                     </div>
-                </div>
-                <h3 class="text-xl font-bold text-white mb-2 uppercase">Reportes y Corte</h3>
-                <p class="text-blue-200 text-sm">Corte diario y balances históricos</p>
-            </a>
+                    <h3 class="text-xl font-bold text-white mb-2 uppercase">Reportes y Corte</h3>
+                    <p class="text-blue-200 text-sm">Corte diario y balances históricos</p>
+                </a>
+            @endif
             
             <!-- Proveedores Card -->
             <a href="{{ route('proveedores.index') }}" class="group bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/20 cursor-pointer block">
@@ -120,18 +126,20 @@
                 <p class="text-blue-200 text-sm">Registro de compras y abastecimiento</p>
             </a>
 
-            <!-- Cuentas por Cobrar Card -->
-            <a href="{{ route('creditos.index') }}" class="group bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-rose-500/20 cursor-pointer block">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="p-3 bg-rose-500/20 rounded-xl group-hover:bg-rose-500/30 transition-colors">
-                        <svg class="w-8 h-8 text-rose-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
-                        </svg>
+            @if(auth()->user()->hasFullAccess())
+                <!-- Cuentas por Cobrar Card -->
+                <a href="{{ route('creditos.index') }}" class="group bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-rose-500/20 cursor-pointer block">
+                    <div class="flex items-center justify-between mb-4">
+                        <div class="p-3 bg-rose-500/20 rounded-xl group-hover:bg-rose-500/30 transition-colors">
+                            <svg class="w-8 h-8 text-rose-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
+                            </svg>
+                        </div>
                     </div>
-                </div>
-                <h3 class="text-xl font-bold text-white mb-2 uppercase">Cuentas por Cobrar</h3>
-                <p class="text-rose-200 text-sm">Seguimiento de saldos y cobranza</p>
-            </a>
+                    <h3 class="text-xl font-bold text-white mb-2 uppercase">Cuentas por Cobrar</h3>
+                    <p class="text-rose-200 text-sm">Seguimiento de saldos y cobranza</p>
+                </a>
+            @endif
         </div>
 
         <div class="mt-16 bg-blue-500/20 backdrop-blur-xl rounded-2xl p-8 border border-blue-500/30">

@@ -14,17 +14,19 @@ class DatabaseSeeder extends Seeder
     public function run(): void
     {
         // Crear usuario administrador principal
-        User::create([
-            'name' => 'Maximiliano González',
-            'username' => 'mgonzalez',
-            'email' => 'maxgb07@gmail.com',
-            'password' => '910219',
-        ]);
+        // Crear usuario administrador principal
+        User::updateOrCreate(
+            ['email' => 'maxgb07@gmail.com'],
+            [
+                'name' => 'Maximiliano González',
+                'username' => 'mgonzalez',
+                'password' => '910219',
+            ]
+        );
 
         $this->call([
             UsuariosSeeder::class,
             ClienteSeeder::class,
-            PublicoGeneralSeeder::class,
         ]);
     }
 }

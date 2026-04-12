@@ -1,0 +1,61 @@
+INSTRUCCIONES PARA COPIAR PROYECTO ENTRE DOMINIOS VIA SSH
+=======================================================
+
+1. COPIAR ARCHIVOS (RSYNC)
+---------------------------
+Ejecuta esto desde la raíz de tu cuenta (donde ves la carpeta 'domains/'):
+
+rsync -avP domains/anguiano.bluetechstudio.com.mx/public_html/ domains/demo.bluetechstudio.com.mx/public_html/
+
+* Explicación: -a mantiene permisos, -v es para ver que pasa, -P muestra progreso.
+
+
+2. AJUSTAR CONFIGURACIÓN (.ENV)
+-------------------------------
+Entra a la carpeta de la demo y edita el archivo .env:
+
+cd domains/demo.bluetechstudio.com.mx/public_html/
+nano .env
+
+Modifica:
+APP_URL=https://demo.bluetechstudio.com.mx
+DB_DATABASE=tu_nueva_bd_demo
+DB_USERNAME=tu_usuario_bd_demo
+DB_PASSWORD=tu_password_bd_demo
+
+(Guarda con Ctrl+O y sal con Ctrl+X)
+
+
+3. LIMPIAR CACHÉ DE LARAVEL
+----------------------------
+Dentro de la carpeta domains/demo.bluetechstudio.com.mx/public_html/:
+
+php artisan config:clear
+php artisan cache:clear
+php artisan route:clear
+php artisan view:clear
+
+
+4. REFRESCAR STORAGE LINK (MÉTODO MANUAL PARA SERVIDOR COMPARTIDO)
+------------------------------------------------------------------
+Si 'php artisan storage:link' falla o está bloqueado, usa el comando nativo de Linux:
+
+cd domains/demo.bluetechstudio.com.mx/public_html/
+
+# Borrar enlace anterior si existe
+rm public/storage
+
+# Crear enlace manual usando rutas absolutas
+ln -s $(pwd)/storage/app/public $(pwd)/public/storage
+
+
+5. PERMISOS DE CARPETAS
+------------------------
+Asegúrate de que Laravel pueda escribir:
+
+chmod -R 775 storage bootstrap/cache
+
+
+NOTA IMPORTANTE:
+----------------
+Si no creas una base de datos nueva, el sitio DEMO y el de PRODUCCIÓN compartirán la misma información. Cualquier cambio en uno afectará al otro. Se recomienda crear una BD independiente para la demo.

@@ -46,4 +46,13 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    /**
+     * Verifica si el usuario tiene acceso a todo el sistema.
+     * El usuario con ID 6 (lalegre) tiene acceso limitado.
+     */
+    public function hasFullAccess(): bool
+    {
+        return $this->id !== 6;
+    }
 }
