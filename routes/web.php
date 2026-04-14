@@ -41,6 +41,8 @@ Route::middleware('auth')->group(function () {
 
     Route::get('productos/inventario', [ProductoController::class, 'inventario'])->name('productos.inventario');
     Route::get('productos/inventario/captura-rapida', [ProductoController::class, 'capturaRapida'])->name('productos.inventario.captura_rapida');
+    Route::get('productos/inventario/crear-lote', [ProductoController::class, 'crearLote'])->name('productos.crear_lote');
+    Route::post('productos/inventario/guardar-lote-nuevos', [ProductoController::class, 'guardarLoteNuevos'])->name('productos.guardar_lote_nuevos');
     Route::post('productos/inventario/update-lote', [ProductoController::class, 'guardarLoteInventario'])->name('productos.inventario.update_lote');
     Route::post('productos/inventario/update', [ProductoController::class, 'updateInventario'])->name('productos.inventario.update');
     Route::get('productos/pedimento', [ProductoController::class, 'pedimento'])->name('productos.pedimento');

@@ -287,7 +287,7 @@ class ProductoController extends Controller
         }
 
         $productos = $query->limit(10)
-                           ->get(['id', 'nombre', 'sku', 'marca', 'descripcion', 'aplicacion', 'codigo_barras', 'precio_compra', 'precio_venta']);
+                           ->get(['id', 'nombre', 'sku', 'marca', 'descripcion', 'aplicacion', 'codigo_barras', 'precio_compra', 'precio_venta', 'stock', 'stock_minimo']);
 
         $results = [];
         foreach ($productos as $producto) {
@@ -295,11 +295,14 @@ class ProductoController extends Controller
                 'id' => $producto->id,
                 'text' => "{$producto->nombre} - " . ($producto->descripcion ?? 'SIN DESCRIPCIÓN'),
                 'nombre' => $producto->nombre,
-                'descripcion' => $producto->descripcion ?? 'SIN DESCRIPCIÓN',
                 'sku' => $producto->sku,
                 'marca' => $producto->marca,
+                'descripcion' => $producto->descripcion ?? 'SIN DESCRIPCIÓN',
+                'aplicacion' => $producto->aplicacion ?? '',
                 'precio_compra' => $producto->precio_compra,
-                'precio_venta' => $producto->precio_venta
+                'precio_venta' => $producto->precio_venta,
+                'stock' => $producto->stock,
+                'stock_minimo' => $producto->stock_minimo
             ];
         }
 
@@ -337,7 +340,13 @@ class ProductoController extends Controller
         $request->validate([
             'items' => 'required|array',
             'items.*.id' => 'required|exists:productos,id',
-            'items.*.cantidad' => 'required|numeric|min:0'
+            'items.*.marca' => 'nullable|string|max:100',
+            'items.*.descripcion' => 'nullable|string',
+            'items.*.aplicacion' => 'nullable|string',
+            'items.*.precio_compra' => 'required|numeric|min:0',
+            'items.*.precio_venta' => 'required|numeric|min:0',
+            'items.*.stock' => 'required|numeric|min:0',
+            'items.*.stock_minimo' => 'required|numeric|min:0'
         ]);
 
         try {
@@ -347,7 +356,15 @@ class ProductoController extends Controller
             foreach ($request->items as $item) {
                 $producto = Producto::find($item['id']);
                 if ($producto) {
-                    $producto->update(['stock' => $item['cantidad']]);
+                    $producto->update([
+                        'marca' => $item['marca'],
+                        'descripcion' => $item['descripcion'],
+                        'aplicacion' => $item['aplicacion'],
+                        'precio_compra' => $item['precio_compra'],
+                        'precio_venta' => $item['precio_venta'],
+                        'stock' => $item['stock'],
+                        'stock_minimo' => $item['stock_minimo'],
+                    ]);
                     $updatedCount++;
                 }
             }
@@ -582,5 +599,77 @@ class ProductoController extends Controller
         $marcas = Producto::whereNotNull('marca')->where('marca', '!=', '')->distinct()->orderBy('marca')->pluck('marca');
 
         return view('productos.mas_vendidos', compact('productos', 'marcas', 'periodo', 'marca', 'fecha_inicio', 'fecha_fin'));
+    }
+    public function crearLote()
+    {
+        return view('productos.crear_lote');
+    }
+
+    public function guardarLoteNuevos(Request $request)
+    {
+        $request->validate([
+            'items' => 'required|array',
+            'items.*.nombre' => 'required|string|max:255',
+            'items.*.marca' => 'nullable|string|max:100',
+            'items.*.descripcion' => 'nullable|string',
+            'items.*.aplicacion' => 'nullable|string',
+            'items.*.precio_compra' => 'required|numeric|min:0',
+            'items.*.precio_venta' => 'required|numeric|min:0',
+            'items.*.stock' => 'required|numeric|min:0',
+            'items.*.stock_minimo' => 'required|numeric|min:0'
+        ]);
+
+        $successCount = 0;
+        $duplicates = [];
+
+        try {
+            DB::beginTransaction();
+
+            foreach ($request->items as $item) {
+                $nombreUpper = mb_strtoupper($item['nombre']);
+                
+                // Verificar si ya existe
+                $existe = Producto::where('nombre', $nombreUpper)->exists();
+
+                if ($existe) {
+                    $duplicates[] = $nombreUpper;
+                    continue;
+                }
+
+                Producto::create([
+                    'nombre' => $nombreUpper,
+                    'marca' => $item['marca'],
+                    'descripcion' => $item['descripcion'],
+                    'aplicacion' => $item['aplicacion'],
+                    'precio_compra' => $item['precio_compra'],
+                    'precio_venta' => $item['precio_venta'],
+                    'stock' => $item['stock'],
+                    'stock_minimo' => $item['stock_minimo'],
+                ]);
+
+                $successCount++;
+            }
+
+            DB::commit();
+
+            $message = "Se registraron {$successCount} productos correctamente.";
+            if (count($duplicates) > 0) {
+                $message .= " Se omitieron " . count($duplicates) . " duplicados.";
+            }
+
+            return response()->json([
+                'success' => true,
+                'message' => $message,
+                'duplicates' => $duplicates,
+                'registered' => $successCount
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error al procesar el lote: ' . $e->getMessage()
+            ], 500);
+        }
     }
 }

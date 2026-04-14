@@ -27,7 +27,13 @@
                 </svg>
                 Más Vendidos
             </button>
-            <a href="{{ route('productos.create') }}" class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-4 py-2.5 focus:outline-none inline-flex items-center">
+            <a href="{{ route('productos.crear_lote') }}" class="w-fit inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-lg shadow-lg shadow-indigo-900/40 transition-all text-sm uppercase tracking-widest">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                </svg>
+                Registro Masivo
+            </a>
+            <a href="{{ route('productos.create') }}" class="w-fit inline-flex items-center px-4 py-2 bg-brand hover:bg-brand-strong text-white font-black rounded-lg shadow-lg shadow-brand-medium/40 transition-all text-sm uppercase tracking-widest">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
                 </svg>
@@ -414,8 +420,8 @@
                     <div>
                         <p class="text-blue-200 text-sm mb-2 uppercase font-bold">2. Forma de inventariar</p>
                         <select id="swal-modo-inv" class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all uppercase">
-                            <option value="digital" class="bg-slate-800" selected>CAPTURA DIGITAL (SISTEMA)</option>
-                            <option value="rapida" class="bg-slate-800">CAPTURA RÁPIDA (POR CLAVE)</option>
+                            <option value="digital" class="bg-slate-800">CAPTURA DIGITAL (SISTEMA)</option>
+                            <option value="rapida" class="bg-slate-800" selected>CAPTURA RÁPIDA (POR CLAVE)</option>
                             <option value="imprimir" class="bg-slate-800">IMPRIMIR LISTA (PDF)</option>
                         </select>
                     </div>
