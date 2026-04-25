@@ -293,8 +293,6 @@
                                         </button>
                                     @endif
 
-
-
                                     <button onclick="vistaRapida(this)" class="p-2 bg-purple-500/10 hover:bg-purple-500/20 text-purple-300 rounded-lg border border-purple-500/10 transition-all cursor-pointer" title="VISTA RÁPIDA">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -318,7 +316,11 @@
                                             </button>
                                         @endif
 
-                                        <a href="{{ route('ventas.pdf', $venta) }}" 
+                                        @php
+                                            $isTicket = !in_array($venta->metodo_pago, ['CREDITO', 'PRESTAMO']);
+                                            $urlImpresion = $isTicket ? route('ventas.ticket', $venta) : route('ventas.pdf', $venta);
+                                        @endphp
+                                        <a href="{{ $urlImpresion }}" 
                                             target="_blank" class="p-2 bg-green-500/10 hover:bg-green-500/20 text-green-300 rounded-lg border border-green-500/10 transition-all cursor-pointer" title="IMPRIMIR COMPROBANTE">
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
@@ -356,7 +358,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="7" class="px-6 py-20 text-center">
+                            <td colspan="8" class="px-6 py-20 text-center">
                                 <div class="flex flex-col items-center">
                                     <div class="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-4">
                                         <svg class="w-10 h-10 text-blue-300/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -1020,6 +1022,13 @@
                         timer: 2000,
                         showConfirmButton: false
                     }).then(() => {
+                        // Lógica de Impresión
+                        if (response.print_direct && response.ticket_url) {
+                            window.open(response.ticket_url, '_blank');
+                        } else if (response.pdf_url && !response.print_direct) {
+                            window.open(response.pdf_url, '_blank');
+                        }
+                        
                         window.location.reload();
                     });
                 },

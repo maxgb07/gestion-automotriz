@@ -347,10 +347,15 @@
                                         icon: isWarning ? 'warning' : 'success',
                                         confirmButtonColor: '#3b82f6',
                                     }).then(() => {
-                                        // Abrir PDF en nueva pestaña
-                                        if (response.pdf_url) {
+                                        // Lógica de Impresión
+                                        if (response.print_direct && response.ticket_url) {
+                                            // Abrir ticket en una nueva ventana (pestaña)
+                                            window.open(response.ticket_url, '_blank');
+                                        } else if (response.pdf_url) {
+                                            // Abrir PDF en nueva pestaña (Comportamiento original para Crédito/Préstamo)
                                             window.open(response.pdf_url, '_blank');
                                         }
+                                        
                                         // Redirigir al historial o recargar para limpiar
                                         window.location.href = "{{ route('ventas.index') }}";
                                     });

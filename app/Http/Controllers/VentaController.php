@@ -102,63 +102,37 @@ class VentaController extends Controller
         $request->validate([
             'cliente_id' => 'required|exists:clientes,id',
             'fecha' => 'required|date',
-            'metodo_pago' => 'required|in:EFECTIVO,TARJETA DE DÉBITO,TARJETA DE CRÉDITO,TRANSFERENCIA,CHEQUE,CREDITO,PRESTAMO',
-            'items' => 'required|array|min:1',
-            'items.*.tipo' => 'required|in:producto,servicio',
-            'items.*.id' => 'required',
-            'items.*.cantidad' => 'required|numeric|min:1',
-            'items.*.precio_unitario' => 'required|numeric|min:0',
-            'items.*.descuento_porcentaje' => 'nullable|numeric|min:0|max:100',
+            'metodo_pago' => 'required|string',
             'requiere_factura' => 'required|in:SI,NO',
-        ], [
-            'items.*.id.required' => 'Debe seleccionar un producto o servicio para cada fila.',
-            'items.required' => 'Debe agregar al menos un ítem a la venta.'
+            'items' => 'required|array|min:1',
         ]);
 
         try {
             DB::beginTransaction();
 
-            // Generar Folio Automático
-            $ultimoId = Venta::max('id') ?? 0;
-            $folio = 'V-' . str_pad($ultimoId + 1, 5, '0', STR_PAD_LEFT);
-
-            $totalVenta = 0;
-            $totalDescuentoVenta = 0;
-            $productosSinStock = [];
-
-            // Primero calculamos totales para la cabecera de la venta usando los subtotales enviados (permitiendo modificaciones manuales)
-            foreach ($request->items as $item) {
-                $baseCalculada = $item['cantidad'] * $item['precio_unitario'];
-                $subtotalEnviado = $item['subtotal'] ?? $baseCalculada;
-                
-                $montoDesc = max(0, $baseCalculada - $subtotalEnviado);
-                
-                $totalDescuentoVenta += $montoDesc;
-                $totalVenta += $subtotalEnviado;
-            }
-
-            $esCredito = $request->metodo_pago === 'CREDITO';
-            $esPrestamo = $request->metodo_pago === 'PRESTAMO';
+            // Calculamos el folio basado en el siguiente ID
+            $nextId = DB::table('ventas')->max('id') + 1;
+            $folio = 'V-' . sprintf('%05d', $nextId);
             
             $venta = Venta::create([
-                'cliente_id' => $request->cliente_id,
                 'folio' => $folio,
+                'cliente_id' => $request->cliente_id,
                 'fecha' => $request->fecha,
-                'total' => $totalVenta,
-                'descuento' => $totalDescuentoVenta,
-                'saldo_pendiente' => $esCredito ? $totalVenta : 0,
                 'metodo_pago' => $request->metodo_pago,
-                'estado' => $esCredito ? 'PENDIENTE' : ($esPrestamo ? 'PRESTAMO' : 'PAGADA'),
-                'fecha_vencimiento' => $esCredito ? \Carbon\Carbon::parse($request->fecha)->addDays(15) : null,
                 'requiere_factura' => $request->requiere_factura,
+                'estado' => $request->metodo_pago === 'PRESTAMO' ? 'PRESTAMO' : ($request->metodo_pago === 'CREDITO' ? 'PENDIENTE' : 'PAGADA'),
+                'total' => 0,
+                'saldo_pendiente' => 0,
                 'observaciones' => $request->observaciones,
+                'user_id' => Auth::id(),
             ]);
 
+            $total = 0;
+            $productosSinStock = [];
+
             foreach ($request->items as $item) {
-                $baseCalculada = $item['cantidad'] * $item['precio_unitario'];
-                $subtotalItem = $item['subtotal'] ?? $baseCalculada;
-                $porcentajeDesc = $item['descuento_porcentaje'] ?? 0;
-                $montoDesc = max(0, $baseCalculada - $subtotalItem);
+                $subtotal = $item['cantidad'] * $item['precio_unitario'];
+                $total += $subtotal;
 
                 VentaDetalle::create([
                     'venta_id' => $venta->id,
@@ -166,35 +140,34 @@ class VentaController extends Controller
                     'servicio_id' => $item['tipo'] === 'servicio' ? $item['id'] : null,
                     'cantidad' => $item['cantidad'],
                     'precio_unitario' => $item['precio_unitario'],
-                    'descuento_porcentaje' => $porcentajeDesc,
-                    'descuento_monto' => $montoDesc,
-                    'subtotal' => $subtotalItem,
+                    'subtotal' => $subtotal,
                 ]);
 
-                // Descontar Stock si es producto
+                // Descontar stock si es producto
                 if ($item['tipo'] === 'producto') {
                     $producto = Producto::find($item['id']);
-                    
-                    if ($producto->stock < $item['cantidad']) {
-                        // throw new \Exception("Stock insuficiente para el producto: {$producto->nombre}");
-                        
-                        // Registrar Incidencia de Stock
-                        StockAlerta::create([
-                            'producto_id' => $producto->id,
-                            'user_id' => Auth::id() ?? 1, // Fallback a ID 1 si no hay auth (ej. seeders o consola)
-                            'stock_previo' => $producto->stock,
-                            'cantidad_solicitada' => $item['cantidad'],
-                            'referencia_tipo' => 'VENTA',
-                            'referencia_id' => $venta->id,
-                            'fecha' => now(),
-                        ]);
+                    $producto->stock -= $item['cantidad'];
+                    $producto->save();
 
+                    if ($producto->stock <= 0) {
                         $productosSinStock[] = $producto->nombre;
                     }
-
-                    $producto->stock = max(0, $producto->stock - $item['cantidad']);
-                    $producto->save();
                 }
+            }
+
+            // Actualizamos el total real y saldo
+            $venta->total = $total;
+            $venta->saldo_pendiente = ($venta->estado === 'PAGADA' ? 0 : $total);
+            $venta->save();
+
+            // Si fue pagada en efectivo o tarjeta, crear el registro de pago
+            if ($venta->estado === 'PAGADA') {
+                $venta->pagos()->create([
+                    'monto' => $total,
+                    'fecha_pago' => $request->fecha,
+                    'metodo_pago' => $request->metodo_pago,
+                    'user_id' => Auth::id(),
+                ]);
             }
 
             DB::commit();
@@ -205,11 +178,16 @@ class VentaController extends Controller
             }
 
             if ($request->ajax() || $request->wantsJson()) {
+                $metodo = $request->metodo_pago;
+                $isTicket = !in_array($metodo, ['CREDITO', 'PRESTAMO']);
+                
                 return response()->json([
                     'success' => true,
                     'message' => $mensaje,
                     'folio' => $folio,
-                    'pdf_url' => route('ventas.pdf', $venta)
+                    'pdf_url' => route('ventas.pdf', $venta),
+                    'ticket_url' => $isTicket ? route('ventas.ticket', $venta) : null,
+                    'print_direct' => $isTicket
                 ]);
             }
 
@@ -225,297 +203,131 @@ class VentaController extends Controller
                 ], 500);
             }
 
-            return back()->with('error', 'Error al registrar la venta: ' . $e->getMessage())->withInput();
+            return back()->with('error', 'Error al registrar la venta: ' . $e->getMessage());
         }
     }
 
-    public function show(Request $request, Venta $venta)
+    public function show(Venta $venta)
     {
         $venta->load(['cliente', 'detalles.producto', 'detalles.servicio', 'pagos']);
-
-        if ($request->ajax()) {
-            return response()->json([
-                'success' => true,
-                'venta' => $venta
-            ]);
-        }
-
         $productos = Producto::orderBy('nombre')->get();
         $servicios = Servicio::orderBy('nombre')->get();
-
         return view('ventas.ver', compact('venta', 'productos', 'servicios'));
-    }
-
-    public function storeItems(Request $request, Venta $venta)
-    {
-        $request->validate([
-            'items' => 'required|array|min:1',
-            'items.*.tipo' => 'required|in:producto,servicio',
-            'items.*.item_id' => 'required',
-            'items.*.cantidad' => 'required|numeric|min:0.01',
-            'items.*.precio_unitario' => 'required|numeric|min:0',
-        ], [
-            'items.*.item_id.required' => 'Debe seleccionar un producto o servicio.',
-            'items.required' => 'Debe agregar al menos un ítem.'
-        ]);
-
-        try {
-            DB::beginTransaction();
-
-            $totalAgregado = 0;
-            $productosSinStock = [];
-
-            foreach ($request->items as $item) {
-                // Cálculo de subtotal considerando que puede venir de JS ya calculado
-                $baseCalculada = $item['cantidad'] * $item['precio_unitario'];
-                $subtotalItem = $item['subtotal'] ?? $baseCalculada;
-                
-                VentaDetalle::create([
-                    'venta_id' => $venta->id,
-                    'producto_id' => $item['tipo'] === 'producto' ? $item['item_id'] : null,
-                    'servicio_id' => $item['tipo'] === 'servicio' ? $item['item_id'] : null,
-                    'cantidad' => $item['cantidad'],
-                    'precio_unitario' => $item['precio_unitario'],
-                    'descuento_porcentaje' => 0,
-                    'descuento_monto' => 0,
-                    'subtotal' => $subtotalItem,
-                    'notas' => $item['notas'] ?? null,
-                ]);
-
-                $totalAgregado += $subtotalItem;
-
-                if ($item['tipo'] === 'producto') {
-                    $producto = Producto::find($item['item_id']);
-                    
-                    if ($producto->stock < $item['cantidad']) {
-                        StockAlerta::create([
-                            'producto_id' => $producto->id,
-                            'user_id' => Auth::id() ?? 1,
-                            'stock_previo' => $producto->stock,
-                            'cantidad_solicitada' => $item['cantidad'],
-                            'referencia_tipo' => 'VENTA_EXT',
-                            'referencia_id' => $venta->id,
-                            'fecha' => now(),
-                        ]);
-                        $productosSinStock[] = $producto->nombre;
-                    }
-
-                    $producto->stock = max(0, $producto->stock - $item['cantidad']);
-                    $producto->save();
-                }
-            }
-
-            // Actualizar Cabecera de la Venta
-            $venta->total += $totalAgregado;
-            if ($venta->estado === 'PENDIENTE') {
-                $venta->saldo_pendiente += $totalAgregado;
-            }
-            $venta->save();
-
-            DB::commit();
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Ítems agregados correctamente.',
-                'productos_sin_stock' => $productosSinStock
-            ]);
-
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al agregar ítems: ' . $e->getMessage()
-            ], 500);
-        }
     }
 
     public function downloadPDF(Venta $venta)
     {
-        if (!extension_loaded('gd')) {
-            return response()->json([
-                'success' => false,
-                'message' => 'La extensión PHP GD no está instalada en el servidor. Es necesaria para generar el PDF con imágenes (logo). Por favor, contacte al administrador o instálela con: sudo apt-get install php-gd'
-            ], 500);
-        }
-
         $venta->load(['cliente', 'detalles.producto', 'detalles.servicio']);
         
-        // =========================================================================
-        // CONFIGURACIÓN DE FORMATO DE IMPRESIÓN
-        // =========================================================================
-        // TAMAÑO CARTA (Por defecto):
-        /* $vista = 'ventas.pdf';
-        $papel = 'letter'; */
+        $pdf = Pdf::loadView('ventas.pdf_media_carta', compact('venta'));
+        $pdf->setPaper([0, 0, 396, 612], 'portrait'); // Media carta aproximado
         
-        // TAMAÑO MEDIA CARTA:
-        // Descomente las siguientes dos líneas para usar Media Carta y comente las de arriba
-        $vista = ($venta->metodo_pago === 'PRESTAMO') ? 'ventas.pdf_media_carta_prestamo' : 'ventas.pdf_media_carta';
-        $papel = array(0, 0, 396, 612); // 5.5 x 8.5 pulgadas
-        // =========================================================================
-
-        $pdf = Pdf::loadView($vista, compact('venta'));
-        $pdf->setPaper($papel);
-        
-        return $pdf->stream("Comprobante_{$venta->folio}.pdf");
+        return $pdf->stream("venta-{$venta->folio}.pdf");
     }
 
-    public function registrarFactura(Request $request, Venta $venta)
+    public function showTicket(Venta $venta)
     {
-        $request->validate([
-            'folio_factura' => 'required|string|max:255',
-            'fecha_factura' => 'nullable|date',
-            'uuid_factura' => 'nullable|string|max:255',
-        ]);
-
-        try {
-            $venta->update([
-                'folio_factura' => mb_strtoupper($request->folio_factura, 'UTF-8'),
-                'fecha_factura' => $request->fecha_factura ?? now(),
-                'uuid_factura' => $request->uuid_factura,
-                'requiere_factura' => 'SI',
-            ]);
-
-            return response()->json([
-                'success' => true,
-                'message' => 'Folio de factura registrado correctamente'
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al registrar la factura: ' . $e->getMessage()
-            ], 500);
-        }
+        $venta->load(['cliente', 'detalles.producto', 'detalles.servicio']);
+        return view('ventas.ticket_80mm', compact('venta'));
     }
 
     public function cancelar(Request $request, Venta $venta)
     {
-        $request->validate([
-            'motivo_cancelacion' => 'required|string|max:500',
-        ]);
-
         if ($venta->estado === 'CANCELADA') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Esta venta ya se encuentra cancelada.'
-            ], 422);
+            return response()->json(['success' => false, 'message' => 'La venta ya está cancelada'], 400);
         }
 
         try {
             DB::beginTransaction();
 
-            // 1. Restaurar Stock de Productos
+            $venta->estado = 'CANCELADA';
+            $venta->motivo_cancelacion = $request->motivo_cancelacion;
+            $venta->cancelado_at = now();
+            $venta->save();
+
+            // Restaurar stock
             foreach ($venta->detalles as $detalle) {
                 if ($detalle->producto_id) {
                     $producto = $detalle->producto;
-                    $producto->increment('stock', $detalle->cantidad);
+                    $producto->stock += $detalle->cantidad;
+                    $producto->save();
                 }
             }
 
-            // 2. Eliminar Pagos si es Crédito o si ya hubo abonos
-            // El usuario pidió: "En caso de ventas de credito canceladas recuerda eliminar saldos y todo lo que nos pueda afectar"
-            $venta->pagos()->delete();
-
-            // 3. Actualizar Cabecera de la Venta
-            $venta->update([
-                'estado' => 'CANCELADA',
-                'saldo_pendiente' => 0,
-                'motivo_cancelacion' => mb_strtoupper($request->motivo_cancelacion, 'UTF-8'),
-                'cancelado_at' => now(),
-            ]);
-
             DB::commit();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Venta cancelada correctamente y stock restaurado.'
-            ]);
+            return response()->json(['success' => true, 'message' => 'Venta cancelada correctamente']);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al cancelar la venta: ' . $e->getMessage()
-            ], 500);
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
 
     public function resolverPrestamo(Request $request, Venta $venta)
     {
-        if ($venta->estado !== 'PRESTAMO') {
-            return response()->json([
-                'success' => false,
-                'message' => 'Esta venta no es un préstamo o ya fue resuelta.'
-            ], 422);
-        }
-
-        $request->validate([
-            'resolucion' => 'required|in:devolucion,pago',
-            'metodo_pago' => 'required_if:resolucion,pago|in:EFECTIVO,TARJETA DE DÉBITO,TARJETA DE CRÉDITO,TRANSFERENCIA,CHEQUE,CREDITO',
-            'requiere_factura' => 'required_if:resolucion,pago|in:SI,NO',
-            'items' => 'required_if:resolucion,pago|array',
-        ]);
-
         try {
             DB::beginTransaction();
 
             if ($request->resolucion === 'devolucion') {
+                $venta->estado = 'DEVUELTO';
+                // Restaurar stock
                 foreach ($venta->detalles as $detalle) {
                     if ($detalle->producto_id) {
                         $producto = $detalle->producto;
-                        $producto->increment('stock', $detalle->cantidad);
+                        $producto->stock += $detalle->cantidad;
+                        $producto->save();
                     }
                 }
-
-                $venta->update([
-                    'estado' => 'DEVUELTO',
-                    'updated_at' => now()
-                ]);
-
-                $mensaje = 'Préstamo devuelto correctamente. El stock ha sido reintegrado.';
             } else {
-                // Resolución como PAGO
-                $nuevoTotal = 0;
-                $nuevoDescuento = 0;
-
-                foreach ($request->items as $itemId => $itemData) {
-                    $detalle = $venta->detalles()->findOrFail($itemId);
-                    $nuevoPrecio = floatval($itemData['precio']);
-                    $nuevoSubtotal = $nuevoPrecio * $detalle->cantidad;
-
-                    $detalle->update([
-                        'precio_unitario' => $nuevoPrecio,
-                        'subtotal' => $nuevoSubtotal,
-                        'descuento' => 0 // Reset descuento en esta instancia si lo desea el usuario (simplificado)
-                    ]);
-
-                    $nuevoTotal += $nuevoSubtotal;
+                // Se convierte en venta real
+                $venta->estado = $request->metodo_pago === 'CREDITO' ? 'PENDIENTE' : 'PAGADA';
+                $venta->metodo_pago = $request->metodo_pago;
+                $venta->requiere_factura = $request->requiere_factura;
+                $venta->saldo_pendiente = ($venta->estado === 'PAGADA' ? 0 : $venta->total);
+                
+                // Actualizar precios si se modificaron
+                if ($request->has('items')) {
+                    $nuevoTotal = 0;
+                    foreach ($request->items as $detalleId => $data) {
+                        $detalle = VentaDetalle::find($detalleId);
+                        if ($detalle) {
+                            $detalle->precio_unitario = $data['precio'];
+                            $detalle->subtotal = $detalle->cantidad * $data['precio'];
+                            $detalle->save();
+                            $nuevoTotal += $detalle->subtotal;
+                        }
+                    }
+                    $venta->total = $nuevoTotal;
+                    $venta->saldo_pendiente = ($venta->estado === 'PAGADA' ? 0 : $nuevoTotal);
                 }
-
-                $venta->update([
-                    'metodo_pago' => $request->metodo_pago,
-                    'requiere_factura' => $request->requiere_factura,
-                    'total' => $nuevoTotal,
-                    'saldo_pendiente' => ($request->metodo_pago === 'CREDITO') ? $nuevoTotal : 0,
-                    'estado' => ($request->metodo_pago === 'CREDITO') ? 'PENDIENTE' : 'PAGADA',
-                    'updated_at' => now()
-                ]);
-
-                $mensaje = 'Préstamo convertido a venta exitosamente.';
             }
 
+            $venta->save();
+
             DB::commit();
+            
+            $metodo = $venta->metodo_pago;
+            $isTicket = $venta->estado === 'PAGADA' && !in_array($metodo, ['CREDITO', 'PRESTAMO']);
 
             return response()->json([
-                'success' => true,
-                'message' => $mensaje
+                'success' => true, 
+                'message' => 'Préstamo resuelto correctamente',
+                'print_direct' => $isTicket,
+                'ticket_url' => $isTicket ? route('ventas.ticket', $venta) : null,
+                'pdf_url' => route('ventas.pdf', $venta)
             ]);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            return response()->json([
-                'success' => false,
-                'message' => 'Error al procesar la resolución: ' . $e->getMessage()
-            ], 500);
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
+    }
+
+    public function facturar(Request $request, Venta $venta)
+    {
+        $venta->folio_factura = $request->folio_factura;
+        $venta->save();
+        return response()->json(['success' => true, 'message' => 'Factura registrada']);
     }
 }

@@ -1,38 +1,32 @@
-# TODO — Cobro Masivo y Facturación Condicionada
+# TODO — Formato Xprinter 80mm y Auto-Impresión
 
 ## 🎯 Objetivos
-- [x] **MODULO PAGO LOTE**: Selección múltiple de deudas y pago con distribución FIFO.
-- [x] **ESTABILIDAD UI**: Asegurar que los montos manuales no se sobrescriban.
-- [x] **FACTURACIÓN INTELIGENTE**: Campo `requiere_factura` solo se activa en liquidación total.
+- [ ] **NUEVA VISTA**: Crear `ticket_80mm.blade.php` optimizada para impresoras térmicas.
+- [ ] **RUTA**: Añadir endpoint para visualizar el ticket HTML.
+- [ ] **LÓGICA CONTROLADOR**: Implementar `showTicket` en `VentaController`.
+- [ ] **AUTO-IMPRESIÓN**: Modificar frontend para disparar impresión automática en ventas no-crédito/no-préstamo.
 
-# TODO — Módulo de Préstamos de Material
+## 📋 Tareas de Implementación
 
-## 🎯 Objetivos
-- [x] **DB UPDATE**: Enums actualizados para soportar `PRESTAMO` y `DEVUELTO`.
-- [x] **VALIDACIÓN**: Bloqueo de préstamos para "Público General".
-- [x] **PDF ESPECIALIZADO**: Formato sin precios para vales de préstamo.
-- [x] **LOGICA DE DEVOLUCIÓN**: Incremento automático de stock al devolver.
+### 1. Estructura y Estilos
+- [ ] Diseñar el layout de 80mm con CSS `@media print`.
+- [ ] Asegurar que el ticket incluya todos los datos legales y comerciales necesarios.
 
-## 📋 Tareas Realizadas
+### 2. Backend (Laravel)
+- [ ] Registrar ruta `ventas.ticket` en `web.php`.
+- [ ] Agregar método `showTicket` en `VentaController.php`.
+- [ ] Asegurar que el método `store` devuelva la `ticket_url` cuando corresponda.
 
-### 1. Base de Datos
-- [x] Crear y ejecutar migración `add_prestamo_to_ventas_enums`.
+### 3. Frontend (JavaScript)
+- [ ] Actualizar `ventas/crear.blade.php`:
+    - [ ] Detectar `metodo_pago` al finalizar.
+    - [ ] Implementar apertura de ventana de impresión para tickets.
+- [ ] (Opcional) Replicar lógica en `resolverPrestamo`.
 
-### 2. Backend (Lógica de Negocio)
-- [x] Actualizar `VentaController@store` para asignar estado `PRESTAMO`.
-- [x] Implementar `VentaController@devolverPrestamo` con lógica de stock.
-- [x] Configurar conmutación de vistas PDF en `downloadPDF`.
+## 🏁 Revisión y Verificación
+- [ ] Verificar renderizado de ticket en `/ventas/{id}/ticket`.
+- [ ] Probar flujo completo de venta con efectivo.
+- [ ] Confirmar que ventas a crédito siguen usando PDF.
 
-### 3. Frontend (Interfaz)
-- [x] Añadir opción "PRÉSTAMO" en el selector de métodos de pago.
-- [x] Implementar validación JS cruzada (Cliente vs Método).
-- [x] Añadir botón de devolución en el historial de ventas.
-- [x] Implementar AJAX para el botón de devolución.
-
-### 4. Formatos
-- [x] Crear plantilla `pdf_media_carta_prestamo.blade.php`.
-- [x] Incluir insignias de estado (EN PRÉSTAMO / DEVUELTO) en la tabla principal.
-
-## 🏁 Revisión Final
-- [ ] Autocomprobar con Tinker (Opcional).
-- [ ] Presentar Walkthrough al usuario.
+## 📝 Lecciones Aprendidas
+*(Se actualizará después de la implementación)*
