@@ -475,7 +475,7 @@
                             Swal.fire({
                                 icon: 'error',
                                 title: 'ERROR',
-                                text: data.message || 'Error al procesar la solicitud',
+                                text: data.message || 'Error al procesar el pago',
                                 background: '#1e293b',
                                 color: '#fff'
                             });
@@ -835,10 +835,8 @@
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // DEVOLUCIÓN FÍSICA
                     procesarResolucion(ventaId, { resolucion: 'devolucion' });
                 } else if (result.isDenied) {
-                    // CONVERTIR A PAGO
                     abrirModalPagoPrestamo(ventaId, folio);
                 }
             });
@@ -851,7 +849,6 @@
                 didOpen: () => Swal.showLoading()
             });
 
-            // Obtener detalles de la venta
             $.get(`/ventas/${ventaId}`, function(response) {
                 const venta = response.venta;
                 let rowsHtml = '';
@@ -975,7 +972,6 @@
             });
         }
 
-        // Función para recalcular el subtotal de cada fila y el total general en el modal
         function recalcularTotalModal() {
             let totalGeneral = 0;
             document.querySelectorAll('.item-precio').forEach(input => {
@@ -983,15 +979,12 @@
                 const cant = parseFloat(input.dataset.cantidad) || 0;
                 const precio = parseFloat(input.value) || 0;
                 const subtotal = cant * precio;
-                
                 totalGeneral += subtotal;
-                
                 const subtotalEl = document.getElementById(`subtotal-${id}`);
                 if (subtotalEl) {
                     subtotalEl.innerText = '$' + subtotal.toLocaleString('es-MX', {minimumFractionDigits: 2});
                 }
             });
-
             const totalEl = document.getElementById('modal-total-final');
             if (totalEl) {
                 totalEl.innerText = '$' + totalGeneral.toLocaleString('es-MX', {minimumFractionDigits: 2});
@@ -1022,13 +1015,11 @@
                         timer: 2000,
                         showConfirmButton: false
                     }).then(() => {
-                        // Lógica de Impresión
                         if (response.print_direct && response.ticket_url) {
                             window.open(response.ticket_url, '_blank');
                         } else if (response.pdf_url && !response.print_direct) {
                             window.open(response.pdf_url, '_blank');
                         }
-                        
                         window.location.reload();
                     });
                 },

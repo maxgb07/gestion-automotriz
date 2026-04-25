@@ -80,7 +80,7 @@
                     };
                 @endphp
                 <span class="px-4 py-1.5 rounded-full text-xl font-black uppercase border {{ $color }}">
-                    {{ $venta->estado == 'PENDIENTE' ? 'PENDIENTE DE PAGO' : $venta->estado }}
+                    {{ $venta->estado == 'PENDIENTE' ? 'PENDIENTE DE PAGO' : ($venta->estado == 'PRESTAMO' ? 'EN PRÉSTAMO' : $venta->estado) }}
                 </span>
             </div>
         </div>
@@ -196,7 +196,12 @@
                                     Guardar
                                 </button>
                             @endif
-                            <a href="{{ route('ventas.pdf', $venta) }}" target="_blank" class="btn-premium-blue px-4 py-2 text-white text-xs font-black rounded-lg shadow-lg shadow-blue-500/20 transition-all uppercase tracking-widest flex items-center justify-center">
+                            
+                            @php
+                                $isTicket = !in_array($venta->metodo_pago, ['CREDITO', 'PRESTAMO']); 
+                                $urlImpresion = $isTicket ? route('ventas.ticket', $venta) : route('ventas.pdf', $venta);
+                            @endphp
+                            <a href="{{ $urlImpresion }}" target="_blank" class="btn-premium-blue px-4 py-2 text-white text-xs font-black rounded-lg shadow-lg shadow-blue-500/20 transition-all uppercase tracking-widest flex items-center justify-center">
                                 <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
                                 </svg>
@@ -212,7 +217,6 @@
                                     <th class="px-6 py-5 text-md font-bold text-blue-200 uppercase tracking-widest text-left">Clave</th>
                                     <th class="px-8 py-5 text-md font-bold text-blue-200 uppercase tracking-widest text-left">Descripción</th>
                                     <th class="px-6 py-5 text-md font-bold text-blue-200 uppercase tracking-widest text-center">Precio Unitario</th>
-                                    <!-- <th class="px-6 py-5 text-md font-bold text-blue-200 uppercase tracking-widest text-center">Descuento</th> -->
                                     <th class="px-8 py-5 text-md font-bold text-blue-200 uppercase tracking-widest text-right">Importe</th>
                                     @if($venta->estado === 'PRESTAMO' || $venta->estado === 'PENDIENTE')
                                         <th class="px-4 py-5 w-16"></th>
@@ -241,9 +245,6 @@
                                         <td class="px-6 py-5 text-center">
                                             <span class="text-blue-100 font-mono text-md font-bold">${{ number_format($detalle->precio_unitario, 2) }}</span>
                                         </td>
-                                        <!-- <td class="px-6 py-5 text-center">
-                                            <span class="text-blue-100 font-mono text-md font-bold">{{ $detalle->descuento_porcentaje }}%</span>
-                                        </td> -->
                                         <td class="px-8 py-5 text-right">
                                             <span class="text-white font-black font-mono text-md existing-subtotal" data-valor="{{ $detalle->subtotal }}">${{ number_format($detalle->subtotal, 2) }}</span>
                                         </td>
@@ -254,24 +255,6 @@
                                 @endforeach
                             </tbody>
                             <tfoot class="bg-white/5 border-t border-white/10">
-                                <!-- @if($venta->descuento > 0)
-                                <tr>
-                                    <td colspan="5" class="px-8 py-3 text-right">
-                                        <span class="text-white text-md uppercase font-bold tracking-widest">Subtotal</span>
-                                    </td>
-                                    <td class="px-8 py-3 text-right">
-                                        <span class="text-white font-mono text-md font-bold">${{ number_format($venta->detalles->sum('subtotal') + $venta->descuento, 2) }}</span>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td colspan="5" class="px-8 py-3 text-right">
-                                        <span class="text-white text-md uppercase font-bold tracking-widest">Descuento</span>
-                                    </td>
-                                    <td class="px-8 py-3 text-right">
-                                        <span class="text-white font-mono text-md font-bold">-${{ number_format($venta->descuento, 2) }}</span>
-                                    </td>
-                                </tr>
-                                @endif -->
                                 <tr class="bg-white/10">
                                     <td colspan="4" class="px-8 py-6 text-right">
                                         <span class="text-blue-200 text-md uppercase font-black tracking-widest">Total de la Venta</span>
@@ -288,7 +271,7 @@
                     </div>
                 </div>
             </div>
-            <!-- Seguimiento de Pagos (Saldo e Historial) -->
+            <!-- Seguimiento de Pagos -->
             <div class="w-full mb-8">
                 <div class="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 shadow-2xl overflow-hidden mb-8">
                     <div class="p-6 border-b border-white/10 bg-white/5 flex items-center justify-between">
@@ -345,7 +328,6 @@
                     </div>
                 </div>
             </div>
-</div>
         </div>
     </div>
 
@@ -560,11 +542,9 @@
 
         function calculateTotal() {
             let total = 0;
-            // Existentes
             document.querySelectorAll('.existing-subtotal').forEach(el => {
                 total += parseFloat(el.dataset.valor) || 0;
             });
-            // Nuevos
             document.querySelectorAll('#items-table-body .subtotal-input').forEach(input => {
                 total += parseFloat(input.value) || 0;
             });
@@ -579,35 +559,25 @@
 
         function guardarItems() {
             const rows = document.querySelectorAll('#items-table-body tr.new-row');
-            if (rows.length === 0) {
-                Swal.fire('Atención', 'No hay ítems nuevos para guardar.', 'info');
-                return;
-            }
+            if (rows.length === 0) return;
 
             Swal.fire({
                 title: '¿Guardar nuevos ítems?',
-                text: "Esta acción actualizará el total de la venta y afectará el stock.",
+                text: "Esta acción actualizará el total de la venta.",
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonColor: '#10b981',
-                cancelButtonColor: '#475569',
-                confirmButtonText: 'SÍ, GUARDAR',
-                cancelButtonText: 'CANCELAR'
+                confirmButtonText: 'SÍ, GUARDAR'
             }).then((result) => {
                 if (result.isConfirmed) {
                     const formData = new FormData();
                     formData.append('_token', '{{ csrf_token() }}');
-                    
                     rows.forEach((row, index) => {
                         formData.append(`items[${index}][tipo]`, row.querySelector('.tipo-select').value);
                         formData.append(`items[${index}][item_id]`, row.querySelector('.item-select').value);
                         formData.append(`items[${index}][cantidad]`, row.querySelector('[name*="[cantidad]"]').value);
                         formData.append(`items[${index}][precio_unitario]`, row.querySelector('[name*="[precio_unitario]"]').value);
-                        formData.append(`items[${index}][subtotal]`, row.querySelector('.subtotal-input').value);
-                        formData.append(`items[${index}][notas]`, row.querySelector('[name*="[notas]"]')?.value || '');
                     });
-
-                    Swal.fire({ title: 'Guardando...', didOpen: () => Swal.showLoading() });
 
                     fetch('{{ route("ventas.items.store", $venta) }}', {
                         method: 'POST',
@@ -617,109 +587,25 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            Swal.fire('¡Éxito!', data.message, 'success').then(() => {
-                                window.location.reload();
-                            });
-                        } else {
-                            throw new Error(data.message);
+                            window.location.reload();
                         }
-                    })
-                    .catch(error => {
-                        Swal.fire('Error', error.message, 'error');
                     });
                 }
             });
         }
 
-        // --- Registro Rápido ---
         function toggleSwalFields(tipo) {
-            const popup = Swal.getPopup();
-            if (!popup) return;
-            const divStock = popup.querySelector('#div-stock');
-            const labelNombre = popup.querySelector('#label-nombre');
+            const divStock = document.getElementById('div-stock');
+            const labelNombre = document.getElementById('label-nombre');
             if (tipo === 'servicio') {
-                if (divStock) divStock.classList.add('hidden');
+                divStock?.classList.add('hidden');
                 if (labelNombre) labelNombre.textContent = 'NOMBRE DEL SERVICIO *';
             } else {
-                if (divStock) divStock.classList.remove('hidden');
+                divStock?.classList.remove('hidden');
                 if (labelNombre) labelNombre.textContent = 'SKU / CLAVE *';
             }
         }
-
-        function abrirModalNuevoItem() {
-            Swal.fire({
-                title: 'REGISTRAR NUEVO ÍTEM',
-                background: '#1e293b',
-                color: '#fff',
-                html: `
-                    <div class="flex gap-8 justify-center mb-6 p-4 bg-white/5 rounded-2xl border border-white/10">
-                        <label class="flex items-center gap-3 cursor-pointer">
-                            <input type="radio" name="swal-tipo" value="producto" checked onchange="toggleSwalFields(this.value)">
-                            <span class="text-xs font-black uppercase tracking-widest text-blue-100">Producto</span>
-                        </label>
-                        <label class="flex items-center gap-3 cursor-pointer">
-                            <input type="radio" name="swal-tipo" value="servicio" onchange="toggleSwalFields(this.value)">
-                            <span class="text-xs font-black uppercase tracking-widest text-blue-100">Servicio</span>
-                        </label>
-                    </div>
-                    <div class="space-y-4 text-left">
-                        <div>
-                            <label id="label-nombre" class="block text-[10px] font-black text-blue-200 uppercase mb-1 ml-1">SKU / CLAVE *</label>
-                            <input type="text" id="swal-nombre" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm font-bold uppercase outline-none" placeholder="EJ: BALATA-TR-01">
-                        </div>
-                        <div>
-                            <label class="block text-[10px] font-black text-blue-200 uppercase mb-1 ml-1">PRECIO VENTA *</label>
-                            <input type="number" id="swal-precio" step="0.01" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm font-bold outline-none" placeholder="0.00">
-                        </div>
-                        <div id="div-stock">
-                            <label class="block text-[10px] font-black text-blue-200 uppercase mb-1 ml-1">EXISTENCIA INICIAL *</label>
-                            <input type="number" id="swal-stock" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-sm font-bold outline-none" value="1">
-                        </div>
-                    </div>
-                `,
-                showCancelButton: true,
-                confirmButtonText: 'REGISTRAR',
-                cancelButtonText: 'CANCELAR',
-                preConfirm: () => {
-                    const tipo = document.querySelector('input[name="swal-tipo"]:checked').value;
-                    const nombre = document.getElementById('swal-nombre').value;
-                    const precio = document.getElementById('swal-precio').value;
-                    const stock = document.getElementById('swal-stock').value;
-                    if (!nombre || !precio) {
-                        Swal.showValidationMessage('Campos obligatorios faltantes');
-                        return false;
-                    }
-                    return { tipo, nombre, precio, stock };
-                }
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    const { tipo, nombre, precio, stock } = result.value;
-                    const url = tipo === 'producto' ? '{{ route("productos.store") }}' : '{{ route("servicios.store") }}';
-                    
-                    $.ajax({
-                        url: url,
-                        method: 'POST',
-                        data: {
-                            _token: '{{ csrf_token() }}',
-                            nombre: nombre,
-                            precio_venta: tipo === 'producto' ? precio : null,
-                            precio: tipo === 'servicio' ? precio : null,
-                            stock: stock,
-                            stock_minimo: 0
-                        },
-                        success: function(response) {
-                            if (response.success) {
-                                if (tipo === 'producto') PRODUCTOS.push(response.data);
-                                else SERVICIOS.push(response.data);
-                                Swal.fire('¡Éxito!', 'Ítem registrado. Ya puedes buscarlo en la tabla.', 'success');
-                            }
-                        }
-                    });
-                }
-            });
-        }
     </script>
-
 
     <template id="row-template">
         <tr class="hover:bg-white/5 transition-colors new-row">

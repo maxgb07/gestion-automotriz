@@ -179,6 +179,7 @@ class VentaController extends Controller
 
             if ($request->ajax() || $request->wantsJson()) {
                 $metodo = $request->metodo_pago;
+                // PRESTAMO usa PDF (pdf_media_carta_prestamo)
                 $isTicket = !in_array($metodo, ['CREDITO', 'PRESTAMO']);
                 
                 return response()->json([
@@ -219,7 +220,12 @@ class VentaController extends Controller
     {
         $venta->load(['cliente', 'detalles.producto', 'detalles.servicio']);
         
-        $pdf = Pdf::loadView('ventas.pdf_media_carta', compact('venta'));
+        // Seleccionar vista según si es préstamo o no
+        $view = ($venta->metodo_pago === 'PRESTAMO' || $venta->estado === 'PRESTAMO') 
+                ? 'ventas.pdf_media_carta_prestamo' 
+                : 'ventas.pdf_media_carta';
+
+        $pdf = Pdf::loadView($view, compact('venta'));
         $pdf->setPaper([0, 0, 396, 612], 'portrait'); // Media carta aproximado
         
         return $pdf->stream("venta-{$venta->folio}.pdf");
