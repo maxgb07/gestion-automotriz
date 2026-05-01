@@ -1,4 +1,18 @@
-# TODO — Formato Xprinter 80mm y Auto-Impresión
+# TODO — Fix Error VentaController::registrarFactura
+
+## 🎯 Objetivos
+- [x] **SOLUCIONAR ERROR**: Resolver el error `Call to undefined method App\Http\Controllers\VentaController::registrarFactura()`.
+
+## 📋 Tareas de Implementación
+- [x] **VentaController.php**: Renombrar el método `facturar` existente a `registrarFactura` para que coincida con la ruta definida en `web.php`.
+- [x] **Mejora**: Asegurar que al registrar la factura se actualice el campo `requiere_factura` a 'SI' (consistente con `OrdenServicioController`).
+
+## 🏁 Revisión y Verificación
+- [x] Validar que al enviar el POST a `/ventas/{venta}/facturar` desde `ventas.index`, se registre correctamente el folio sin arrojar el error 500.
+
+---
+
+# TODO — Formato Xprinter 80mm y Auto-Impresión (Tareas Anteriores)
 
 ## 🎯 Objetivos
 - [ ] **NUEVA VISTA**: Crear `ticket_80mm.blade.php` optimizada para impresoras térmicas.
@@ -27,6 +41,3 @@
 - [ ] Verificar renderizado de ticket en `/ventas/{id}/ticket`.
 - [ ] Probar flujo completo de venta con efectivo.
 - [ ] Confirmar que ventas a crédito siguen usando PDF.
-
-## 📝 Lecciones Aprendidas
-*(Se actualizará después de la implementación)*

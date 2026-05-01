@@ -36,3 +36,8 @@
 **Error cometido:** Desfase entre los elementos marcados visualmente y los datos enviados al servidor.
 **Causa raíz:** El uso de una variable global (`docsSeleccionadosLote`) que se actualizaba en `onchange` fallaba si el usuario refrescaba parcialmente la página o si el estado del DOM cambiaba sin disparar el evento.
 **Regla a seguir:** Re-escanear el DOM mediante `querySelectorAll(':checked')` en el momento exacto en que se dispara la acción (ej: clic en botón de pago) para obtener la verdad actual.
+
+### [2026-05-01] Consistencia de Rutas y Métodos en Controladores
+**Error cometido:** `Call to undefined method App\Http\Controllers\VentaController::registrarFactura()` al intentar facturar una venta.
+**Causa raíz:** En `web.php` se apuntaba la ruta `ventas.factura.store` al método `registrarFactura` del `VentaController`, pero en el controlador el método se llamaba `facturar`.
+**Regla a seguir:** Mantener consistencia en los nombres de los métodos entre las definiciones de rutas (`web.php`), las llamadas AJAX en el frontend, y la implementación en el controlador. Al implementar o copiar lógicas de otros controladores (ej. `OrdenServicioController`), asegurarse de renombrar y estandarizar los métodos correspondientes.

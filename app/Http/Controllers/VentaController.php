@@ -330,10 +330,24 @@ class VentaController extends Controller
         }
     }
 
-    public function facturar(Request $request, Venta $venta)
+    public function registrarFactura(Request $request, Venta $venta)
     {
-        $venta->folio_factura = $request->folio_factura;
-        $venta->save();
-        return response()->json(['success' => true, 'message' => 'Factura registrada']);
+        $request->validate([
+            'folio_factura' => 'required|string|max:50',
+        ]);
+
+        try {
+            $venta->update([
+                'folio_factura' => mb_strtoupper($request->folio_factura, 'UTF-8'),
+                'requiere_factura' => 'SI'
+            ]);
+
+            return response()->json([
+                'success' => true, 
+                'message' => 'Factura registrada correctamente'
+            ]);
+        } catch (\Exception $e) {
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
     }
 }
