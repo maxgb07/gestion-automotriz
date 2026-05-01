@@ -48,6 +48,8 @@ class ProveedorController extends Controller
             'marcas_productos' => 'nullable|string',
             'direccion' => 'nullable|string|max:255',
             'observaciones' => 'nullable|string',
+            'dias_credito' => 'nullable|integer|min:0',
+            'porcentaje_descuento_global' => 'nullable|numeric|min:0|max:100',
         ]);
 
         Proveedor::create($request->all());
@@ -73,6 +75,8 @@ class ProveedorController extends Controller
             'marcas_productos' => 'nullable|string',
             'direccion' => 'nullable|string|max:255',
             'observaciones' => 'nullable|string',
+            'dias_credito' => 'nullable|integer|min:0',
+            'porcentaje_descuento_global' => 'nullable|numeric|min:0|max:100',
         ]);
 
         $proveedor->update($request->all());

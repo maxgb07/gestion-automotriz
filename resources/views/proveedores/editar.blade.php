@@ -65,6 +65,16 @@
                         <textarea name="direccion" id="direccion" rows="2" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-200/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm uppercase">{{ old('direccion', $proveedor->direccion) }}</textarea>
                     </div>
 
+                    <div>
+                        <label for="dias_credito" class="block text-sm font-medium text-blue-100 mb-2 uppercase">Días de Crédito</label>
+                        <input type="number" name="dias_credito" id="dias_credito" value="{{ old('dias_credito', $proveedor->dias_credito) }}" min="0" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-200/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm">
+                    </div>
+
+                    <div>
+                        <label for="porcentaje_descuento_global" class="block text-sm font-medium text-blue-100 mb-2 uppercase">% Descuento Global</label>
+                        <input type="number" step="0.01" name="porcentaje_descuento_global" id="porcentaje_descuento_global" value="{{ old('porcentaje_descuento_global', $proveedor->porcentaje_descuento_global) }}" min="0" max="100" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-200/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm">
+                    </div>
+
                     <div class="md:col-span-2">
                         <label for="observaciones" class="block text-sm font-medium text-blue-100 mb-2 uppercase">Observaciones</label>
                         <textarea name="observaciones" id="observaciones" rows="3" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-200/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm uppercase">{{ old('observaciones', $proveedor->observaciones) }}</textarea>

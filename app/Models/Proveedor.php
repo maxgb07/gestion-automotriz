@@ -24,7 +24,9 @@ class Proveedor extends Model
         'email_secundario',
         'marcas_productos',
         'direccion',
-        'observaciones'
+        'observaciones',
+        'dias_credito',
+        'porcentaje_descuento_global'
     ];
 
     protected function setNombreAttribute($value)
@@ -55,5 +57,10 @@ class Proveedor extends Model
     protected function setObservacionesAttribute($value)
     {
         $this->attributes['observaciones'] = mb_strtoupper($value);
+    }
+
+    public function compras()
+    {
+        return $this->hasMany(Compra::class, 'proveedor_id');
     }
 }

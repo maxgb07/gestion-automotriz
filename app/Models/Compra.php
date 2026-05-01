@@ -19,7 +19,15 @@ class Compra extends Model
         'folio',
         'factura',
         'fecha_compra',
-        'total'
+        'subtotal',
+        'porcentaje_descuento',
+        'monto_descuento',
+        'iva',
+        'total',
+        'fecha_vencimiento',
+        'saldo_pendiente',
+        'estado_pago',
+        'estado_complemento'
     ];
 
     public function proveedor()

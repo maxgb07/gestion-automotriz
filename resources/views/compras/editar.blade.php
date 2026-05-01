@@ -1,6 +1,6 @@
 @extends('layouts.app')
 
-@section('title', 'Registrar Compra')
+@section('title', 'Editar Compra')
 
 @push('styles')
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
@@ -71,10 +71,11 @@
                 </svg>
                 Volver al historial
             </a>
-            <h1 class="text-3xl font-bold text-white uppercase tracking-tight">Nueva Compra</h1>
+            <h1 class="text-3xl font-bold text-white uppercase tracking-tight">Editar Compra {{ $compra->folio }}</h1>
         </div>
-        <form action="{{ route('compras.store') }}" method="POST" id="compra-form">
+        <form action="{{ route('compras.update', $compra) }}" method="POST" id="compra-form">
             @csrf
+            @method('PUT')
             
             <div class="space-y-12">
                 <!-- Sección 1: Datos Generales -->
@@ -86,24 +87,24 @@
                             <select name="proveedor_id" id="proveedor_id" class="block w-full" required>
                                 <option value="" disabled selected>SELECCIONA PROVEEDOR</option>
                                 @foreach($proveedores as $proveedor)
-                                    <option value="{{ $proveedor->id }}" data-dias="{{ $proveedor->dias_credito }}" data-descuento="{{ $proveedor->porcentaje_descuento_global }}">{{ $proveedor->nombre }}</option>
+                                    <option value="{{ $proveedor->id }}" data-dias="{{ $proveedor->dias_credito }}" data-descuento="{{ $proveedor->porcentaje_descuento_global }}" {{ $compra->proveedor_id == $proveedor->id ? 'selected' : '' }}>{{ $proveedor->nombre }}</option>
                                 @endforeach
                             </select>
                         </div>
 
                         <div>
                             <label for="factura" class="block text-sm font-medium text-blue-100 mb-2 uppercase">Folio de Factura</label>
-                            <input type="text" name="factura" id="factura" value="{{ old('factura') }}" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm placeholder-blue-200/30" placeholder="EJ: F-12345">
+                            <input type="text" name="factura" id="factura" value="{{ old('factura', $compra->factura) }}" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm placeholder-blue-200/30" placeholder="EJ: F-12345">
                         </div>
 
                         <div>
                             <label for="fecha_compra" class="block text-sm font-medium text-blue-100 mb-2 uppercase">Fecha Compra *</label>
-                            <input type="date" name="fecha_compra" id="fecha_compra" value="{{ date('Y-m-d') }}" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm">
+                            <input type="date" name="fecha_compra" id="fecha_compra" value="{{ old('fecha_compra', $compra->fecha_compra) }}" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm">
                         </div>
 
                         <div>
                             <label for="fecha_vencimiento" class="block text-sm font-medium text-blue-100 mb-2 uppercase">Vencimiento *</label>
-                            <input type="date" name="fecha_vencimiento" id="fecha_vencimiento" value="{{ date('Y-m-d') }}" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm">
+                            <input type="date" name="fecha_vencimiento" id="fecha_vencimiento" value="{{ old('fecha_vencimiento', $compra->fecha_vencimiento) }}" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm">
                         </div>
                     </div>
                 </div>
@@ -175,7 +176,7 @@
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                         </svg>
-                        Guardar Compra
+                        Guardar Cambios
                     </button>
                     <a href="{{ route('compras.index') }}" class="inline-flex items-center justify-center px-10 py-3 bg-white/10 hover:bg-white/20 text-white text-sm font-bold rounded-lg border border-white/20 transition-all min-w-[200px] text-center">
                         <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -366,6 +367,39 @@
                 checkEmpty();
             };
 
+            window.addExistingRow = function(data) {
+                const tbody = document.querySelector('#productos-table tbody');
+                const template = document.getElementById('row-template');
+                const clone = template.content.cloneNode(true);
+                
+                const inputs = clone.querySelectorAll('input, select');
+                inputs.forEach(input => {
+                    input.name = input.name.replace('INDEX', rowIndex);
+                });
+                
+                const newRow = clone.querySelector('tr');
+                
+                // Rellenar datos
+                newRow.querySelector('[name*="[cantidad]"]').value = data.cantidad;
+                newRow.querySelector('[name*="[precio_compra]"]').value = data.precio_compra;
+                newRow.querySelector('[name*="[precio_venta]"]').value = data.precio_venta;
+                newRow.querySelector('[name*="[descuento_porcentaje]"]').value = data.descuento_porcentaje;
+                newRow.querySelector('[name*="[descuento_extra_porcentaje]"]').value = data.descuento_extra_porcentaje;
+
+                // Crear Option de Select2
+                const select = newRow.querySelector('.select-product');
+                const option = new Option(data.text, data.id, true, true);
+                select.appendChild(option);
+
+                tbody.appendChild(newRow);
+                
+                initSelect2(newRow);
+                calculateRow(newRow.querySelector('[name*="[cantidad]"]'));
+                
+                rowIndex++;
+                checkEmpty();
+            };
+
             window.removeRow = function(btn) {
                 const row = $(btn).closest('tr');
                 // Destruir instancias de Select2 antes de remover el elemento
@@ -456,8 +490,23 @@
                 }
             });
 
-            // Agregar una fila inicial
-            addRow();
+            // Cargar filas existentes o agregar una inicial
+            @if(count($compra->detalles) > 0)
+                @foreach($compra->detalles as $detalle)
+                    addExistingRow({!! json_encode([
+                        'id' => $detalle->producto_id,
+                        'text' => $detalle->producto->nombre,
+                        'cantidad' => $detalle->cantidad,
+                        'precio_compra' => $detalle->precio_compra,
+                        'precio_venta' => $detalle->precio_venta_sugerido,
+                        'descuento_porcentaje' => $detalle->descuento_porcentaje,
+                        'descuento_extra_porcentaje' => $detalle->descuento_extra_porcentaje
+                    ]) !!});
+                @endforeach
+                calculateTotal(); // recalculate everything just in case
+            @else
+                addRow();
+            @endif
         });
 
         // --- Registro Rápido de Producto ---

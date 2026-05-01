@@ -86,6 +86,17 @@ Route::middleware('auth')->group(function () {
     Route::post('ordenes/{orden}/datos-vehiculo', [\App\Http\Controllers\OrdenServicioController::class, 'actualizarDatosVehiculo'])->name('ordenes.datos-vehiculo.update');
     Route::delete('ordenes/{orden}/imagenes/{imagen}', [\App\Http\Controllers\OrdenServicioController::class, 'eliminarImagen'])->name('ordenes.imagenes.destroy');
 
+    // Cuentas por Pagar
+    Route::prefix('cuentas-por-pagar')->name('cuentas_por_pagar.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\CuentasPorPagarController::class, 'index'])->name('index');
+        Route::get('/{proveedor}', [\App\Http\Controllers\CuentasPorPagarController::class, 'show'])->name('show');
+        Route::get('/{proveedor}/pdf', [\App\Http\Controllers\CuentasPorPagarController::class, 'descargarPDF'])->name('pdf');
+        Route::post('/pagos', [\App\Http\Controllers\CuentasPorPagarController::class, 'registrarPago'])->name('pagos.store');
+        Route::get('/pagos/{grupo_pago_id}/facturas', [\App\Http\Controllers\CuentasPorPagarController::class, 'getFacturasPagadas'])->name('pagos.facturas');
+        Route::post('/complementos', [\App\Http\Controllers\CuentasPorPagarController::class, 'registrarComplemento'])->name('complementos.store');
+        Route::post('/notas-credito', [\App\Http\Controllers\CuentasPorPagarController::class, 'registrarNotaCredito'])->name('notas_credito.store');
+    });
+
     // Cuentas por Cobrar
     Route::prefix('creditos')->name('creditos.')->group(function () {
         Route::get('/', [CreditoController::class, 'index'])->name('index');
