@@ -63,7 +63,7 @@
 @endpush
 
 @section('content')
-    <div class="max-w-6xl mx-auto py-4">
+    <div class="mx-auto py-4">
         <div class="mb-8 flex items-center justify-between">
             <a href="{{ route('compras.index') }}" class="inline-flex items-center text-blue-200 hover:text-white transition-colors">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">

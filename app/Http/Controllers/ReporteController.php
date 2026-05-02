@@ -18,10 +18,11 @@ class ReporteController extends Controller
         return view('reportes.index');
     }
 
-    public function corteDia()
+    public function corteDia(Request $request)
     {
-        $hoy = Carbon::today();
-        
+        $fecha = $request->get('fecha', Carbon::today()->format('Y-m-d'));
+        $hoy = Carbon::parse($fecha);
+
         $ventas = Venta::with(['cliente', 'detalles.producto', 'detalles.servicio'])
             ->whereDate('created_at', $hoy)
             ->where('estado', 'PAGADA')
@@ -40,7 +41,7 @@ class ReporteController extends Controller
             ->whereDate('fecha_pago', $hoy)
             ->get();
 
-        return view('reportes.corte', compact('ventas', 'ordenes', 'pagoVentas', 'pagoOrdenes'));
+        return view('reportes.corte', compact('ventas', 'ordenes', 'pagoVentas', 'pagoOrdenes', 'hoy', 'fecha'));
     }
 
     public function ventas(Request $request)
@@ -81,10 +82,11 @@ class ReporteController extends Controller
         return view('reportes.ordenes', compact('ordenes', 'pagos', 'fecha_inicio', 'fecha_fin'));
     }
 
-    public function cortePDF()
+    public function cortePDF(Request $request)
     {
-        $hoy = Carbon::today();
-        
+        $fecha = $request->get('fecha', Carbon::today()->format('Y-m-d'));
+        $hoy = Carbon::parse($fecha);
+
         $ventas = Venta::with(['cliente', 'detalles.producto', 'detalles.servicio'])
             ->whereDate('created_at', $hoy)
             ->where('estado', 'PAGADA')

@@ -63,7 +63,7 @@
 @endpush
 
 @section('content')
-    <div class="max-w-6xl mx-auto py-4">
+    <div class="mx-auto py-4">
         <div class="mb-8 flex items-center justify-between">
             <a href="{{ route('compras.index') }}" class="inline-flex items-center text-blue-200 hover:text-white transition-colors">
                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -129,17 +129,17 @@
                     </div>
                     
                     <div class="overflow-x-auto">
-                        <table class="w-full text-left" id="productos-table">
-                            <thead class="bg-slate-800/90 backdrop-blur-md border-b border-white/10 sticky top-[70px] z-10 shadow-lg">
+                        <table class="w-full text-center border-collapse" id="productos-table">
+                            <thead class="bg-white/5 border-b border-white/10">
                                 <tr>
-                                    <th class="px-4 py-4 text-md font-bold text-blue-200 uppercase tracking-wider w-24 text-center">Cant</th>
-                                    <th class="px-6 py-4 text-md font-bold text-blue-200 uppercase tracking-wider text-center">Producto</th>
-                                    <th class="px-4 py-4 text-md font-bold text-blue-200 uppercase tracking-wider w-32 text-center">P. Compra</th>
-                                    <th class="px-4 py-4 text-md font-bold text-blue-200 uppercase tracking-wider w-24 text-center">% D1</th>
-                                    <th class="px-4 py-4 text-md font-bold text-blue-200 uppercase tracking-wider w-24 text-center">% D2</th>
-                                    <th class="px-4 py-4 text-md font-bold text-blue-200 uppercase tracking-wider w-36 text-center">Subtotal</th>
-                                    <th class="px-4 py-4 text-md font-bold text-blue-200 uppercase tracking-wider w-32 text-center">P. Venta</th>
-                                    <th class="px-4 py-4 text-md font-bold text-blue-200 uppercase tracking-wider w-16 text-center"></th>
+                                    <th class="px-2 py-4 text-md font-bold text-blue-200 uppercase tracking-widest w-28">Cantidad</th>
+                                    <th class="px-6 py-4 text-md font-bold text-blue-200 uppercase tracking-widest text-left">Producto</th>
+                                    <th class="px-4 py-4 text-md font-bold text-blue-200 uppercase tracking-widest w-36">Precio Compra</th>
+                                    <th class="px-4 py-4 text-md font-bold text-blue-200 uppercase tracking-widest w-32">Descuento 1</th>
+                                    <th class="px-4 py-4 text-md font-bold text-blue-200 uppercase tracking-widest w-32">Descuento 2</th>
+                                    <th class="px-4 py-4 text-md font-bold text-blue-200 uppercase tracking-widest w-40 text-right">Subtotal</th>
+                                    <th class="px-4 py-4 text-md font-bold text-blue-200 uppercase tracking-widest w-36">Precio Venta</th>
+                                    <th class="px-4 py-4 w-16"></th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-white/10">
@@ -266,10 +266,8 @@
                 // Default desc
                 window.defaultDescGlobal = descGlobal;
                 $('.row-desc1').each(function() {
-                    if(parseFloat($(this).val()) === 0) {
-                        $(this).val(descGlobal);
-                        calculateRow(this);
-                    }
+                    $(this).val(descGlobal);
+                    calculateRow(this);
                 });
             });
 

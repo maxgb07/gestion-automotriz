@@ -16,6 +16,7 @@ class Proveedor extends Model
 
     protected $fillable = [
         'nombre',
+        'rfc',
         'contacto',
         'contacto_secundario',
         'telefono',
@@ -26,7 +27,11 @@ class Proveedor extends Model
         'direccion',
         'observaciones',
         'dias_credito',
-        'porcentaje_descuento_global'
+        'porcentaje_descuento_global',
+        'banco',
+        'clabe_interbancaria',
+        'cuenta_bancaria',
+        'titular_cuenta',
     ];
 
     protected function setNombreAttribute($value)
@@ -57,6 +62,16 @@ class Proveedor extends Model
     protected function setObservacionesAttribute($value)
     {
         $this->attributes['observaciones'] = mb_strtoupper($value);
+    }
+
+    protected function setBancoAttribute($value)
+    {
+        $this->attributes['banco'] = mb_strtoupper($value);
+    }
+
+    protected function setTitularCuentaAttribute($value)
+    {
+        $this->attributes['titular_cuenta'] = mb_strtoupper($value);
     }
 
     public function compras()

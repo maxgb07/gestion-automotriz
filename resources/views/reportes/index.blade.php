@@ -3,7 +3,7 @@
 @section('title', 'Módulo de Reportes')
 
 @section('content')
-<div class="max-w-6xl mx-auto py-8">
+<div class="mx-auto py-4">
     <div class="mb-12 text-center">
         <h1 class="text-4xl font-bold text-white mb-4 tracking-tight uppercase">Módulo de Reportes</h1>
         <div class="w-24 h-1.5 bg-gradient-to-r from-blue-500 to-purple-600 mx-auto rounded-full mb-4"></div>

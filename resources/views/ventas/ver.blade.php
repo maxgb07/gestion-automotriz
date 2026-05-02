@@ -58,7 +58,7 @@
 
 @section('content')
 
-    <div class="max-w-7xl mx-auto py-4">
+    <div class="mx-auto py-4">
         <div class="mb-8 flex items-center justify-between">
             <div class="flex items-center gap-6">
                 <a href="{{ route('ventas.index') }}" class="inline-flex items-center text-blue-200 hover:text-white transition-colors uppercase text-xs font-bold tracking-widest">

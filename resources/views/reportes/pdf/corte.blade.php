@@ -57,7 +57,6 @@
 </head>
 <body>
     @php 
-        $hoy = \Carbon\Carbon::today();
         $movs = collect();
         $metodosBase = ['EFECTIVO' => 0, 'CHEQUE' => 0, 'TRANSFERENCIA' => 0, 'TARJETA CRÉDITO' => 0, 'TARJETA DÉBITO' => 0];
         $totalesPorMetodo = $metodosBase;
@@ -132,31 +131,35 @@
         <p>{{ $hoy->isoFormat('LL') }}</p>
     </div>
 
-    <!-- Fila 1 -->
-    <div class="fila-principal">
-        <div class="card-p">
-            <p style="font-size: 7px; color: #64748b; font-weight: bold; text-transform: uppercase; margin: 0 0 4px 0;">Total Ventas Mostrador</p>
-            <p style="font-size: 14px; font-weight: bold; font-family: 'Courier New', monospace; margin: 0;">${{ number_format($totalVentasPDF, 2) }}</p>
-        </div>
-        <div class="card-p">
-            <p style="font-size: 7px; color: #64748b; font-weight: bold; text-transform: uppercase; margin: 0 0 4px 0;">Total Órdenes de Servicio</p>
-            <p style="font-size: 14px; font-weight: bold; font-family: 'Courier New', monospace; margin: 0;">${{ number_format($totalOrdenesPDF, 2) }}</p>
-        </div>
-        <div class="card-p">
-            <p style="font-size: 7px; color: #64748b; font-weight: bold; text-transform: uppercase; margin: 0 0 4px 0;">Total</p>
-            <p style="font-size: 14px; font-weight: bold; font-family: 'Courier New', monospace; margin: 0;">${{ number_format($totalGeneralPDF, 2) }}</p>
-        </div>
-    </div>
+    <!-- Fila 1: totales principales -->
+    <table style="width:100%; border-collapse: separate; border-spacing: 6px; margin-bottom: 10px;">
+        <tr>
+            <td style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:8px; padding:10px 6px; text-align:center; width:33%;">
+                <p style="font-size:7px; color:#64748b; font-weight:bold; text-transform:uppercase; margin:0 0 4px 0;">Total Ventas Mostrador</p>
+                <p style="font-size:14px; font-weight:bold; font-family:'Courier New',monospace; margin:0;">${{ number_format($totalVentasPDF, 2) }}</p>
+            </td>
+            <td style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:8px; padding:10px 6px; text-align:center; width:33%;">
+                <p style="font-size:7px; color:#64748b; font-weight:bold; text-transform:uppercase; margin:0 0 4px 0;">Total Órdenes de Servicio</p>
+                <p style="font-size:14px; font-weight:bold; font-family:'Courier New',monospace; margin:0;">${{ number_format($totalOrdenesPDF, 2) }}</p>
+            </td>
+            <td style="background:#f1f5f9; border:1px solid #cbd5e1; border-radius:8px; padding:10px 6px; text-align:center; width:33%;">
+                <p style="font-size:7px; color:#64748b; font-weight:bold; text-transform:uppercase; margin:0 0 4px 0;">Total del Día</p>
+                <p style="font-size:16px; font-weight:bold; font-family:'Courier New',monospace; margin:0; color:#1d4ed8;">${{ number_format($totalGeneralPDF, 2) }}</p>
+            </td>
+        </tr>
+    </table>
 
-    <!-- Fila 2 -->
-    <div class="metodos-container">
-        @foreach(['EFECTIVO', 'CHEQUE', 'TRANSFERENCIA', 'TARJETA CRÉDITO', 'TARJETA DÉBITO'] as $met)
-            <div class="card-m">
-                <p class="label-m">{{ $met }}</p>
-                <p class="total-m">${{ number_format($totalesPorMetodo[$met] ?? 0, 2) }}</p>
-            </div>
-        @endforeach
-    </div>
+    <!-- Fila 2: métodos de pago -->
+    <table style="width:100%; border-collapse: separate; border-spacing: 4px; margin-bottom: 16px;">
+        <tr>
+            @foreach(['EFECTIVO', 'CHEQUE', 'TRANSFERENCIA', 'TARJETA CRÉDITO', 'TARJETA DÉBITO'] as $met)
+            <td style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:6px; padding:7px 4px; text-align:center; width:20%;">
+                <p style="font-size:6px; font-weight:bold; text-transform:uppercase; color:#64748b; margin:0 0 3px 0;">{{ $met }}</p>
+                <p style="font-size:10px; font-weight:bold; font-family:'Courier New',monospace; margin:0;">${{ number_format($totalesPorMetodo[$met] ?? 0, 2) }}</p>
+            </td>
+            @endforeach
+        </tr>
+    </table>
 
     <table>
         <thead>

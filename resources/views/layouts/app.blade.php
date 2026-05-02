@@ -34,6 +34,7 @@
     </style>
 
     <script>
+        // Autocapitalize inputs
         document.addEventListener('input', function (event) {
             const typesToSkip = ['email', 'number', 'password', 'date', 'datetime-local', 'time', 'file', 'range', 'color'];
             if ((event.target.tagName === 'INPUT' && !typesToSkip.includes(event.target.type)) || event.target.tagName === 'TEXTAREA') {
@@ -45,6 +46,47 @@
                 }
             }
         }, true);
+
+        // Prevención global de dobles envíos y feedback visual
+        document.addEventListener('submit', function(e) {
+            const form = e.target;
+            
+            // Si el formulario ya se está enviando, bloqueamos el evento
+            if (form.hasAttribute('data-submitting')) {
+                e.preventDefault();
+                return;
+            }
+            
+            // Marcar como en proceso
+            form.setAttribute('data-submitting', 'true');
+            
+            // Encontrar el botón de submit (incluso si está fuera del form pero vinculado por el atributo form)
+            const submitButtons = document.querySelectorAll(`button[type="submit"][form="${form.id}"], input[type="submit"][form="${form.id}"]`);
+            const internalSubmitButtons = form.querySelectorAll('button[type="submit"]:not([form]), input[type="submit"]:not([form])');
+            
+            const allButtons = [...submitButtons, ...internalSubmitButtons];
+            
+            allButtons.forEach(btn => {
+                // Guardar el texto/estado original por si se necesita restaurar (ej. error de validación AJAX)
+                btn.setAttribute('data-original-html', btn.innerHTML);
+                
+                // Fijar el ancho para que el botón no brinque visualmente
+                btn.style.width = btn.offsetWidth + 'px';
+                
+                // Cambiar el contenido visual
+                if (btn.tagName === 'BUTTON') {
+                    btn.innerHTML = `<svg class="w-5 h-5 inline-block mr-2 animate-spin" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Procesando...`;
+                } else {
+                    btn.value = 'Procesando...';
+                }
+                
+                // Deshabilitar después del thread actual para no interferir con el evento Submit nativo
+                setTimeout(() => {
+                    btn.disabled = true;
+                    btn.classList.add('opacity-70', 'cursor-not-allowed');
+                }, 0);
+            });
+        });
     </script>
 
     <style>

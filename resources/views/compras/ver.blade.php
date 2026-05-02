@@ -19,7 +19,7 @@
 @endpush
 
 @section('content')
-    <div class="max-w-7xl mx-auto py-4">
+    <div class="mx-auto py-4">
         <!-- Encabezado con Estado -->
         <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div class="flex items-center gap-4">

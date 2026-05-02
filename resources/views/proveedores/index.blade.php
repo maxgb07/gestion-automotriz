@@ -133,7 +133,7 @@
                     <div class="text-center mb-8">
                         <h3 class="text-3xl font-black text-white uppercase mb-2 tracking-tighter">${proveedor.nombre}</h3>
                         <div class="h-px w-20 bg-gradient-to-r from-transparent via-blue-500/50 to-transparent mx-auto mb-4"></div>
-                        <p class="text-blue-100/80 text-sm uppercase px-6 leading-relaxed">DETALLE COMPLETO DEL PROVEEDOR</p>
+                        ${proveedor.rfc ? `<span class="text-xs text-blue-200/50 font-mono font-bold uppercase tracking-widest bg-white/5 px-3 py-1 rounded-full border border-white/10">RFC: ${proveedor.rfc}</span>` : ''}
                     </div>
 
                     <div class="grid grid-cols-2 gap-4 bg-white/5 p-6 rounded-[2rem] border border-white/10 shadow-inner">
@@ -159,11 +159,47 @@
                             <p class="text-mdfont-black text-blue-300/40 uppercase tracking-widest">Dirección</p>
                             <p class="text-white font-bold uppercase text-md leading-relaxed">${proveedor.direccion || 'N/A'}</p>
                         </div>
+                        <div class="col-span-1 space-y-1 p-3 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                            <p class="text-mdfont-black text-blue-300/40 uppercase tracking-widest">Días de Crédito</p>
+                            <p class="text-white font-bold text-md">${proveedor.dias_credito ?? 0} días</p>
+                        </div>
+                        <div class="col-span-1 space-y-1 p-3 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                            <p class="text-mdfont-black text-blue-300/40 uppercase tracking-widest">Descuento Global</p>
+                            <p class="text-white font-bold text-md">${proveedor.porcentaje_descuento_global ?? 0}%</p>
+                        </div>
                         <div class="col-span-2 space-y-1 p-4 rounded-2xl bg-white/5 border border-white/10">
                             <p class="text-mdfont-black text-blue-300/40 uppercase tracking-widest mb-2">Observaciones</p>
                             <p class="text-white font-bold uppercase text-md leading-relaxed">${proveedor.observaciones || 'SIN COMENTARIOS ADICIONALES'}</p>
                         </div>
+
+                        ${(proveedor.banco || proveedor.clabe_interbancaria || proveedor.cuenta_bancaria) ? `
+                        <div class="col-span-2">
+                            <p class="text-xs font-black text-teal-400/60 uppercase tracking-widest mb-3 border-b border-teal-500/10 pb-2">Datos Bancarios</p>
+                        </div>
+                        <div class="col-span-2 grid grid-cols-1 md:grid-cols-2 gap-3">
+                            ${proveedor.banco ? `
+                            <div class="space-y-1 p-3 rounded-2xl bg-teal-500/5 border border-teal-500/10">
+                                <p class="text-xs font-black text-teal-300/40 uppercase tracking-widest">Banco</p>
+                                <p class="text-white font-bold uppercase text-sm">${proveedor.banco}</p>
+                            </div>` : ''}
+                            ${proveedor.titular_cuenta ? `
+                            <div class="space-y-1 p-3 rounded-2xl bg-teal-500/5 border border-teal-500/10">
+                                <p class="text-xs font-black text-teal-300/40 uppercase tracking-widest">Titular</p>
+                                <p class="text-white font-bold uppercase text-sm">${proveedor.titular_cuenta}</p>
+                            </div>` : ''}
+                            ${proveedor.cuenta_bancaria ? `
+                            <div class="space-y-1 p-3 rounded-2xl bg-teal-500/5 border border-teal-500/10">
+                                <p class="text-xs font-black text-teal-300/40 uppercase tracking-widest">Número de Cuenta</p>
+                                <p class="text-white font-mono font-bold tracking-widest text-sm">${proveedor.cuenta_bancaria}</p>
+                            </div>` : ''}
+                            ${proveedor.clabe_interbancaria ? `
+                            <div class="space-y-1 p-3 rounded-2xl bg-teal-500/5 border border-teal-500/10">
+                                <p class="text-xs font-black text-teal-300/40 uppercase tracking-widest">CLABE Interbancaria</p>
+                                <p class="text-white font-mono font-bold tracking-widest text-sm">${proveedor.clabe_interbancaria}</p>
+                            </div>` : ''}
+                        </div>` : ''}
                     </div>
+                
                 </div>
             `,
             showConfirmButton: true,

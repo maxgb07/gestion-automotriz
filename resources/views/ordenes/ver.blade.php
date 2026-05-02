@@ -3,7 +3,7 @@
 @section('title', 'Orden de Servicio: ' . $orden->folio)
 
 @section('content')
-    <div class="max-w-7xl mx-auto py-4">
+    <div class="mx-auto py-4">
         <!-- Encabezado con Estado -->
         <div class="mb-8 flex flex-col md:flex-row md:items-center justify-between gap-6">
             <div class="flex items-center gap-4">
@@ -696,10 +696,15 @@
                 if (divStock) divStock.classList.add('hidden');
                 if (divMarca) divMarca.classList.add('hidden');
                 if (labelNombre) labelNombre.textContent = 'NOMBRE DEL SERVICIO *';
-            } else {
+            } else if (tipo === 'producto') {
                 if (divStock) divStock.classList.remove('hidden');
                 if (divMarca) divMarca.classList.remove('hidden');
                 if (labelNombre) labelNombre.textContent = 'SKU / CLAVE *';
+            } else {
+                // Estado inicial sin selección
+                if (divStock) divStock.classList.add('hidden');
+                if (divMarca) divMarca.classList.add('hidden');
+                if (labelNombre) labelNombre.textContent = 'NOMBRE / CLAVE *';
             }
         }
 
@@ -709,15 +714,13 @@
                 background: '#1e293b',
                 color: '#fff',
                 html: `
-                    <div class="flex gap-8 justify-center mb-6 p-4 bg-white/5 rounded-2xl border border-white/10">
-                        <label class="flex items-center gap-3 cursor-pointer group">
-                            <input type="radio" name="swal-tipo" value="producto" checked onchange="toggleSwalFields(this.value)" class="w-5 h-5 text-blue-500 bg-white/10 border-white/20 focus:ring-blue-500 focus:ring-offset-slate-800">
-                            <span class="text-md font-black uppercase tracking-widest text-blue-100 group-hover:text-white transition-colors">Producto</span>
-                        </label>
-                        <label class="flex items-center gap-3 cursor-pointer group">
-                            <input type="radio" name="swal-tipo" value="servicio" onchange="toggleSwalFields(this.value)" class="w-5 h-5 text-blue-500 bg-white/10 border-white/20 focus:ring-blue-500 focus:ring-offset-slate-800">
-                            <span class="text-md font-black uppercase tracking-widest text-blue-100 group-hover:text-white transition-colors">Servicio</span>
-                        </label>
+                    <div class="mb-6">
+                        <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-2 text-center">TIPO DE ÍTEM *</label>
+                        <select id="swal-tipo" onchange="toggleSwalFields(this.value)" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold uppercase focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                            <option value="" disabled selected class="text-black">SELECCIONA TIPO...</option>
+                            <option value="producto" class="text-black">PRODUCTO</option>
+                            <option value="servicio" class="text-black">SERVICIO</option>
+                        </select>
                     </div>
                     <div class="space-y-4 text-left">
                         <div>
@@ -732,11 +735,11 @@
                             <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">PRECIO VENTA *</label>
                             <input type="number" id="swal-precio" step="0.01" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="0.00">
                         </div>
-                        <div id="div-marca">
+                        <div id="div-marca" class="hidden">
                             <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">MARCA</label>
                             <input type="text" id="swal-marca" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold uppercase focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="MARCA DEL PRODUCTO">
                         </div>
-                        <div id="div-stock">
+                        <div id="div-stock" class="hidden">
                             <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">EXISTENCIA INICIAL *</label>
                             <input type="number" id="swal-stock" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all" value="1">
                         </div>
@@ -752,7 +755,14 @@
                     title: 'text-xl font-black uppercase tracking-tighter'
                 },
                 preConfirm: () => {
-                    const tipo = document.querySelector('input[name="swal-tipo"]:checked').value;
+                    const selectTipo = document.getElementById('swal-tipo');
+                    const tipo = selectTipo ? selectTipo.value : '';
+                    
+                    if (!tipo) {
+                        Swal.showValidationMessage('DEBES SELECCIONAR EL TIPO DE ÍTEM (PRODUCTO O SERVICIO)');
+                        return false;
+                    }
+
                     const nombre = document.getElementById('swal-nombre').value;
                     const precio = document.getElementById('swal-precio').value;
                     const stock = document.getElementById('swal-stock').value;

@@ -3,7 +3,7 @@
 @section('title', 'Reporte de Órdenes')
 
 @section('content')
-<div class="max-w-7xl mx-auto py-8">
+<div class="mx-auto py-4">
     @php 
         $movs = collect();
         $metodosBase = [
@@ -101,28 +101,26 @@
         $totalG = 0;
     @endphp
 
-    <div class="flex flex-col md:flex-row justify-between items-center mb-10 gap-6">
-        <div>
-            <a href="{{ route('reportes.index') }}" class="inline-flex items-center text-blue-300 hover:text-white transition-colors mb-4 group">
-                <svg class="w-5 h-5 mr-2 group-hover:-translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <div class="flex flex-col md:flex-row justify-between items-start mb-8 gap-6">
+        <div class="flex items-center gap-4">
+            <a href="{{ route('reportes.index') }}" class="p-2 bg-white/5 hover:bg-white/10 rounded-xl border border-white/10 transition-colors text-blue-200">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
                 </svg>
-                Volver a Reportes
             </a>
-            <h1 class="text-4xl font-bold text-white uppercase tracking-tight">Reporte de Órdenes</h1>
-            <p class="text-blue-200 mt-2 uppercase font-black tracking-widest text-base">
-                {{ \Carbon\Carbon::parse($fecha_inicio)->isoFormat('LL') }} al {{ \Carbon\Carbon::parse($fecha_fin)->isoFormat('LL') }}
-            </p>
+            <div>
+                <h1 class="text-3xl font-black text-white uppercase tracking-tighter">Reporte de Órdenes</h1>
+                <p class="text-white font-black text-lg tracking-widest mt-0.5">
+                    {{ \Carbon\Carbon::parse($fecha_inicio)->isoFormat('LL') }} &mdash; {{ \Carbon\Carbon::parse($fecha_fin)->isoFormat('LL') }}
+                </p>
+            </div>
         </div>
-        
-        <div class="flex gap-4">
-            <a href="{{ route('reportes.ordenes.pdf', ['fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin]) }}" target="_blank" class="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-black rounded-xl transition-all uppercase tracking-widest flex items-center justify-center cursor-pointer shadow-lg shadow-blue-900/40">
-                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
-                </svg>
-                Imprimir Reporte
-            </a>
-        </div>
+        <a href="{{ route('reportes.ordenes.pdf', ['fecha_inicio' => $fecha_inicio, 'fecha_fin' => $fecha_fin]) }}" target="_blank" class="inline-flex items-center justify-center px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white text-sm font-black rounded-xl transition-all uppercase tracking-widest shadow-lg shadow-blue-900/30">
+            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+            </svg>
+            Imprimir Reporte
+        </a>
     </div>
 
     <!-- Filtros -->
@@ -136,7 +134,7 @@
                 <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-2 ml-1">Fecha Fin</label>
                 <input type="date" name="fecha_fin" value="{{ $fecha_fin }}" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:ring-2 focus:ring-blue-500 outline-none transition-all">
             </div>
-            <button type="submit" class="px-10 py-3 bg-white/10 hover:bg-white/20 text-white text-md font-black rounded-xl transition-all uppercase tracking-widest flex items-center justify-center border border-white/10 shadow-lg">
+            <button type="submit" class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-black leading-5 rounded-base text-sm px-8 py-3 focus:outline-none inline-flex items-center justify-center uppercase tracking-widest">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                 </svg>
