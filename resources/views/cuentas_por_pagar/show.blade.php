@@ -49,31 +49,52 @@
             <table class="w-full text-center border-collapse">
                 <thead class="bg-white/5 border-b border-white/10">
                     <tr>
-                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Folio OC</th>
-                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Factura</th>
-                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Fecha Vencimiento</th>
-                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Total</th>
-                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Saldo Pendiente</th>
+                        <!-- <th class="px-4 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Folio OC</th> -->
+                        <th class="px-4 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Factura</th>
+                        <th class="px-4 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Vencimiento</th>
+                        <th class="px-4 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Total Factura</th>
+                        <th class="px-4 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Desc. Global</th>
+                        <th class="px-4 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Desc. Extra</th>
+                        <th class="px-4 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Desc. Interno</th>
+                        <th class="px-4 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Saldo Pendiente</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-white/10">
                     @forelse($facturas as $factura)
                         <tr class="hover:bg-white/5 transition-colors">
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-white font-medium uppercase">{{ $factura->folio }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-white font-medium uppercase">{{ $factura->factura ?? 'SIN FACTURA' }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                            <!-- <td class="px-4 py-4 whitespace-nowrap text-center text-white font-medium uppercase text-md">{{ $factura->folio }}</td> -->
+                            <td class="px-4 py-4 whitespace-nowrap text-center text-white font-medium uppercase text-md">{{ $factura->factura ?? 'SIN FACTURA' }}</td>
+                            <td class="px-4 py-4 whitespace-nowrap text-center text-md">
                                 @php $vencida = $factura->fecha_vencimiento && $factura->fecha_vencimiento < now()->format('Y-m-d'); @endphp
                                 <span class="{{ $vencida ? 'text-red-400 font-bold' : 'text-white' }} uppercase">
                                     {{ \Carbon\Carbon::parse($factura->fecha_vencimiento)->translatedFormat('d M, Y') }}
-                                    @if($vencida) (VENCIDA) @endif
+                                    <!-- @if($vencida) (V) @endif -->
                                 </span>
                             </td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-white font-medium">${{ number_format($factura->total, 2) }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-white font-black text-lg text-blue-300">${{ number_format($factura->saldo_pendiente, 2) }}</td>
+                            <td class="px-4 py-4 whitespace-nowrap text-center text-white font-medium text-md">${{ number_format($factura->total, 2) }}</td>
+                            <td class="px-4 py-4 whitespace-nowrap text-center text-amber-200 text-md">
+                                {{ number_format($factura->porcentaje_descuento, 1) }}%<br>
+                                <span class="text-md opacity-70">${{ number_format($factura->monto_descuento, 2) }}</span>
+                            </td>
+                            <td class="px-4 py-4 whitespace-nowrap text-center text-amber-200 text-md">
+                                {{ number_format($factura->porcentaje_descuento_extra, 1) }}%<br>
+                                <span class="text-md opacity-70">${{ number_format($factura->monto_descuento_extra, 2) }}</span>
+                            </td>
+                            <td class="px-4 py-4 whitespace-nowrap text-center text-amber-200 text-md">
+                                @php
+                                    $base_interna = $factura->total - $factura->monto_descuento - $factura->monto_descuento_extra;
+                                    $pct_interno_efectivo = $base_interna > 0 ? ($factura->monto_descuento_interno / $base_interna) * 100 : 0;
+                                @endphp
+                                {{ number_format($pct_interno_efectivo, 1) }}%<br>
+                                <span class="text-md opacity-70">${{ number_format($factura->monto_descuento_interno, 2) }}</span>
+                            </td>
+                            <td class="px-4 py-4 whitespace-nowrap text-center text-white font-black text-md text-blue-300">
+                                ${{ number_format($factura->saldo_pendiente, 2) }}
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-6 py-10 text-center text-blue-200 uppercase">NO HAY FACTURAS PENDIENTES</td>
+                            <td colspan="8" class="px-6 py-10 text-center text-blue-200 uppercase">NO HAY FACTURAS PENDIENTES</td>
                         </tr>
                     @endforelse
                 </tbody>

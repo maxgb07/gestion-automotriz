@@ -167,6 +167,10 @@
                             <p class="text-mdfont-black text-blue-300/40 uppercase tracking-widest">Descuento Global</p>
                             <p class="text-white font-bold text-md">${proveedor.porcentaje_descuento_global ?? 0}%</p>
                         </div>
+                        <div class="col-span-1 space-y-1 p-3 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-colors">
+                            <p class="text-mdfont-black text-blue-300/40 uppercase tracking-widest">Descuento Extra</p>
+                            <p class="text-white font-bold text-md">${proveedor.porcentaje_descuento_extra ?? 0}%</p>
+                        </div>
                         <div class="col-span-2 space-y-1 p-4 rounded-2xl bg-white/5 border border-white/10">
                             <p class="text-mdfont-black text-blue-300/40 uppercase tracking-widest mb-2">Observaciones</p>
                             <p class="text-white font-bold uppercase text-md leading-relaxed">${proveedor.observaciones || 'SIN COMENTARIOS ADICIONALES'}</p>

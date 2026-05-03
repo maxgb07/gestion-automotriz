@@ -107,43 +107,123 @@
                 <table class="w-full text-center">
                     <thead class="bg-white/5 border-b border-white/10">
                         <tr>
-                            <th class="px-8 py-5 text-md font-bold text-blue-200 uppercase tracking-widest text-center">Cant.</th>
-                            <th class="px-8 py-5 text-md font-bold text-blue-200 uppercase tracking-widest text-left">Producto</th>
-                            <th class="px-8 py-5 text-md font-bold text-blue-200 uppercase tracking-widest text-left">Descripción</th>
-                            <th class="px-8 py-5 text-md font-bold text-blue-200 uppercase tracking-widest text-center">P. Unitario</th>
-                            <th class="px-8 py-5 text-md font-bold text-blue-200 uppercase tracking-widest text-right">Subtotal</th>
+                            <th class="px-4 py-5 text-md font-bold text-blue-200 uppercase tracking-widest text-center">Cant.</th>
+                            <th class="px-4 py-5 text-md font-bold text-blue-200 uppercase tracking-widest text-left">Producto</th>
+                            <th class="px-4 py-5 text-md font-bold text-blue-200 uppercase tracking-widest text-center">P. Unitario</th>
+                            <th class="px-4 py-5 text-md font-bold text-blue-200 uppercase tracking-widest text-center">% Global</th>
+                            <th class="px-4 py-5 text-md font-bold text-blue-200 uppercase tracking-widest text-center">% Extra</th>
+                            <th class="px-4 py-5 text-md font-bold text-blue-200 uppercase tracking-widest text-center">% Int.</th>
+                            <th class="px-4 py-5 text-md font-bold text-blue-200 uppercase tracking-widest text-right">Subtotal</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-white/10">
                         @foreach($compra->detalles as $detalle)
                             <tr class="hover:bg-white/5 transition-colors group">
-                                <td class="px-8 py-5 text-center">
+                                <td class="px-4 py-5 text-center">
                                     <span class="text-white font-mono font-bold text-lg">
                                         {{ $detalle->cantidad }}
                                     </span>
                                 </td>
-                                <td class="px-8 py-5 text-left">
+                                <td class="px-4 py-5 text-left">
                                     <span class="text-white font-black uppercase text-lg leading-tight">{{ $detalle->producto->nombre }}</span>
                                 </td>
-                                <td class="px-8 py-5 text-left">
-                                    <span class="text-md text-blue-200 font-bold uppercase tracking-wide">{{ $detalle->producto->descripcion ?? '---' }}</span>
-                                </td>
-                                <td class="px-8 py-5 text-center">
+                                <td class="px-4 py-5 text-center">
                                     <span class="text-blue-100 font-mono text-lg font-bold">${{ number_format($detalle->precio_compra, 2) }}</span>
                                 </td>
-                                <td class="px-8 py-5 text-right">
+                                <td class="px-4 py-5 text-center">
+                                    <span class="text-amber-200/80 font-bold text-md">{{ number_format($detalle->descuento_porcentaje, 1) }}%</span>
+                                </td>
+                                <td class="px-4 py-5 text-center">
+                                    <span class="text-amber-200/80 font-bold text-md">{{ number_format($detalle->descuento_extra_porcentaje, 1) }}%</span>
+                                </td>
+                                <td class="px-4 py-5 text-center">
+                                    <span class="text-amber-300 font-bold text-lg">{{ number_format($detalle->descuento_interno_porcentaje, 1) }}%</span>
+                                </td>
+                                <td class="px-4 py-5 text-right">
                                     <span class="text-white font-black font-mono text-xl tracking-tighter">${{ number_format($detalle->cantidad * $detalle->precio_compra, 2) }}</span>
                                 </td>
                             </tr>
                         @endforeach
                     </tbody>
                     <tfoot class="bg-white/5 border-t border-white/10">
-                        <tr class="bg-white/10">
-                            <td colspan="4" class="px-8 py-8 text-right">
-                                <span class="text-blue-200 text-lg uppercase font-black tracking-[0.2em]">Total de Factura</span>
+                        @if($compra->monto_maniobra > 0)
+                        <tr class="border-b border-white/5">
+                            <td colspan="6" class="px-8 py-2 text-right text-blue-200/60 italic text-xs uppercase">
+                                Gastos de Maniobra
+                            </td>
+                            <td class="px-8 py-2 text-right text-white font-bold text-md">
+                                ${{ number_format($compra->monto_maniobra, 2) }}
+                            </td>
+                        </tr>
+                        @endif
+                        @if($compra->monto_seguro > 0)
+                        <tr class="border-b border-white/5">
+                            <td colspan="6" class="px-8 py-2 text-right text-blue-200/60 italic text-xs uppercase">
+                                Costo de Seguro
+                            </td>
+                            <td class="px-8 py-2 text-right text-white font-bold text-md">
+                                ${{ number_format($compra->monto_seguro, 2) }}
+                            </td>
+                        </tr>
+                        @endif
+                        <tr class="border-b border-white/5">
+                            <td colspan="6" class="px-8 py-4 text-right">
+                                <span class="text-blue-200 text-sm uppercase font-black tracking-widest">Subtotal (Base Gravable)</span>
+                            </td>
+                            <td class="px-8 py-4 text-right">
+                                <span class="text-xl font-bold text-white tracking-tighter">${{ number_format($compra->subtotal, 2) }}</span>
+                            </td>
+                        </tr>
+                        <tr class="border-b border-white/5">
+                            <td colspan="6" class="px-8 py-4 text-right">
+                                <span class="text-blue-200 text-sm uppercase font-black tracking-widest">IVA (16%)</span>
+                            </td>
+                            <td class="px-8 py-4 text-right">
+                                <span class="text-xl font-bold text-white tracking-tighter">${{ number_format($compra->iva, 2) }}</span>
+                            </td>
+                        </tr>
+                        <tr class="bg-white/10 border-b border-white/10">
+                            <td colspan="6" class="px-8 py-6 text-right">
+                                <span class="text-blue-100 text-md uppercase font-black tracking-[0.2em]">Total Factura</span>
+                            </td>
+                            <td class="px-8 py-6 text-right">
+                                <span class="text-3xl font-black text-white tracking-tighter">${{ number_format($compra->total, 2) }}</span>
+                            </td>
+                        </tr>
+                        <tr class="border-b border-white/5">
+                            <td colspan="6" class="px-8 py-3 text-right">
+                                <span class="text-amber-400 text-sm uppercase font-black tracking-widest">1. Descuento Global ({{ number_format($compra->porcentaje_descuento, 1) }}%)</span>
+                            </td>
+                            <td class="px-8 py-3 text-right">
+                                <span class="text-lg font-bold text-amber-400 tracking-tighter">-${{ number_format($compra->monto_descuento, 2) }}</span>
+                            </td>
+                        </tr>
+                        <tr class="border-b border-white/5">
+                            <td colspan="6" class="px-8 py-3 text-right">
+                                <span class="text-amber-400 text-sm uppercase font-black tracking-widest">2. Descuento Extra Global ({{ number_format($compra->porcentaje_descuento_extra, 1) }}%)</span>
+                            </td>
+                            <td class="px-8 py-3 text-right">
+                                <span class="text-lg font-bold text-amber-400 tracking-tighter">-${{ number_format($compra->monto_descuento_extra, 2) }}</span>
+                            </td>
+                        </tr>
+                        <tr class="border-b border-white/10">
+                            <td colspan="6" class="px-8 py-3 text-right">
+                                @php
+                                    $base_interna = $compra->total - $compra->monto_descuento - $compra->monto_descuento_extra;
+                                    $pct_interno_efectivo = $base_interna > 0 ? ($compra->monto_descuento_interno / $base_interna) * 100 : 0;
+                                @endphp
+                                <span class="text-amber-400 text-sm uppercase font-black tracking-widest">3. Descuento Interno ({{ number_format($pct_interno_efectivo, 1) }}%)</span>
+                            </td>
+                            <td class="px-8 py-3 text-right">
+                                <span class="text-lg font-bold text-amber-400 tracking-tighter">-${{ number_format($compra->monto_descuento_interno, 2) }}</span>
+                            </td>
+                        </tr>
+                        <tr class="bg-blue-600/20">
+                            <td colspan="6" class="px-8 py-8 text-right">
+                                <span class="text-blue-200 text-xl uppercase font-black tracking-[0.2em]">Saldo Pendiente (Final)</span>
                             </td>
                             <td class="px-8 py-8 text-right">
-                                <span class="text-3xl font-black text-white tracking-tighter">${{ number_format($compra->total, 2) }}</span>
+                                <span class="text-4xl font-black text-white tracking-tighter">${{ number_format($compra->saldo_pendiente, 2) }}</span>
                             </td>
                         </tr>
                     </tfoot>

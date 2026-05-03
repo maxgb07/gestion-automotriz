@@ -130,6 +130,11 @@
                             <input type="number" step="0.01" name="porcentaje_descuento_global" id="porcentaje_descuento_global" value="{{ old('porcentaje_descuento_global', $proveedor->porcentaje_descuento_global) }}" min="0" max="100"
                                 class="block w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-bold">
                         </div>
+                        <div>
+                            <label for="porcentaje_descuento_extra" class="block text-xs font-black text-blue-200/60 uppercase tracking-widest mb-2">% Descuento Extra</label>
+                            <input type="number" step="0.01" name="porcentaje_descuento_extra" id="porcentaje_descuento_extra" value="{{ old('porcentaje_descuento_extra', $proveedor->porcentaje_descuento_extra) }}" min="0" max="100"
+                                class="block w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all font-bold">
+                        </div>
                         <div class="md:col-span-3">
                             <label for="observaciones" class="block text-xs font-black text-blue-200/60 uppercase tracking-widest mb-2">Observaciones</label>
                             <textarea name="observaciones" id="observaciones" rows="3"

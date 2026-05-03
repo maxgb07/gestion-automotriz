@@ -21,6 +21,7 @@ class DetalleCompra extends Model
         'precio_compra',
         'descuento_porcentaje',
         'descuento_extra_porcentaje',
+        'descuento_interno_porcentaje',
         'subtotal',
         'precio_venta_sugerido'
     ];

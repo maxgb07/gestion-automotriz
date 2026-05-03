@@ -28,6 +28,7 @@ class Proveedor extends Model
         'observaciones',
         'dias_credito',
         'porcentaje_descuento_global',
+        'porcentaje_descuento_extra',
         'banco',
         'clabe_interbancaria',
         'cuenta_bancaria',

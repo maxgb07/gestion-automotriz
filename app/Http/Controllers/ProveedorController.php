@@ -50,6 +50,7 @@ class ProveedorController extends Controller
             'observaciones' => 'nullable|string',
             'dias_credito' => 'nullable|integer|min:0',
             'porcentaje_descuento_global' => 'nullable|numeric|min:0|max:100',
+            'porcentaje_descuento_extra' => 'nullable|numeric|min:0|max:100',
         ]);
 
         Proveedor::create($request->all());
@@ -77,6 +78,7 @@ class ProveedorController extends Controller
             'observaciones' => 'nullable|string',
             'dias_credito' => 'nullable|integer|min:0',
             'porcentaje_descuento_global' => 'nullable|numeric|min:0|max:100',
+            'porcentaje_descuento_extra' => 'nullable|numeric|min:0|max:100',
         ]);
 
         $proveedor->update($request->all());

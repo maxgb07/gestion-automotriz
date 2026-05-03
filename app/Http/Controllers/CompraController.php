@@ -57,9 +57,8 @@ class CompraController extends Controller
         try {
             DB::beginTransaction();
 
-            $subtotal_compra = 0;
-            $monto_descuento_compra = 0;
-            $total_compra = 0;
+            $gross_subtotal = 0;
+            $monto_descuento_interno = 0;
             
             // Evaluamos proveedor para calcular vencimiento por defecto si no viene
             $proveedor = Proveedor::find($request->proveedor_id);
@@ -78,8 +77,11 @@ class CompraController extends Controller
                 'fecha_compra' => $fecha_compra,
                 'fecha_vencimiento' => $fecha_vencimiento,
                 'subtotal' => 0,
-                'porcentaje_descuento' => 0,
+                'porcentaje_descuento' => $request->porcentaje_descuento ?? 0,
                 'monto_descuento' => 0,
+                'porcentaje_descuento_extra' => $request->porcentaje_descuento_extra ?? 0,
+                'monto_descuento_extra' => 0,
+                'monto_descuento_interno' => 0,
                 'iva' => 0,
                 'total' => 0,
                 'saldo_pendiente' => 0,
@@ -87,17 +89,24 @@ class CompraController extends Controller
                 'estado_complemento' => 'NO_APLICA'
             ]);
 
+            $gross_subtotal = 0;
+            $items_for_internal = [];
+
             foreach ($request->productos as $p) {
                 $cantidad = $p['cantidad'] ?? 1;
                 $precio = $p['precio_compra'] ?? 0;
                 $desc1 = $p['descuento_porcentaje'] ?? 0;
                 $desc2 = $p['descuento_extra_porcentaje'] ?? 0;
+                $descInt = $p['descuento_interno_porcentaje'] ?? 0;
 
                 $base = $cantidad * $precio;
-                $subtotal_fila = $base * (1 - ($desc1 / 100)) * (1 - ($desc2 / 100));
+                $subtotal_fila = $base;
                 
-                $subtotal_compra += $subtotal_fila;
-                $monto_descuento_compra += ($base - $subtotal_fila);
+                $gross_subtotal += $base;
+                $items_for_internal[] = [
+                    'row_total' => $base * 1.16,
+                    'pct_int' => $descInt
+                ];
 
                 DetalleCompra::create([
                     'compra_id' => $compra->id,
@@ -106,29 +115,70 @@ class CompraController extends Controller
                     'precio_compra' => $precio,
                     'descuento_porcentaje' => $desc1,
                     'descuento_extra_porcentaje' => $desc2,
+                    'descuento_interno_porcentaje' => $descInt,
                     'subtotal' => $subtotal_fila,
                     'precio_venta_sugerido' => $p['precio_venta'] ?? 0,
                 ]);
 
+                // Guardamos los porcentajes globales del primer producto para el encabezado
+                if(!isset($pct_global)) $pct_global = $desc1;
+                if(!isset($pct_extra)) $pct_extra = $desc2;
+
                 // Actualizar Producto: Stock y Precios
                 $producto = Producto::find($p['id']);
-                $producto->stock += $cantidad;
-                $producto->precio_compra = $precio;
-                if(isset($p['precio_venta']) && $p['precio_venta'] > 0){
-                    $producto->precio_venta = $p['precio_venta'];
+                if ($producto) {
+                    $producto->stock += $cantidad;
+                    $producto->precio_compra = $precio;
+                    if(isset($p['precio_venta']) && $p['precio_venta'] > 0){
+                        $producto->precio_venta = $p['precio_venta'];
+                    }
+                    $producto->save();
                 }
-                $producto->save();
             }
 
-            $iva_compra = $subtotal_compra * 0.16;
-            $total_compra = $subtotal_compra + $iva_compra;
+            $monto_maniobra = $request->monto_maniobra ?? 0;
+            $monto_seguro = $request->monto_seguro ?? 0;
+            $gross_subtotal += ($monto_maniobra + $monto_seguro);
+
+            $iva_compra = $gross_subtotal * 0.16;
+            $total_factura = $gross_subtotal + $iva_compra;
+
+            // Descuentos en Cascada: 1. Global -> 2. Extra Global -> 3. Interno
+            $pct_global = $pct_global ?? 0;
+            $pct_extra = $pct_extra ?? 0;
+
+            $remaining = $total_factura;
+            
+            // 1. Global
+            $monto_global = $remaining * ($pct_global / 100);
+            $remaining -= $monto_global;
+
+            // 2. Extra Global
+            $monto_extra = $remaining * ($pct_extra / 100);
+            $remaining -= $monto_extra;
+
+            // 3. Interno
+            $monto_descuento_interno = 0;
+            $factor_cascada = (1 - ($pct_global / 100)) * (1 - ($pct_extra / 100));
+            foreach ($items_for_internal as $item) {
+                $monto_descuento_interno += ($item['row_total'] * $factor_cascada * ($item['pct_int'] / 100));
+            }
+            $remaining -= $monto_descuento_interno;
+
+            $saldo_pendiente = $remaining;
 
             $compra->update([
-                'subtotal' => $subtotal_compra,
-                'monto_descuento' => $monto_descuento_compra,
+                'subtotal' => $gross_subtotal,
+                'porcentaje_descuento' => $pct_global,
+                'monto_descuento' => $monto_global,
+                'porcentaje_descuento_extra' => $pct_extra,
+                'monto_descuento_extra' => $monto_extra,
+                'monto_descuento_interno' => $monto_descuento_interno,
+                'monto_maniobra' => $monto_maniobra,
+                'monto_seguro' => $monto_seguro,
                 'iva' => $iva_compra,
-                'total' => $total_compra,
-                'saldo_pendiente' => $total_compra,
+                'total' => $total_factura,
+                'saldo_pendiente' => $saldo_pendiente,
             ]);
 
             DB::commit();
@@ -186,20 +236,24 @@ class CompraController extends Controller
             $compra->detalles()->delete();
 
             // 3. Procesar nuevos detalles y sumar stock
-            $subtotal_compra = 0;
-            $monto_descuento_compra = 0;
+            $gross_subtotal = 0;
+            $items_for_internal = [];
             
             foreach ($request->productos as $p) {
                 $cantidad = $p['cantidad'] ?? 1;
                 $precio = $p['precio_compra'] ?? 0;
                 $desc1 = $p['descuento_porcentaje'] ?? 0;
                 $desc2 = $p['descuento_extra_porcentaje'] ?? 0;
+                $descInt = $p['descuento_interno_porcentaje'] ?? 0;
 
                 $base = $cantidad * $precio;
-                $subtotal_fila = $base * (1 - ($desc1 / 100)) * (1 - ($desc2 / 100));
+                $subtotal_fila = $base;
                 
-                $subtotal_compra += $subtotal_fila;
-                $monto_descuento_compra += ($base - $subtotal_fila);
+                $gross_subtotal += $base;
+                $items_for_internal[] = [
+                    'row_total' => $base * 1.16,
+                    'pct_int' => $descInt
+                ];
 
                 DetalleCompra::create([
                     'compra_id' => $compra->id,
@@ -208,9 +262,13 @@ class CompraController extends Controller
                     'precio_compra' => $precio,
                     'descuento_porcentaje' => $desc1,
                     'descuento_extra_porcentaje' => $desc2,
+                    'descuento_interno_porcentaje' => $descInt,
                     'subtotal' => $subtotal_fila,
                     'precio_venta_sugerido' => $p['precio_venta'] ?? 0,
                 ]);
+
+                if(!isset($pct_global)) $pct_global = $desc1;
+                if(!isset($pct_extra)) $pct_extra = $desc2;
 
                 // Sumar nuevo stock y actualizar precios
                 $producto = Producto::find($p['id']);
@@ -223,28 +281,58 @@ class CompraController extends Controller
             }
 
             // 4. Actualizar totales de la compra
-            $iva_compra = $subtotal_compra * 0.16;
-            $total_compra = $subtotal_compra + $iva_compra;
+            $monto_maniobra = $request->monto_maniobra ?? 0;
+            $monto_seguro = $request->monto_seguro ?? 0;
+            $gross_subtotal += ($monto_maniobra + $monto_seguro);
+
+            $iva_compra = $gross_subtotal * 0.16;
+            $total_factura = $gross_subtotal + $iva_compra;
+
+            // Descuentos en Cascada: 1. Global -> 2. Extra Global -> 3. Interno
+            $pct_global = $pct_global ?? 0;
+            $pct_extra = $pct_extra ?? 0;
+
+            $remaining = $total_factura;
+            
+            // 1. Global
+            $monto_global = $remaining * ($pct_global / 100);
+            $remaining -= $monto_global;
+
+            // 2. Extra Global
+            $monto_extra = $remaining * ($pct_extra / 100);
+            $remaining -= $monto_extra;
+
+            // 3. Interno
+            $monto_descuento_interno = 0;
+            $factor_cascada = (1 - ($pct_global / 100)) * (1 - ($pct_extra / 100));
+            foreach ($items_for_internal as $item) {
+                $monto_descuento_interno += ($item['row_total'] * $factor_cascada * ($item['pct_int'] / 100));
+            }
+            $remaining -= $monto_descuento_interno;
+
+            $saldo_pendiente = $remaining;
             
             // Evaluamos proveedor para calcular vencimiento si no viene
             $proveedor = Proveedor::find($request->proveedor_id);
             $fecha_compra = $request->fecha_compra ?? $compra->fecha_compra;
             $fecha_vencimiento = $request->fecha_vencimiento ?? date('Y-m-d', strtotime($fecha_compra . ' + ' . $proveedor->dias_credito . ' days'));
 
-            // Calcular saldo pendiente actual (Total nuevo - Total pagado hasta ahora)
-            // Si la compra tenía pagos, restarlos. Por ahora asumimos saldo = total
-            // TODO en Fase 3: Considerar pagos previos al calcular saldo_pendiente
-            
             $compra->update([
                 'proveedor_id' => $request->proveedor_id,
                 'factura' => mb_strtoupper($request->factura, 'UTF-8'),
                 'fecha_compra' => $fecha_compra,
                 'fecha_vencimiento' => $fecha_vencimiento,
-                'subtotal' => $subtotal_compra,
-                'monto_descuento' => $monto_descuento_compra,
+                'subtotal' => $gross_subtotal,
+                'porcentaje_descuento' => $pct_global,
+                'monto_descuento' => $monto_global,
+                'porcentaje_descuento_extra' => $pct_extra,
+                'monto_descuento_extra' => $monto_extra,
+                'monto_descuento_interno' => $monto_descuento_interno,
+                'monto_maniobra' => $monto_maniobra,
+                'monto_seguro' => $monto_seguro,
                 'iva' => $iva_compra,
-                'total' => $total_compra,
-                'saldo_pendiente' => $total_compra, // Temporal hasta Fase 3
+                'total' => $total_factura,
+                'saldo_pendiente' => $saldo_pendiente,
             ]);
 
             DB::commit();
