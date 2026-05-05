@@ -150,6 +150,9 @@
                         <tr class="border-b border-white/5">
                             <td colspan="6" class="px-8 py-2 text-right text-blue-200/60 italic text-xs uppercase">
                                 Gastos de Maniobra
+                                @if($compra->aplica_descuento_maniobra)
+                                    <span class="ml-2 text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/30 font-black">CON DESCUENTO</span>
+                                @endif
                             </td>
                             <td class="px-8 py-2 text-right text-white font-bold text-md">
                                 ${{ number_format($compra->monto_maniobra, 2) }}
@@ -160,6 +163,9 @@
                         <tr class="border-b border-white/5">
                             <td colspan="6" class="px-8 py-2 text-right text-blue-200/60 italic text-xs uppercase">
                                 Costo de Seguro
+                                @if($compra->aplica_descuento_seguro)
+                                    <span class="ml-2 text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/30 font-black">CON DESCUENTO</span>
+                                @endif
                             </td>
                             <td class="px-8 py-2 text-right text-white font-bold text-md">
                                 ${{ number_format($compra->monto_seguro, 2) }}

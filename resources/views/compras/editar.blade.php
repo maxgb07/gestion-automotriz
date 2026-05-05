@@ -39,6 +39,50 @@
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
         }
 
+        /* Estilo para el Switch tipo iOS */
+        .ios-switch-container {
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        .ios-switch {
+            position: relative;
+            display: inline-block;
+            width: 40px;
+            height: 22px;
+        }
+        .ios-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+        .ios-slider {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #475569 !important; /* Slate-600 para que sea visible */
+            transition: .3s;
+            border-radius: 22px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .ios-slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 2px;
+            background-color: white !important;
+            transition: .3s;
+            border-radius: 50%;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        input:checked + .ios-slider {
+            background-color: #22c55e !important; /* Green-500 */
+        }
+        input:checked + .ios-slider:before {
+            transform: translateX(18px);
+        }
+
         .select2-search__field {
             color: #000000 !important;
             text-transform: uppercase;
@@ -166,13 +210,35 @@
                         <div class="flex flex-col items-end text-right space-y-2 w-full max-w-sm">
                             <!-- Cargos Adicionales -->
                             <div class="flex flex-col gap-2 w-full mb-4 border-b border-white/10 pb-4">
-                                <div class="flex justify-between items-center w-full">
-                                    <span class="text-blue-200 text-xs uppercase font-bold">Gastos de Maniobra</span>
-                                    <input type="number" step="any" name="monto_maniobra" id="monto_maniobra" value="{{ number_format($compra->monto_maniobra, 2, '.', '') }}" oninput="calculateTotal()" class="w-32 px-3 py-1 bg-white/10 border border-white/20 rounded-lg text-white text-right focus:ring-2 focus:ring-blue-500 transition-all font-mono">
+                                <div class="flex flex-col w-full mb-3">
+                                    <div class="flex justify-between items-center mb-1.5">
+                                        <span class="text-blue-200 text-[10px] uppercase font-black tracking-[0.15em]">Gastos de Maniobra</span>
+                                        <input type="number" step="any" name="monto_maniobra" id="monto_maniobra" value="{{ number_format($compra->monto_maniobra, 2, '.', '') }}" oninput="calculateTotal()" onfocus="this.select()" class="w-32 px-3 py-1 bg-white/10 border border-white/20 rounded-lg text-white text-right focus:ring-2 focus:ring-blue-500 transition-all font-mono">
+                                    </div>
+                                    <div class="flex items-center">
+                                        <label class="ios-switch-container group">
+                                            <div class="ios-switch">
+                                                <input type="checkbox" name="aplica_descuento_maniobra" id="aplica_descuento_maniobra" onchange="calculateTotal()" {{ $compra->aplica_descuento_maniobra ? 'checked' : '' }}>
+                                                <span class="ios-slider"></span>
+                                            </div>
+                                            <span class="ml-3 text-[10px] font-black text-blue-200/40 uppercase tracking-widest group-hover:text-blue-200 transition-colors">Aplica descuento</span>
+                                        </label>
+                                    </div>
                                 </div>
-                                <div class="flex justify-between items-center w-full">
-                                    <span class="text-blue-200 text-xs uppercase font-bold">Costo de Seguro</span>
-                                    <input type="number" step="any" name="monto_seguro" id="monto_seguro" value="{{ number_format($compra->monto_seguro, 2, '.', '') }}" oninput="calculateTotal()" class="w-32 px-3 py-1 bg-white/10 border border-white/20 rounded-lg text-white text-right focus:ring-2 focus:ring-blue-500 transition-all font-mono">
+                                <div class="flex flex-col w-full">
+                                    <div class="flex justify-between items-center mb-1.5">
+                                        <span class="text-blue-200 text-[10px] uppercase font-black tracking-[0.15em]">Costo de Seguro</span>
+                                        <input type="number" step="any" name="monto_seguro" id="monto_seguro" value="{{ number_format($compra->monto_seguro, 2, '.', '') }}" oninput="calculateTotal()" onfocus="this.select()" class="w-32 px-3 py-1 bg-white/10 border border-white/20 rounded-lg text-white text-right focus:ring-2 focus:ring-blue-500 transition-all font-mono">
+                                    </div>
+                                    <div class="flex items-center">
+                                        <label class="ios-switch-container group">
+                                            <div class="ios-switch">
+                                                <input type="checkbox" name="aplica_descuento_seguro" id="aplica_descuento_seguro" onchange="calculateTotal()" {{ $compra->aplica_descuento_seguro ? 'checked' : '' }}>
+                                                <span class="ios-slider"></span>
+                                            </div>
+                                            <span class="ml-3 text-[10px] font-black text-blue-200/40 uppercase tracking-widest group-hover:text-blue-200 transition-colors">Aplica descuento</span>
+                                        </label>
+                                    </div>
                                 </div>
                             </div>
 
@@ -506,16 +572,20 @@
                     }
                 });
                 
-                // Incluir cargos adicionales en la base bruta
                 const montoManiobra = parseFloat(document.getElementById('monto_maniobra')?.value) || 0;
                 const montoSeguro = parseFloat(document.getElementById('monto_seguro')?.value) || 0;
-                grossSubtotal += (montoManiobra + montoSeguro);
+                const aplicaM = document.getElementById('aplica_descuento_maniobra')?.checked;
+                const aplicaS = document.getElementById('aplica_descuento_seguro')?.checked;
 
-                const iva = grossSubtotal * 0.16;
-                const totalFactura = grossSubtotal + iva;
+                const grossSubtotalGeneral = grossSubtotal + montoManiobra + montoSeguro;
+                const iva = grossSubtotalGeneral * 0.16;
+                const totalFactura = grossSubtotalGeneral + iva;
 
-                // Descuentos en Cascada: Global -> Extra Global -> Interno
-                let remaining = totalFactura;
+                // Base descontable (con IVA)
+                const discountableTotal = (grossSubtotal + (aplicaM ? montoManiobra : 0) + (aplicaS ? montoSeguro : 0)) * 1.16;
+                const nonDiscountableTotal = totalFactura - discountableTotal;
+
+                let remaining = discountableTotal;
                 
                 // 1. Global
                 const montoGlobal = remaining * (maxPctGlobal / 100);
@@ -534,14 +604,12 @@
                     sumInternalDiscount += (rowRemaining * (data.pctInt / 100));
                 });
 
-                remaining -= sumInternalDiscount;
-
-                const saldoPendiente = remaining;
+                const saldoPendiente = Math.max(0, remaining - sumInternalDiscount + nonDiscountableTotal);
                 
                 // Formatear moneda helper
                 const fmt = (val) => '$' + val.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
 
-                document.getElementById('resumen-subtotal').textContent = fmt(grossSubtotal);
+                document.getElementById('resumen-subtotal').textContent = fmt(grossSubtotalGeneral);
                 document.getElementById('resumen-iva').textContent = fmt(iva);
                 document.getElementById('total-factura').textContent = fmt(totalFactura);
                 

@@ -134,20 +134,24 @@ class CompraController extends Controller
                     }
                     $producto->save();
                 }
-            }
-
-            $monto_maniobra = $request->monto_maniobra ?? 0;
+            }            $monto_maniobra = $request->monto_maniobra ?? 0;
             $monto_seguro = $request->monto_seguro ?? 0;
-            $gross_subtotal += ($monto_maniobra + $monto_seguro);
+            $aplica_m = $request->has('aplica_descuento_maniobra');
+            $aplica_s = $request->has('aplica_descuento_seguro');
 
-            $iva_compra = $gross_subtotal * 0.16;
-            $total_factura = $gross_subtotal + $iva_compra;
+            $gross_subtotal_con_gastos = $gross_subtotal + $monto_maniobra + $monto_seguro;
+            $iva_compra = $gross_subtotal_con_gastos * 0.16;
+            $total_factura = $gross_subtotal_con_gastos + $iva_compra;
 
             // Descuentos en Cascada: 1. Global -> 2. Extra Global -> 3. Interno
             $pct_global = $pct_global ?? 0;
             $pct_extra = $pct_extra ?? 0;
 
-            $remaining = $total_factura;
+            // Base descontable (con IVA)
+            $discountable_total = ($gross_subtotal + ($aplica_m ? $monto_maniobra : 0) + ($aplica_s ? $monto_seguro : 0)) * 1.16;
+            $non_discountable_total = $total_factura - $discountable_total;
+
+            $remaining = $discountable_total;
             
             // 1. Global
             $monto_global = $remaining * ($pct_global / 100);
@@ -165,20 +169,22 @@ class CompraController extends Controller
             }
             $remaining -= $monto_descuento_interno;
 
-            $saldo_pendiente = $remaining;
+            $saldo_pendiente = round($remaining + $non_discountable_total, 2);
 
             $compra->update([
-                'subtotal' => $gross_subtotal,
+                'subtotal' => $gross_subtotal_con_gastos,
                 'porcentaje_descuento' => $pct_global,
                 'monto_descuento' => $monto_global,
                 'porcentaje_descuento_extra' => $pct_extra,
                 'monto_descuento_extra' => $monto_extra,
                 'monto_descuento_interno' => $monto_descuento_interno,
                 'monto_maniobra' => $monto_maniobra,
+                'aplica_descuento_maniobra' => $aplica_m,
                 'monto_seguro' => $monto_seguro,
+                'aplica_descuento_seguro' => $aplica_s,
                 'iva' => $iva_compra,
                 'total' => $total_factura,
-                'saldo_pendiente' => $saldo_pendiente,
+                'saldo_pendiente' => $saldo_pendiente
             ]);
 
             DB::commit();
@@ -283,16 +289,22 @@ class CompraController extends Controller
             // 4. Actualizar totales de la compra
             $monto_maniobra = $request->monto_maniobra ?? 0;
             $monto_seguro = $request->monto_seguro ?? 0;
-            $gross_subtotal += ($monto_maniobra + $monto_seguro);
+            $aplica_m = $request->has('aplica_descuento_maniobra');
+            $aplica_s = $request->has('aplica_descuento_seguro');
 
-            $iva_compra = $gross_subtotal * 0.16;
-            $total_factura = $gross_subtotal + $iva_compra;
+            $gross_subtotal_con_gastos = $gross_subtotal + $monto_maniobra + $monto_seguro;
+            $iva_compra = $gross_subtotal_con_gastos * 0.16;
+            $total_factura = $gross_subtotal_con_gastos + $iva_compra;
 
             // Descuentos en Cascada: 1. Global -> 2. Extra Global -> 3. Interno
             $pct_global = $pct_global ?? 0;
             $pct_extra = $pct_extra ?? 0;
 
-            $remaining = $total_factura;
+            // Base descontable (con IVA)
+            $discountable_total = ($gross_subtotal + ($aplica_m ? $monto_maniobra : 0) + ($aplica_s ? $monto_seguro : 0)) * 1.16;
+            $non_discountable_total = $total_factura - $discountable_total;
+
+            $remaining = $discountable_total;
             
             // 1. Global
             $monto_global = $remaining * ($pct_global / 100);
@@ -310,7 +322,7 @@ class CompraController extends Controller
             }
             $remaining -= $monto_descuento_interno;
 
-            $saldo_pendiente = $remaining;
+            $saldo_pendiente = round($remaining + $non_discountable_total, 2);
             
             // Evaluamos proveedor para calcular vencimiento si no viene
             $proveedor = Proveedor::find($request->proveedor_id);
@@ -322,14 +334,16 @@ class CompraController extends Controller
                 'factura' => mb_strtoupper($request->factura, 'UTF-8'),
                 'fecha_compra' => $fecha_compra,
                 'fecha_vencimiento' => $fecha_vencimiento,
-                'subtotal' => $gross_subtotal,
+                'subtotal' => $gross_subtotal_con_gastos,
                 'porcentaje_descuento' => $pct_global,
                 'monto_descuento' => $monto_global,
                 'porcentaje_descuento_extra' => $pct_extra,
                 'monto_descuento_extra' => $monto_extra,
                 'monto_descuento_interno' => $monto_descuento_interno,
                 'monto_maniobra' => $monto_maniobra,
+                'aplica_descuento_maniobra' => $aplica_m,
                 'monto_seguro' => $monto_seguro,
+                'aplica_descuento_seguro' => $aplica_s,
                 'iva' => $iva_compra,
                 'total' => $total_factura,
                 'saldo_pendiente' => $saldo_pendiente,
