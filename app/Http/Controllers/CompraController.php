@@ -104,7 +104,7 @@ class CompraController extends Controller
                 
                 $gross_subtotal += $base;
                 $items_for_internal[] = [
-                    'row_total' => $base * 1.16,
+                    'row_total' => $base,
                     'pct_int' => $descInt
                 ];
 
@@ -139,17 +139,12 @@ class CompraController extends Controller
             $aplica_m = $request->has('aplica_descuento_maniobra');
             $aplica_s = $request->has('aplica_descuento_seguro');
 
-            $gross_subtotal_con_gastos = $gross_subtotal + $monto_maniobra + $monto_seguro;
-            $iva_compra = $gross_subtotal_con_gastos * 0.16;
-            $total_factura = $gross_subtotal_con_gastos + $iva_compra;
-
             // Descuentos en Cascada: 1. Global -> 2. Extra Global -> 3. Interno
             $pct_global = $pct_global ?? 0;
             $pct_extra = $pct_extra ?? 0;
 
-            // Base descontable (con IVA)
-            $discountable_total = ($gross_subtotal + ($aplica_m ? $monto_maniobra : 0) + ($aplica_s ? $monto_seguro : 0)) * 1.16;
-            $non_discountable_total = $total_factura - $discountable_total;
+            // Base descontable (SIN IVA)
+            $discountable_total = $gross_subtotal + ($aplica_m ? $monto_maniobra : 0) + ($aplica_s ? $monto_seguro : 0);
 
             $remaining = $discountable_total;
             
@@ -167,9 +162,22 @@ class CompraController extends Controller
             foreach ($items_for_internal as $item) {
                 $monto_descuento_interno += ($item['row_total'] * $factor_cascada * ($item['pct_int'] / 100));
             }
-            $remaining -= $monto_descuento_interno;
 
-            $saldo_pendiente = round($remaining + $non_discountable_total, 2);
+            $total_descuentos = $monto_global + $monto_extra + $monto_descuento_interno;
+            $gross_subtotal_con_gastos = $gross_subtotal + $monto_maniobra + $monto_seguro;
+            
+            // Base Imponible
+            $base_imponible = $gross_subtotal_con_gastos - $total_descuentos;
+
+            // IVA y Total Factura
+            $iva_compra = $base_imponible * 0.16;
+            $total_factura = $base_imponible + $iva_compra;
+
+            // Descuento Financiero (Pronto Pago)
+            $pct_pronto_pago = $request->porcentaje_pronto_pago ?? 0;
+            $monto_pronto_pago = $total_factura * ($pct_pronto_pago / 100);
+
+            $saldo_pendiente = round($total_factura - $monto_pronto_pago, 2);
 
             $compra->update([
                 'subtotal' => $gross_subtotal_con_gastos,
@@ -178,6 +186,8 @@ class CompraController extends Controller
                 'porcentaje_descuento_extra' => $pct_extra,
                 'monto_descuento_extra' => $monto_extra,
                 'monto_descuento_interno' => $monto_descuento_interno,
+                'porcentaje_pronto_pago' => $pct_pronto_pago,
+                'monto_pronto_pago' => $monto_pronto_pago,
                 'monto_maniobra' => $monto_maniobra,
                 'aplica_descuento_maniobra' => $aplica_m,
                 'monto_seguro' => $monto_seguro,
@@ -257,7 +267,7 @@ class CompraController extends Controller
                 
                 $gross_subtotal += $base;
                 $items_for_internal[] = [
-                    'row_total' => $base * 1.16,
+                    'row_total' => $base,
                     'pct_int' => $descInt
                 ];
 
@@ -292,17 +302,12 @@ class CompraController extends Controller
             $aplica_m = $request->has('aplica_descuento_maniobra');
             $aplica_s = $request->has('aplica_descuento_seguro');
 
-            $gross_subtotal_con_gastos = $gross_subtotal + $monto_maniobra + $monto_seguro;
-            $iva_compra = $gross_subtotal_con_gastos * 0.16;
-            $total_factura = $gross_subtotal_con_gastos + $iva_compra;
-
             // Descuentos en Cascada: 1. Global -> 2. Extra Global -> 3. Interno
             $pct_global = $pct_global ?? 0;
             $pct_extra = $pct_extra ?? 0;
 
-            // Base descontable (con IVA)
-            $discountable_total = ($gross_subtotal + ($aplica_m ? $monto_maniobra : 0) + ($aplica_s ? $monto_seguro : 0)) * 1.16;
-            $non_discountable_total = $total_factura - $discountable_total;
+            // Base descontable (SIN IVA)
+            $discountable_total = $gross_subtotal + ($aplica_m ? $monto_maniobra : 0) + ($aplica_s ? $monto_seguro : 0);
 
             $remaining = $discountable_total;
             
@@ -320,9 +325,22 @@ class CompraController extends Controller
             foreach ($items_for_internal as $item) {
                 $monto_descuento_interno += ($item['row_total'] * $factor_cascada * ($item['pct_int'] / 100));
             }
-            $remaining -= $monto_descuento_interno;
 
-            $saldo_pendiente = round($remaining + $non_discountable_total, 2);
+            $total_descuentos = $monto_global + $monto_extra + $monto_descuento_interno;
+            $gross_subtotal_con_gastos = $gross_subtotal + $monto_maniobra + $monto_seguro;
+            
+            // Base Imponible
+            $base_imponible = $gross_subtotal_con_gastos - $total_descuentos;
+
+            // IVA y Total Factura
+            $iva_compra = $base_imponible * 0.16;
+            $total_factura = $base_imponible + $iva_compra;
+
+            // Descuento Financiero (Pronto Pago)
+            $pct_pronto_pago = $request->porcentaje_pronto_pago ?? 0;
+            $monto_pronto_pago = $total_factura * ($pct_pronto_pago / 100);
+
+            $saldo_pendiente = round($total_factura - $monto_pronto_pago, 2);
             
             // Evaluamos proveedor para calcular vencimiento si no viene
             $proveedor = Proveedor::find($request->proveedor_id);
@@ -340,6 +358,8 @@ class CompraController extends Controller
                 'porcentaje_descuento_extra' => $pct_extra,
                 'monto_descuento_extra' => $monto_extra,
                 'monto_descuento_interno' => $monto_descuento_interno,
+                'porcentaje_pronto_pago' => $pct_pronto_pago,
+                'monto_pronto_pago' => $monto_pronto_pago,
                 'monto_maniobra' => $monto_maniobra,
                 'aplica_descuento_maniobra' => $aplica_m,
                 'monto_seguro' => $monto_seguro,

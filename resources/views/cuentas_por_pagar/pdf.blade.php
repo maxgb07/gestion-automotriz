@@ -49,10 +49,15 @@
         <table>
             <thead>
                 <tr>
-                    <th>Folio OC</th>
                     <th>Factura</th>
                     <th>Fecha Vencimiento</th>
-                    <th class="text-right">Total original</th>
+                    <th class="text-right">Subtotal</th>
+                    <th class="text-right">D. Global</th>
+                    <th class="text-right">D. Extra</th>
+                    <th class="text-right">D. Interno</th>
+                    <th class="text-right">IVA</th>
+                    <th class="text-right">Total Factura</th>
+                    <th class="text-right">P. Pago</th>
                     <th class="text-right">Saldo Pendiente</th>
                 </tr>
             </thead>
@@ -60,18 +65,29 @@
                 @foreach($facturas as $factura)
                     @php $vencida = $factura->fecha_vencimiento && $factura->fecha_vencimiento < now()->format('Y-m-d'); @endphp
                     <tr>
-                        <td>{{ $factura->folio }}</td>
                         <td>{{ $factura->factura ?? 'S/F' }}</td>
                         <td class="{{ $vencida ? 'vencida' : '' }}">
                             {{ \Carbon\Carbon::parse($factura->fecha_vencimiento)->format('d/m/Y') }}
                             @if($vencida) <br><small>(VENCIDA)</small> @endif
                         </td>
-                        <td class="text-right">${{ number_format($factura->total, 2) }}</td>
+                        <td class="text-right">${{ number_format($factura->subtotal, 2) }}</td>
+                        <td class="text-right">{{ number_format($factura->porcentaje_descuento, 2) }}%<br><small>${{ number_format($factura->monto_descuento, 2) }}</small></td>
+                        <td class="text-right">{{ number_format($factura->porcentaje_descuento_extra, 2) }}%<br><small>${{ number_format($factura->monto_descuento_extra, 2) }}</small></td>
+                        <td class="text-right">
+                            @php
+                                $base_interna = $factura->subtotal - $factura->monto_descuento - $factura->monto_descuento_extra;
+                                $pct_interno_efectivo = $base_interna > 0 ? ($factura->monto_descuento_interno / $base_interna) * 100 : 0;
+                            @endphp
+                            {{ number_format($pct_interno_efectivo, 2) }}%<br><small>${{ number_format($factura->monto_descuento_interno, 2) }}</small>
+                        </td>
+                        <td class="text-right">${{ number_format($factura->iva, 2) }}</td>
+                        <td class="text-right"><strong>${{ number_format($factura->total, 2) }}</strong></td>
+                        <td class="text-right">{{ number_format($factura->porcentaje_pronto_pago ?? 0, 2) }}%<br><small>${{ number_format($factura->monto_pronto_pago ?? 0, 2) }}</small></td>
                         <td class="text-right"><strong>${{ number_format($factura->saldo_pendiente, 2) }}</strong></td>
                     </tr>
                 @endforeach
                 <tr class="totals">
-                    <td colspan="4" class="text-right">Total Pendiente:</td>
+                    <td colspan="9" class="text-right">Total Pendiente:</td>
                     <td class="text-right">${{ number_format($facturas->sum('saldo_pendiente'), 2) }}</td>
                 </tr>
             </tbody>
@@ -111,34 +127,7 @@
     </div>
     @endif
 
-    <!-- Historial de Pagos Recientes -->
-    @if($pagos->count() > 0)
-    <div style="page-break-inside: avoid;">
-        <div class="section-title">Historial de Pagos Recientes</div>
-        <table>
-            <thead>
-                <tr>
-                    <th>Fecha Pago</th>
-                    <th>Factura Abonada</th>
-                    <th>Forma de Pago</th>
-                    <th>Referencia / NC</th>
-                    <th class="text-right">Monto Pagado</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach($pagos->take(15) as $pago)
-                    <tr>
-                        <td>{{ \Carbon\Carbon::parse($pago->fecha_pago)->format('d/m/Y') }}</td>
-                        <td>{{ $pago->compra->factura ?? $pago->compra->folio }}</td>
-                        <td>{{ $pago->forma_pago }}</td>
-                        <td>{{ $pago->referencia ?? ($pago->notaCredito ? 'NC: ' . $pago->notaCredito->folio : 'N/A') }}</td>
-                        <td class="text-right">${{ number_format($pago->monto, 2) }}</td>
-                    </tr>
-                @endforeach
-            </tbody>
-        </table>
-    </div>
-    @endif
+
 
 </body>
 </html>

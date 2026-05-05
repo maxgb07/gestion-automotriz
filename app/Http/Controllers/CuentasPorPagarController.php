@@ -309,7 +309,30 @@ class CuentasPorPagarController extends Controller
             ->limit(50)
             ->get();
 
-        $pdf = Pdf::loadView('cuentas_por_pagar.pdf', compact('proveedor', 'facturas', 'notasCredito', 'pagos'));
-        return $pdf->download('estado_de_cuenta_' . str_replace(' ', '_', $proveedor->nombre) . '_' . date('Ymd') . '.pdf');
+        $pdf = Pdf::loadView('cuentas_por_pagar.pdf', compact('proveedor', 'facturas', 'notasCredito', 'pagos'))
+                    ->setPaper('a4', 'landscape');
+        return $pdf->stream('estado_de_cuenta_' . str_replace(' ', '_', $proveedor->nombre) . '_' . date('Ymd') . '.pdf');
+    }
+
+    public function descargarPDFGlobal()
+    {
+        $proveedores = Proveedor::with(['compras' => function($q) {
+            $q->where('saldo_pendiente', '>', 0)->where('estado_pago', '!=', 'PAGADA');
+        }])->orderBy('nombre', 'asc')->get()->map(function ($proveedor) {
+            $proveedor->total_deuda = $proveedor->compras->sum('saldo_pendiente');
+            // Obtener saldo a favor de notas de crédito
+            $proveedor->saldo_favor = \App\Models\NotaCreditoProveedor::where('proveedor_id', $proveedor->id)
+                ->where('estado', 'ACTIVA')
+                ->sum('saldo_disponible');
+            
+            return $proveedor;
+        })->filter(function ($proveedor) {
+            return $proveedor->total_deuda > 0 || $proveedor->saldo_favor > 0;
+        });
+
+        $pdf = Pdf::loadView('cuentas_por_pagar.pdf_global', compact('proveedores'))
+                    ->setPaper('a4', 'landscape');
+        
+        return $pdf->stream('estado_de_cuenta_global_' . date('Ymd') . '.pdf');
     }
 }

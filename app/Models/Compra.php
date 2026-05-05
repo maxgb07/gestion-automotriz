@@ -34,7 +34,9 @@ class Compra extends Model
         'fecha_vencimiento',
         'saldo_pendiente',
         'estado_pago',
-        'estado_complemento'
+        'estado_complemento',
+        'porcentaje_pronto_pago',
+        'monto_pronto_pago'
     ];
 
     public function proveedor()

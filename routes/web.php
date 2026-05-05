@@ -89,6 +89,7 @@ Route::middleware('auth')->group(function () {
     // Cuentas por Pagar
     Route::prefix('cuentas-por-pagar')->name('cuentas_por_pagar.')->group(function () {
         Route::get('/', [\App\Http\Controllers\CuentasPorPagarController::class, 'index'])->name('index');
+        Route::get('/pdf-global', [\App\Http\Controllers\CuentasPorPagarController::class, 'descargarPDFGlobal'])->name('pdf_global');
         Route::get('/{proveedor}', [\App\Http\Controllers\CuentasPorPagarController::class, 'show'])->name('show');
         Route::get('/{proveedor}/pdf', [\App\Http\Controllers\CuentasPorPagarController::class, 'descargarPDF'])->name('pdf');
         Route::post('/pagos', [\App\Http\Controllers\CuentasPorPagarController::class, 'registrarPago'])->name('pagos.store');

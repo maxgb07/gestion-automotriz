@@ -52,10 +52,13 @@
                         <!-- <th class="px-4 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Folio OC</th> -->
                         <th class="px-4 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Factura</th>
                         <th class="px-4 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Vencimiento</th>
-                        <th class="px-4 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Total Factura</th>
+                        <th class="px-4 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Subtotal</th>
                         <th class="px-4 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Desc. Global</th>
                         <th class="px-4 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Desc. Extra</th>
                         <th class="px-4 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Desc. Interno</th>
+                        <th class="px-4 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">IVA</th>
+                        <th class="px-4 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Total Factura</th>
+                        <th class="px-4 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Pronto Pago</th>
                         <th class="px-4 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Saldo Pendiente</th>
                     </tr>
                 </thead>
@@ -71,22 +74,28 @@
                                     <!-- @if($vencida) (V) @endif -->
                                 </span>
                             </td>
-                            <td class="px-4 py-4 whitespace-nowrap text-center text-white font-medium text-md">${{ number_format($factura->total, 2) }}</td>
+                            <td class="px-4 py-4 whitespace-nowrap text-center text-white font-medium text-md">${{ number_format($factura->subtotal, 2) }}</td>
                             <td class="px-4 py-4 whitespace-nowrap text-center text-amber-200 text-md">
-                                {{ number_format($factura->porcentaje_descuento, 1) }}%<br>
+                                {{ number_format($factura->porcentaje_descuento, 2) }}%<br>
                                 <span class="text-md opacity-70">${{ number_format($factura->monto_descuento, 2) }}</span>
                             </td>
                             <td class="px-4 py-4 whitespace-nowrap text-center text-amber-200 text-md">
-                                {{ number_format($factura->porcentaje_descuento_extra, 1) }}%<br>
+                                {{ number_format($factura->porcentaje_descuento_extra, 2) }}%<br>
                                 <span class="text-md opacity-70">${{ number_format($factura->monto_descuento_extra, 2) }}</span>
                             </td>
                             <td class="px-4 py-4 whitespace-nowrap text-center text-amber-200 text-md">
                                 @php
-                                    $base_interna = $factura->total - $factura->monto_descuento - $factura->monto_descuento_extra;
+                                    $base_interna = $factura->subtotal - $factura->monto_descuento - $factura->monto_descuento_extra;
                                     $pct_interno_efectivo = $base_interna > 0 ? ($factura->monto_descuento_interno / $base_interna) * 100 : 0;
                                 @endphp
-                                {{ number_format($pct_interno_efectivo, 1) }}%<br>
+                                {{ number_format($pct_interno_efectivo, 2) }}%<br>
                                 <span class="text-md opacity-70">${{ number_format($factura->monto_descuento_interno, 2) }}</span>
+                            </td>
+                            <td class="px-4 py-4 whitespace-nowrap text-center text-blue-200 font-medium text-md">${{ number_format($factura->iva, 2) }}</td>
+                            <td class="px-4 py-4 whitespace-nowrap text-center text-white font-bold text-md">${{ number_format($factura->total, 2) }}</td>
+                            <td class="px-4 py-4 whitespace-nowrap text-center text-green-300 text-md">
+                                {{ number_format($factura->porcentaje_pronto_pago ?? 0, 2) }}%<br>
+                                <span class="text-md opacity-70">${{ number_format($factura->monto_pronto_pago ?? 0, 2) }}</span>
                             </td>
                             <td class="px-4 py-4 whitespace-nowrap text-center text-white font-black text-md text-blue-300">
                                 ${{ number_format($factura->saldo_pendiente, 2) }}

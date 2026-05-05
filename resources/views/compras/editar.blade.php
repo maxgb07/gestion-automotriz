@@ -269,6 +269,15 @@
                                 <span class="text-lg font-bold" id="monto-desc-interno">$0.00</span>
                             </div>
 
+                            <!-- Pronto Pago -->
+                            <div class="flex justify-between items-center w-full pt-4 pb-4 border-b border-white/10">
+                                <span class="text-green-400 text-[10px] uppercase font-black tracking-widest">Desc. Financiero / Pronto Pago (%)</span>
+                                <div class="flex items-center gap-2">
+                                    <input type="number" step="any" name="porcentaje_pronto_pago" id="porcentaje_pronto_pago" value="{{ old('porcentaje_pronto_pago', number_format($compra->porcentaje_pronto_pago ?? 0, 2, '.', '')) }}" min="0" max="100" oninput="calculateTotal()" onfocus="this.select()" class="w-16 px-2 py-1 bg-white/10 border border-green-500/50 rounded-lg text-white text-right focus:ring-2 focus:ring-green-500 transition-all font-mono">
+                                    <span class="text-green-400 text-lg font-bold" id="monto-pronto-pago">-$0.00</span>
+                                </div>
+                            </div>
+
                             <div class="flex justify-between w-full pt-4">
                                 <span class="text-blue-200 text-sm uppercase font-black mt-1 tracking-widest">Saldo Pendiente</span>
                                 <span class="text-4xl font-black text-white" id="total-general">$0.00</span>
@@ -314,13 +323,13 @@
                 <input type="number" step="any" name="productos[INDEX][precio_venta]" value="0.00" min="0.00" oninput="calculateRow(this)" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm text-md font-bold text-center">
             </td>
             <td class="px-4 py-4 text-center">
-                <input type="number" step="any" name="productos[INDEX][descuento_porcentaje]" value="0" min="0" max="100" oninput="calculateRow(this)" class="row-desc1 block w-full px-2 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-xs text-center">
+                <input type="number" step="any" name="productos[INDEX][descuento_porcentaje]" value="0.00" min="0" max="100" oninput="calculateRow(this)" class="row-desc1 block w-full px-2 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-xs text-center">
             </td>
             <td class="px-4 py-4 text-center">
-                <input type="number" step="any" name="productos[INDEX][descuento_extra_porcentaje]" value="0" min="0" max="100" oninput="calculateRow(this)" class="row-desc2 block w-full px-2 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-xs text-center">
+                <input type="number" step="any" name="productos[INDEX][descuento_extra_porcentaje]" value="0.00" min="0" max="100" oninput="calculateRow(this)" class="row-desc2 block w-full px-2 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-xs text-center">
             </td>
             <td class="px-4 py-4 text-center">
-                <input type="number" step="any" name="productos[INDEX][descuento_interno_porcentaje]" value="0" min="0" max="100" oninput="calculateRow(this)" class="row-desc-int block w-full px-2 py-3 bg-white/10 border border-amber-500/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all text-xs text-center" placeholder="0">
+                <input type="number" step="any" name="productos[INDEX][descuento_interno_porcentaje]" value="0.00" min="0" max="100" oninput="calculateRow(this)" class="row-desc-int block w-full px-2 py-3 bg-white/10 border border-amber-500/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all text-xs text-center" placeholder="0.00">
             </td>
             <td class="px-4 py-4 text-center">
                 <span class="text-white text-md font-bold subtotal" data-value="0">$0.00</span>
@@ -563,7 +572,7 @@
                         grossSubtotal += base;
                         
                         rowsData.push({
-                            rowTotal: base * 1.16,
+                            rowTotal: base, // Base SIN IVA
                             pctInt: pctInt
                         });
 
@@ -578,12 +587,9 @@
                 const aplicaS = document.getElementById('aplica_descuento_seguro')?.checked;
 
                 const grossSubtotalGeneral = grossSubtotal + montoManiobra + montoSeguro;
-                const iva = grossSubtotalGeneral * 0.16;
-                const totalFactura = grossSubtotalGeneral + iva;
 
-                // Base descontable (con IVA)
-                const discountableTotal = (grossSubtotal + (aplicaM ? montoManiobra : 0) + (aplicaS ? montoSeguro : 0)) * 1.16;
-                const nonDiscountableTotal = totalFactura - discountableTotal;
+                // Base descontable (SIN IVA)
+                const discountableTotal = grossSubtotal + (aplicaM ? montoManiobra : 0) + (aplicaS ? montoSeguro : 0);
 
                 let remaining = discountableTotal;
                 
@@ -604,7 +610,19 @@
                     sumInternalDiscount += (rowRemaining * (data.pctInt / 100));
                 });
 
-                const saldoPendiente = Math.max(0, remaining - sumInternalDiscount + nonDiscountableTotal);
+                const totalDescuentosComerciales = montoGlobal + montoExtra + sumInternalDiscount;
+                
+                // Base Imponible Real (Subtotal - Descuentos Comerciales)
+                const baseImponible = grossSubtotalGeneral - totalDescuentosComerciales;
+
+                const iva = baseImponible * 0.16;
+                const totalFactura = baseImponible + iva;
+
+                // Descuento Financiero (Pronto Pago)
+                const pctProntoPago = parseFloat(document.getElementById('porcentaje_pronto_pago')?.value) || 0;
+                const montoProntoPago = totalFactura * (pctProntoPago / 100);
+
+                const saldoPendiente = Math.max(0, totalFactura - montoProntoPago);
                 
                 // Formatear moneda helper
                 const fmt = (val) => '$' + val.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
@@ -613,10 +631,13 @@
                 document.getElementById('resumen-iva').textContent = fmt(iva);
                 document.getElementById('total-factura').textContent = fmt(totalFactura);
                 
-                document.getElementById('monto-desc-global').textContent = fmt(montoGlobal);
-                document.getElementById('monto-desc-extra').textContent = fmt(montoExtra);
-                document.getElementById('monto-desc-interno').textContent = fmt(sumInternalDiscount);
+                document.getElementById('monto-desc-global').textContent = '-' + fmt(montoGlobal);
+                document.getElementById('monto-desc-extra').textContent = '-' + fmt(montoExtra);
+                document.getElementById('monto-desc-interno').textContent = '-' + fmt(sumInternalDiscount);
                 
+                const spanProntoPago = document.getElementById('monto-pronto-pago');
+                if(spanProntoPago) spanProntoPago.textContent = '-' + fmt(montoProntoPago);
+
                 document.getElementById('total-general').textContent = fmt(saldoPendiente);
             };
 

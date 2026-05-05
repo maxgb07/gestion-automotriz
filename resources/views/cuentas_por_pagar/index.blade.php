@@ -8,6 +8,14 @@
             <h1 class="text-3xl font-bold text-white uppercase tracking-tight">Cuentas por Pagar</h1>
             <p class="text-blue-200">Gestión de saldos, pagos y notas de crédito con proveedores</p>
         </div>
+        <div>
+            <a href="{{ route('cuentas_por_pagar.pdf_global') }}" target="_blank" class="w-fit inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-lg shadow-lg shadow-indigo-900/40 transition-all text-sm uppercase tracking-widest cursor-pointer" style="background-color: #4f46e5;">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                Estado de Cuenta
+            </a>
+        </div>
     </div>
 
     <!-- Filtros -->
