@@ -229,6 +229,16 @@
                     $('#btn-nuevo-vehiculo').addClass('hidden');
                 }
             });
+
+            // Autofocus en el input de búsqueda al abrir cualquier Select2
+            $(document).on('select2:open', function() {
+                setTimeout(function() {
+                    const searchField = document.querySelector('.select2-container--open .select2-search__field');
+                    if (searchField) {
+                        searchField.focus();
+                    }
+                }, 50);
+            });
         });
 
         function nuevoCliente() {
@@ -301,7 +311,7 @@
                             <input type="text" id="swal-modelo" class="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-sm font-bold uppercase focus:outline-none focus:ring-2 focus:ring-blue-500/50">
                         </div>
                         <div class="col-span-1">
-                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">Año *</label>
+                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">Año</label>
                             <input type="number" id="swal-anio" class="w-full px-4 py-3 bg-slate-100 border border-slate-200 rounded-xl text-sm font-bold focus:outline-none focus:ring-2 focus:ring-blue-500/50">
                         </div>
                         <div class="col-span-1">
@@ -319,8 +329,8 @@
                     const modelo = document.getElementById('swal-modelo').value;
                     const anio = document.getElementById('swal-anio').value;
                     const placas = document.getElementById('swal-placas').value;
-                    if (!marca || !modelo || !anio) {
-                        Swal.showValidationMessage('Marca, modelo y año son obligatorios');
+                    if (!marca || !modelo) {
+                        Swal.showValidationMessage('Marca y modelo son obligatorios');
                         return false;
                     }
                     return { marca, modelo, anio, placas };
