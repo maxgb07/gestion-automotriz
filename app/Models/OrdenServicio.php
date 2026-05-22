@@ -36,12 +36,24 @@ class OrdenServicio extends Model
         'folio_factura',
         'fecha_factura',
         'uuid_factura',
+        'share_token',
     ];
 
     protected $casts = [
         'fecha_entrada' => 'datetime',
         'fecha_entrega' => 'datetime',
     ];
+
+    protected static function boot()
+    {
+        parent::boot();
+
+        static::saving(function ($model) {
+            if (in_array($model->estado, ['FINALIZADO', 'ENTREGADO']) && empty($model->share_token)) {
+                $model->share_token = \Illuminate\Support\Str::random(32);
+            }
+        });
+    }
 
     public function cliente()
     {

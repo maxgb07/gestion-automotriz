@@ -51,7 +51,7 @@ class OrdenServicioController extends Controller
             ->select('ordenes_servicio.*')
             ->leftJoin('clientes', 'ordenes_servicio.cliente_id', '=', 'clientes.id')
             ->leftJoin('vehiculos', 'ordenes_servicio.vehiculo_id', '=', 'vehiculos.id')
-            ->with(['pagos', 'detalles.producto', 'detalles.servicio']);
+            ->with(['cliente', 'vehiculo', 'pagos', 'detalles.producto', 'detalles.servicio']);
 
         if ($request->filled('buscar')) {
             $buscar = $request->get('buscar');
@@ -699,6 +699,17 @@ class OrdenServicioController extends Controller
             'success' => false,
             'message' => 'No es posible revertir esta orden. Solo se permiten órdenes finalizadas o pendientes sin abonos.'
         ], 422);
+    }
+
+    public function verPDFCompartido($token)
+    {
+        $orden = OrdenServicio::where('share_token', $token)->first();
+
+        if (!$orden) {
+            abort(404, 'Enlace no válido o la orden de servicio no existe.');
+        }
+
+        return $this->descargarPDF($orden);
     }
 
     private function generarFolio()

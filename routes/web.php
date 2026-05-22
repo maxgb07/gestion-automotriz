@@ -23,6 +23,9 @@ Route::get('/login', [AuthController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
+// Ruta pública para compartir orden de servicio (PDF)
+Route::get('orden/compartir/{token}', [\App\Http\Controllers\OrdenServicioController::class, 'verPDFCompartido'])->name('ordenes.compartir');
+
 // Rutas protegidas
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard');

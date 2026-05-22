@@ -310,6 +310,16 @@
                                             <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8l-2.08-5.99zM6.5 16c-.83 0-1.5-.67-1.5-1.5S5.67 13 6.5 13s1.5.67 1.5 1.5S7.33 16 6.5 16zm11 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5zM5 11l1.5-4.5h11L19 11H5z"/>
                                         </svg>
                                     </button>
+
+                                    @if(in_array($orden->estado, ['FINALIZADO', 'ENTREGADO']))
+                                        <button onclick="compartirWhatsapp('{{ $orden->cliente->celular }}', '{{ $orden->share_token }}', '{{ $orden->folio }}', '{{ $orden->vehiculo->marca }}', '{{ $orden->vehiculo->modelo }}')" 
+                                                class="p-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 rounded-lg border border-emerald-500/20 transition-all cursor-pointer" 
+                                                title="ENVIAR POR WHATSAPP">
+                                            <svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
+                                                <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946C.06 5.348 5.397.01 12.008.01c3.202.001 6.212 1.246 8.477 3.514 2.266 2.268 3.507 5.28 3.505 8.484-.004 6.657-5.34 11.997-11.953 11.997-2.005-.001-3.973-.502-5.724-1.455L0 24zm6.59-4.846c1.6.95 3.188 1.449 4.825 1.451 5.436 0 9.86-4.42 9.863-9.864.001-2.63-1.019-5.1-2.875-6.958C16.29 1.925 13.82 .906 11.999.906c-5.441 0-9.865 4.422-9.867 9.867-.001 1.765.467 3.488 1.355 5.017l-.989 3.615 3.702-.971c1.51.823 3.072 1.226 4.757 1.22zM17.51 14.9c-.29-.145-1.713-.846-1.978-.941-.264-.096-.457-.145-.65.145-.19.29-.738.941-.905 1.133-.166.19-.333.213-.622.068-2.905-1.455-4.807-4.3-5.385-5.293-.166-.29-.018-.446.126-.59.13-.13.29-.338.435-.507.145-.17.193-.29.29-.483.097-.19.048-.362-.024-.507-.072-.145-.65-1.57-.89-2.15-.234-.567-.472-.489-.65-.498-.17-.008-.362-.01-.555-.01-.19 0-.507.072-.772.362-.265.29-1.013.99-1.013 2.415 0 1.42 1.037 2.797 1.182 2.99.145.19 2.04 3.115 4.938 4.368.689.298 1.229.476 1.649.61.692.22 1.322.19 1.82.115.556-.084 1.712-.7 1.953-1.376.24-.676.24-1.255.168-1.376-.07-.12-.26-.19-.55-.336z"/>
+                                            </svg>
+                                        </button>
+                                    @endif
                                 </div>
                             </td>
                         </tr>
@@ -1087,6 +1097,91 @@
                 console.error("Error al abrir la modal:", e);
                 Swal.fire('Error', 'No se pudieron procesar los detalles visuales de esta orden.', 'error');
             }
+        }
+
+        function compartirWhatsapp(celularOriginal, token, folio, marca, modelo) {
+            let celular = celularOriginal ? celularOriginal.replace(/\D/g, '') : '';
+            if (celular.startsWith('52') && celular.length === 12) {
+                celular = celular.substring(2);
+            } else if (celular.startsWith('521') && celular.length === 13) {
+                celular = celular.substring(3);
+            }
+            
+            const linkCompartir = `{{ url('orden/compartir') }}/${token}`;
+            const vehiculoStr = `${marca} ${modelo}`.trim().toUpperCase();
+            const mensajeDefecto = `¡Hola! Esperamos que se encuentre muy bien. Le escribimos para notificarle que el servicio de su ${vehiculoStr} ha finalizado con éxito y ya está listo para ser entregado.\n\nLe recordamos que nuestro horario de atención es:\n* Lunes a Viernes: 09:00 a 17:30 hrs.\n* Sábados: 09:00 a 14:00 hrs.\n\nPuede revisar el reporte y comprobante detallado de su orden en este enlace: ${linkCompartir}\n\nAgradecemos su preferencia y quedamos a su disposición para cualquier duda.`;
+
+            Swal.fire({
+                title: 'COMPARTIR ORDEN POR WHATSAPP',
+                background: '#1e293b',
+                color: '#fff',
+                html: `
+                    <div class="p-4 space-y-4 text-left">
+                        <div class="grid grid-cols-3 gap-4">
+                            <div class="col-span-1">
+                                <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">LADA</label>
+                                <select id="swal_lada" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                                    <option value="52" class="text-black" selected>MX (+52)</option>
+                                    <option value="1" class="text-black">US/CA (+1)</option>
+                                    <option value="502" class="text-black">GT (+502)</option>
+                                    <option value="503" class="text-black">SV (+503)</option>
+                                    <option value="504" class="text-black">HN (+504)</option>
+                                    <option value="505" class="text-black">NI (+505)</option>
+                                    <option value="506" class="text-black">CR (+506)</option>
+                                    <option value="507" class="text-black">PA (+507)</option>
+                                    <option value="57" class="text-black">CO (+57)</option>
+                                    <option value="54" class="text-black">AR (+54)</option>
+                                    <option value="56" class="text-black">CL (+56)</option>
+                                    <option value="51" class="text-black">PE (+51)</option>
+                                    <option value="591" class="text-black">BO (+591)</option>
+                                    <option value="593" class="text-black">EC (+593)</option>
+                                    <option value="595" class="text-black">PY (+595)</option>
+                                    <option value="598" class="text-black">UY (+598)</option>
+                                    <option value="58" class="text-black">VE (+58)</option>
+                                </select>
+                            </div>
+                            <div class="col-span-2">
+                                <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">TELÉFONO CELULAR</label>
+                                <input type="text" id="swal_celular" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" value="${celular}" placeholder="EJ. 5512345678">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black text-slate-400 uppercase tracking-widest mb-1 ml-1">MENSAJE A ENVIAR</label>
+                            <textarea id="swal_mensaje" rows="7" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-sm">${mensajeDefecto}</textarea>
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'ENVIAR POR WHATSAPP',
+                cancelButtonText: 'CANCELAR',
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#ef4444',
+                customClass: {
+                    container: 'backdrop-blur-sm',
+                    popup: 'rounded-3xl border border-white/10 shadow-2xl',
+                    confirmButton: 'rounded-xl px-8 py-3 font-bold uppercase tracking-widest text-sm',
+                    cancelButton: 'rounded-xl px-8 py-3 font-bold uppercase tracking-widest text-sm'
+                },
+                preConfirm: () => {
+                    const lada = document.getElementById('swal_lada').value;
+                    const tel = document.getElementById('swal_celular').value.replace(/\D/g, '');
+                    const msg = document.getElementById('swal_mensaje').value;
+
+                    if (!tel) {
+                        Swal.showValidationMessage('El número de teléfono es obligatorio');
+                        return false;
+                    }
+
+                    return { lada, tel, msg };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const { lada, tel, msg } = result.value;
+                    const encodedMsg = encodeURIComponent(msg);
+                    const url = `https://wa.me/${lada}${tel}?text=${encodedMsg}`;
+                    window.open(url, '_blank');
+                }
+            });
         }
     </script>
 @endpush
