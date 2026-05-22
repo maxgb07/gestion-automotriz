@@ -34,7 +34,7 @@ class CuentasPorPagarController extends Controller
 
             return $proveedor;
         })->filter(function ($proveedor) {
-            return $proveedor->total_deuda > 0 || $proveedor->saldo_favor > 0;
+            return $proveedor->total_deuda >= 0 || $proveedor->saldo_favor >= 0;
         })->sortByDesc('total_deuda');
 
         return view('cuentas_por_pagar.index', compact('proveedores'));

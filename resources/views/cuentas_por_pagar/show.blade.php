@@ -217,20 +217,20 @@
             <table class="w-full text-center border-collapse">
                 <thead class="bg-white/5 border-b border-white/10">
                     <tr>
-                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Folio / Referencia</th>
+                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Folio</th>
                         <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Fecha</th>
-                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Monto Original</th>
                         <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Saldo Disponible</th>
+                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Observaciones</th>
                         <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Estado</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-white/10">
                     @forelse($notasCredito as $nc)
                         <tr class="hover:bg-white/5 transition-colors">
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-white font-bold uppercase">{{ $nc->folio }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-white uppercase">{{ $nc->folio }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-center text-white uppercase">{{ \Carbon\Carbon::parse($nc->fecha)->translatedFormat('d M, Y') }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-white">${{ number_format($nc->monto_original, 2) }}</td>
-                            <td class="px-6 py-4 whitespace-nowrap text-center text-emerald-400 font-black text-lg">${{ number_format($nc->saldo_disponible, 2) }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-emerald-400 font-black uppercase">${{ number_format($nc->saldo_disponible, 2) }}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center text-white uppercase">{{ $nc->observaciones }}</td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 <span class="px-3 py-1 bg-emerald-500/20 text-emerald-300 text-xs font-bold rounded-full uppercase">{{ $nc->estado }}</span>
                             </td>
