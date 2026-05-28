@@ -252,78 +252,121 @@
 
 
     <!-- MODAL: REGISTRAR PAGO -->
-    <div id="modal-pago" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm overflow-y-auto flex items-center justify-center p-4">
-        <div class="bg-slate-800 rounded-3xl border border-white/20 shadow-2xl w-full max-w-2xl overflow-hidden relative">
-            <div class="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
+    <div id="modal-pago" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm overflow-y-auto flex items-start justify-center p-4">
+        <div class="bg-slate-800 rounded-3xl border border-white/20 shadow-2xl w-full max-w-2xl overflow-hidden relative my-4 flex flex-col max-h-[92vh]">
+            <!-- Header fijo -->
+            <div class="p-5 border-b border-white/10 flex justify-between items-center bg-white/5 flex-shrink-0">
                 <h3 class="text-xl font-black text-white uppercase tracking-tight">Registrar Pago a Proveedor</h3>
                 <button onclick="document.getElementById('modal-pago').classList.add('hidden')" class="text-blue-200 hover:text-white transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
-            
-            <form action="{{ route('cuentas_por_pagar.pagos.store') }}" method="POST" class="p-8">
+
+            <!-- Cuerpo scrollable -->
+            <form action="{{ route('cuentas_por_pagar.pagos.store') }}" method="POST" class="flex flex-col flex-1 overflow-hidden">
                 @csrf
                 <input type="hidden" name="proveedor_id" value="{{ $proveedor->id }}">
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div>
-                        <label class="block text-sm font-medium text-blue-100 mb-2 uppercase">Monto a Pagar (Dinero)</label>
-                        <input type="number" step="0.01" min="0" name="monto_pago" id="monto_pago_input" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-black text-lg" placeholder="0.00">
-                    </div>
-                    <div>
-                        <label class="block text-sm font-medium text-blue-100 mb-2 uppercase">Forma de Pago *</label>
-                        <select name="forma_pago" id="forma_pago_select" required class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-                            <option value="TRANSFERENCIA" class="text-black">TRANSFERENCIA</option>
-                            <option value="EFECTIVO" class="text-black">EFECTIVO</option>
-                            <option value="CHEQUE" class="text-black">CHEQUE</option>
-                        </select>
-                    </div>
-                </div>
+                <div class="overflow-y-auto flex-1 p-6 space-y-5">
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <div>
-                        <label class="block text-sm font-medium text-blue-100 mb-2 uppercase">Fecha del Pago *</label>
-                        <input type="date" name="fecha_pago" value="{{ date('Y-m-d') }}" required class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-xs font-bold text-blue-100 mb-1.5 uppercase tracking-wider">Monto a Pagar (Dinero)</label>
+                            <input type="number" step="0.01" min="0" name="monto_pago" id="monto_pago_input" class="block w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-black text-lg" placeholder="0.00">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-blue-100 mb-1.5 uppercase tracking-wider">Forma de Pago *</label>
+                            <select name="forma_pago" id="forma_pago_select" required class="block w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                <option value="TRANSFERENCIA" class="text-black">TRANSFERENCIA</option>
+                                <option value="EFECTIVO" class="text-black">EFECTIVO</option>
+                                <option value="CHEQUE" class="text-black">CHEQUE</option>
+                            </select>
+                        </div>
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-blue-100 mb-2 uppercase">Referencia (Dinero)</label>
-                        <input type="text" name="referencia" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase">
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                        <div>
+                            <label class="block text-xs font-bold text-blue-100 mb-1.5 uppercase tracking-wider">Fecha del Pago *</label>
+                            <input type="date" name="fecha_pago" value="{{ date('Y-m-d') }}" required class="block w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-bold text-blue-100 mb-1.5 uppercase tracking-wider">Referencia (Dinero)</label>
+                            <input type="text" name="referencia" class="block w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase">
+                        </div>
                     </div>
-                </div>
 
-                <div id="div_nota_credito" class="mb-6 bg-emerald-500/10 p-4 rounded-xl border border-emerald-500/20">
-                    <label class="block text-sm font-medium text-emerald-200 mb-2 uppercase">Aplicar NC / Saldo a Favor (Opcional)</label>
-                    <select name="nota_credito_id" id="nota_credito_id" class="block w-full px-4 py-3 bg-white/10 border border-emerald-500/30 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                        <option value="" selected class="text-black">NO USAR SALDO A FAVOR</option>
-                        @foreach($notasCreditoModal as $nc)
-                            <option value="{{ $nc->id }}" data-saldo="{{ $nc->saldo_disponible }}" class="text-black">{{ $nc->folio }} (SALDO: ${{ number_format($nc->saldo_disponible, 2) }})</option>
-                        @endforeach
-                    </select>
-                </div>
+                    <!-- NC / Saldo a Favor: multi-selección con checkboxes -->
+                    <div id="div_nota_credito" class="bg-emerald-500/10 p-4 rounded-xl border border-emerald-500/20">
+                        <div class="flex items-center justify-between mb-2">
+                            <label class="block text-xs font-bold text-emerald-200 uppercase tracking-wider">Aplicar NC / Saldo a Favor (Opcional)</label>
+                            @if($notasCreditoModal->count() > 0)
+                                <span id="resumen_nc" class="text-xs font-black text-emerald-300 bg-emerald-500/20 px-3 py-1 rounded-full">Total NC: $0.00</span>
+                            @endif
+                        </div>
+                        @if($notasCreditoModal->count() > 0)
+                            <div class="max-h-32 overflow-y-auto bg-black/20 rounded-xl border border-emerald-500/20 p-2 space-y-1">
+                                @foreach($notasCreditoModal as $nc)
+                                    <label class="flex items-center justify-between p-2.5 rounded-lg hover:bg-emerald-500/10 cursor-pointer border border-transparent hover:border-emerald-500/20 transition-all">
+                                        <div class="flex items-center gap-3">
+                                            <input type="checkbox"
+                                                   name="notas_credito_ids[]"
+                                                   value="{{ $nc->id }}"
+                                                   data-saldo="{{ $nc->saldo_disponible }}"
+                                                   class="w-4 h-4 rounded border-emerald-500/40 bg-white/10 text-emerald-500 focus:ring-emerald-500 nc-checkbox">
+                                            <span class="text-white font-bold uppercase text-sm">{{ $nc->folio }}</span>
+                                        </div>
+                                        <span class="text-emerald-400 font-black text-sm">${{ number_format($nc->saldo_disponible, 2) }}</span>
+                                    </label>
+                                @endforeach
+                            </div>
+                        @else
+                            <p class="text-emerald-200/50 text-xs uppercase font-bold text-center py-2">No hay NC / Saldos a favor disponibles</p>
+                        @endif
+                    </div>
 
-                <div class="mb-8">
-                    <label class="block text-sm font-medium text-blue-100 mb-2 uppercase">Selecciona las facturas a liquidar/abonar</label>
-                    <p class="text-xs text-blue-200/60 mb-4 uppercase">El monto se distribuirá automáticamente en el orden de vencimiento de las facturas seleccionadas.</p>
-                    
-                    <div class="max-h-48 overflow-y-auto bg-black/20 rounded-xl border border-white/10 p-2 space-y-2">
-                        @foreach($facturasModal as $factura)
-                            <label class="flex items-center justify-between p-3 rounded-lg hover:bg-white/5 cursor-pointer border border-transparent hover:border-white/10 transition-all">
-                                <div class="flex items-center gap-3">
-                                    <input type="checkbox" name="facturas[]" value="{{ $factura->id }}" data-saldo="{{ $factura->saldo_pendiente }}" class="w-5 h-5 rounded border-white/20 bg-white/10 text-blue-500 focus:ring-blue-500 factura-checkbox" {{ $loop->first ? 'checked' : '' }}>
-                                    <div class="flex flex-col">
-                                        <span class="text-white font-bold uppercase">{{ $factura->factura ?? $factura->folio }}</span>
-                                        <span class="text-xs text-blue-200 uppercase">Vence: {{ \Carbon\Carbon::parse($factura->fecha_vencimiento)->format('d/m/Y') }}</span>
+                    <!-- Facturas a liquidar -->
+                    <div>
+                        <label class="block text-xs font-bold text-blue-100 mb-1 uppercase tracking-wider">Selecciona las facturas a liquidar/abonar</label>
+                        <p class="text-xs text-blue-200/60 mb-3 uppercase">El monto se distribuirá automáticamente en el orden de las facturas seleccionadas.</p>
+
+                        <div class="max-h-44 overflow-y-auto bg-black/20 rounded-xl border border-white/10 p-2 space-y-1">
+                            @foreach($facturasModal as $factura)
+                                <label class="flex items-center justify-between p-2.5 rounded-lg hover:bg-white/5 cursor-pointer border border-transparent hover:border-white/10 transition-all">
+                                    <div class="flex items-center gap-3">
+                                        <input type="checkbox" name="facturas[]" value="{{ $factura->id }}" data-saldo="{{ $factura->saldo_pendiente }}" class="w-4 h-4 rounded border-white/20 bg-white/10 text-blue-500 focus:ring-blue-500 factura-checkbox" {{ $loop->first ? 'checked' : '' }}>
+                                        <div class="flex flex-col">
+                                            <span class="text-white font-bold uppercase text-sm">{{ $factura->factura ?? $factura->folio }}</span>
+                                            <span class="text-xs text-blue-200 uppercase">Vence: {{ \Carbon\Carbon::parse($factura->fecha_vencimiento)->format('d/m/Y') }}</span>
+                                        </div>
                                     </div>
-                                </div>
-                                <span class="text-blue-300 font-black text-lg">${{ number_format($factura->saldo_pendiente, 2) }}</span>
-                            </label>
-                        @endforeach
+                                    <span class="text-blue-300 font-black">${{ number_format($factura->saldo_pendiente, 2) }}</span>
+                                </label>
+                            @endforeach
+                        </div>
                     </div>
+
+                    <!-- Resumen de totales -->
+                    <div class="bg-white/5 rounded-xl border border-white/10 p-4 space-y-2 text-sm">
+                        <div class="flex justify-between text-blue-200 uppercase font-semibold">
+                            <span>Total Facturas Seleccionadas:</span>
+                            <span id="resumen_total_facturas" class="text-white font-black">$0.00</span>
+                        </div>
+                        <div class="flex justify-between text-emerald-300 uppercase font-semibold">
+                            <span>(-) Total NC Aplicadas:</span>
+                            <span id="resumen_total_nc" class="font-black">$0.00</span>
+                        </div>
+                        <div class="flex justify-between border-t border-white/10 pt-2 text-white uppercase font-black text-base">
+                            <span>Monto a Pagar (Dinero):</span>
+                            <span id="resumen_monto_pagar" class="text-blue-300">$0.00</span>
+                        </div>
+                    </div>
+
                 </div>
 
-                <div class="flex justify-end gap-4">
-                    <button type="button" onclick="document.getElementById('modal-pago').classList.add('hidden')" class="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition-all uppercase text-sm">Cancelar</button>
-                    <button type="submit" class="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/20 transition-all uppercase text-sm">Registrar Pago</button>
+                <!-- Footer fijo con botones -->
+                <div class="flex justify-end gap-4 p-5 border-t border-white/10 bg-white/5 flex-shrink-0">
+                    <button type="button" onclick="document.getElementById('modal-pago').classList.add('hidden')" class="px-6 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition-all uppercase text-sm">Cancelar</button>
+                    <button type="submit" class="px-8 py-2.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/20 transition-all uppercase text-sm">Registrar Pago</button>
                 </div>
             </form>
         </div>
@@ -483,38 +526,44 @@
 
         // Lógica de cálculo automático de monto a pagar
         const facturasCheckboxes = document.querySelectorAll('.factura-checkbox');
-        const notaCreditoSelect = document.getElementById('nota_credito_id');
         const montoPagoInput = document.getElementById('monto_pago_input');
 
         function calcularMontoAPagar() {
             let totalFacturas = 0;
-            
             facturasCheckboxes.forEach(cb => {
-                if(cb.checked) {
-                    totalFacturas += parseFloat(cb.dataset.saldo || 0);
-                }
+                if (cb.checked) totalFacturas += parseFloat(cb.dataset.saldo || 0);
             });
 
+            // Sumar TODAS las NC checkboxes marcadas
             let saldoNC = 0;
-            if(notaCreditoSelect.selectedIndex > 0) {
-                const opt = notaCreditoSelect.options[notaCreditoSelect.selectedIndex];
-                saldoNC = parseFloat(opt.dataset.saldo || 0);
-            }
+            document.querySelectorAll('.nc-checkbox:checked').forEach(cb => {
+                saldoNC += parseFloat(cb.dataset.saldo || 0);
+            });
 
             let montoFinal = totalFacturas - saldoNC;
-            if(montoFinal < 0) montoFinal = 0;
+            if (montoFinal < 0) montoFinal = 0;
 
-            // Si el usuario no tiene nada seleccionado o todo lo cubre la NC,
-            // podemos poner 0. Si no, ponemos el monto calculado.
-            montoPagoInput.value = montoFinal > 0 ? montoFinal.toFixed(2) : '0.00';
+            montoPagoInput.value = montoFinal.toFixed(2);
+
+            // Actualizar resúmenes visuales
+            const fmt = n => '$' + n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+            const elTotalF = document.getElementById('resumen_total_facturas');
+            const elTotalNC = document.getElementById('resumen_total_nc');
+            const elMonto = document.getElementById('resumen_monto_pagar');
+            const elResumenNC = document.getElementById('resumen_nc');
+
+            if (elTotalF) elTotalF.textContent = fmt(totalFacturas);
+            if (elTotalNC) elTotalNC.textContent = fmt(saldoNC);
+            if (elMonto) elMonto.textContent = fmt(montoFinal);
+            if (elResumenNC) elResumenNC.textContent = 'Total NC: ' + fmt(saldoNC);
         }
 
-        // Ejecutar al cargar para inicializar el valor con el primer checkbox que viene checked por defecto
+        // Inicializar al cargar
         calcularMontoAPagar();
 
-        // Escuchar cambios
+        // Escuchar cambios en facturas y en NC
         facturasCheckboxes.forEach(cb => cb.addEventListener('change', calcularMontoAPagar));
-        notaCreditoSelect.addEventListener('change', calcularMontoAPagar);
+        document.querySelectorAll('.nc-checkbox').forEach(cb => cb.addEventListener('change', calcularMontoAPagar));
     });
 
     function abrirModalComplemento(grupoId, montoExpediente) {

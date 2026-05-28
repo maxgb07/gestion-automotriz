@@ -108,24 +108,31 @@ class CuentasPorPagarController extends Controller
     public function registrarPago(Request $request)
     {
         $request->validate([
-            'proveedor_id' => 'required|exists:proveedores,id',
-            'monto_pago' => 'nullable|numeric|min:0',
-            'forma_pago' => 'required|string',
-            'fecha_pago' => 'required|date',
-            'referencia' => 'nullable|string',
-            'facturas' => 'required|array|min:1',
-            'nota_credito_id' => 'nullable|exists:nota_credito_proveedors,id'
+            'proveedor_id'       => 'required|exists:proveedores,id',
+            'monto_pago'         => 'nullable|numeric|min:0',
+            'forma_pago'         => 'required|string',
+            'fecha_pago'         => 'required|date',
+            'referencia'         => 'nullable|string',
+            'facturas'           => 'required|array|min:1',
+            'notas_credito_ids'  => 'nullable|array',
+            'notas_credito_ids.*'=> 'exists:nota_credito_proveedors,id',
         ]);
 
         try {
             DB::beginTransaction();
 
-            $montoDinero = (float) ($request->monto_pago ?? 0);
-            $notaCredito = $request->nota_credito_id ? \App\Models\NotaCreditoProveedor::find($request->nota_credito_id) : null;
-            $montoNC = $notaCredito ? (float) $notaCredito->saldo_disponible : 0;
+            $montoDinero  = (float) ($request->monto_pago ?? 0);
 
-            if ($montoDinero <= 0 && $montoNC <= 0) {
-                throw new \Exception('Debe ingresar un monto a pagar o seleccionar una Nota de Crédito con saldo.');
+            // Cargar todas las NCs seleccionadas (puede ser 0, 1 o N)
+            $notasCredito = collect();
+            if (!empty($request->notas_credito_ids)) {
+                $notasCredito = \App\Models\NotaCreditoProveedor::whereIn('id', $request->notas_credito_ids)->get();
+            }
+
+            $totalNC = $notasCredito->sum('saldo_disponible');
+
+            if ($montoDinero <= 0 && $totalNC <= 0) {
+                throw new \Exception('Debe ingresar un monto a pagar o seleccionar al menos una Nota de Crédito con saldo.');
             }
 
             $facturas = Compra::whereIn('id', $request->facturas)
@@ -136,8 +143,11 @@ class CuentasPorPagarController extends Controller
 
             $grupoPagoId = (string) \Illuminate\Support\Str::uuid();
 
-            // 1. Distribuir la Nota de Crédito primero (si hay)
-            if ($notaCredito && $montoNC > 0) {
+            // 1. Distribuir cada Nota de Crédito, una por una (en el orden recibido)
+            foreach ($notasCredito as $notaCredito) {
+                $montoNC = (float) $notaCredito->saldo_disponible;
+                if ($montoNC <= 0) continue;
+
                 foreach ($facturas as $factura) {
                     if ($montoNC <= 0) break;
                     if ($factura->saldo_pendiente <= 0) continue;
@@ -145,22 +155,22 @@ class CuentasPorPagarController extends Controller
                     $abonoNC = min($factura->saldo_pendiente, $montoNC);
 
                     \App\Models\PagoCompra::create([
-                        'compra_id' => $factura->id,
-                        'monto' => $abonoNC,
-                        'fecha_pago' => $request->fecha_pago,
-                        'forma_pago' => 'NOTA DE CREDITO',
-                        'tipo' => 'APLICACION NC',
-                        'nota_credito_id' => $notaCredito->id,
-                        'grupo_pago_id' => $grupoPagoId,
-                        'estado_documentos' => 'PENDIENTE'
+                        'compra_id'         => $factura->id,
+                        'monto'             => $abonoNC,
+                        'fecha_pago'        => $request->fecha_pago,
+                        'forma_pago'        => 'NOTA DE CREDITO',
+                        'tipo'              => 'APLICACION NC',
+                        'nota_credito_id'   => $notaCredito->id,
+                        'grupo_pago_id'     => $grupoPagoId,
+                        'estado_documentos' => 'PENDIENTE',
                     ]);
 
                     $factura->saldo_pendiente -= $abonoNC;
-                    $factura->estado_pago = $factura->saldo_pendiente <= 0 ? 'PAGADA' : 'PARCIAL';
+                    $factura->estado_pago      = $factura->saldo_pendiente <= 0 ? 'PAGADA' : 'PARCIAL';
                     $factura->save();
 
-                    $montoNC -= $abonoNC;
-                    $notaCredito->saldo_disponible -= $abonoNC;
+                    $montoNC                        -= $abonoNC;
+                    $notaCredito->saldo_disponible  -= $abonoNC;
                 }
 
                 if ($notaCredito->saldo_disponible <= 0) {
@@ -178,19 +188,19 @@ class CuentasPorPagarController extends Controller
                     $abonoDinero = min($factura->saldo_pendiente, $montoDinero);
 
                     \App\Models\PagoCompra::create([
-                        'compra_id' => $factura->id,
-                        'monto' => $abonoDinero,
-                        'fecha_pago' => $request->fecha_pago,
-                        'forma_pago' => $request->forma_pago,
-                        'referencia' => $request->referencia,
-                        'tipo' => 'PAGO NORMAL',
-                        'nota_credito_id' => null,
-                        'grupo_pago_id' => $grupoPagoId,
-                        'estado_documentos' => 'PENDIENTE'
+                        'compra_id'         => $factura->id,
+                        'monto'             => $abonoDinero,
+                        'fecha_pago'        => $request->fecha_pago,
+                        'forma_pago'        => $request->forma_pago,
+                        'referencia'        => $request->referencia,
+                        'tipo'              => 'PAGO NORMAL',
+                        'nota_credito_id'   => null,
+                        'grupo_pago_id'     => $grupoPagoId,
+                        'estado_documentos' => 'PENDIENTE',
                     ]);
 
                     $factura->saldo_pendiente -= $abonoDinero;
-                    $factura->estado_pago = $factura->saldo_pendiente <= 0 ? 'PAGADA' : 'PARCIAL';
+                    $factura->estado_pago      = $factura->saldo_pendiente <= 0 ? 'PAGADA' : 'PARCIAL';
                     $factura->save();
 
                     $montoDinero -= $abonoDinero;
@@ -198,7 +208,7 @@ class CuentasPorPagarController extends Controller
             }
 
             DB::commit();
-            return back()->with('success', 'Pago y/o Nota de Crédito aplicados correctamente a las facturas.');
+            return back()->with('success', 'Pago y/o Nota(s) de Crédito aplicados correctamente a las facturas.');
 
         } catch (\Exception $e) {
             DB::rollBack();

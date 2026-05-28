@@ -57,6 +57,7 @@ class CreditoController extends Controller
         $ventas = Venta::with(['detalles.producto', 'detalles.servicio', 'cliente'])
             ->where('cliente_id', $cliente->id)
             ->where('saldo_pendiente', '>', 0)
+            ->where('estado', '!=', 'CANCELADA')
             ->get()
             ->map(function ($v) {
                 $v->tipo_doc           = 'VENTA';
@@ -98,7 +99,7 @@ class CreditoController extends Controller
 
         $baseQuery = Cliente::where('activo', 1)
             ->where(function ($q) {
-                $q->whereHas('ventas', fn($q) => $q->where('saldo_pendiente', '>', 0))
+                $q->whereHas('ventas', fn($q) => $q->where('saldo_pendiente', '>', 0)->where('estado', '!=', 'CANCELADA'))
                   ->orWhereHas('ordenesServicio', fn($q) => $q
                       ->where('estado', 'PENDIENTE DE PAGO')
                       ->where('saldo_pendiente', '>', 0));
@@ -116,6 +117,7 @@ class CreditoController extends Controller
             ->with([
                 'ventas' => fn($q) => $q
                     ->where('saldo_pendiente', '>', 0)
+                    ->where('estado', '!=', 'CANCELADA')
                     ->select(['id', 'cliente_id', 'saldo_pendiente', 'fecha']),
                 'ordenesServicio' => fn($q) => $q
                     ->where('estado', 'PENDIENTE DE PAGO')
@@ -191,6 +193,7 @@ class CreditoController extends Controller
         $ventas = Venta::with(['detalles.producto', 'detalles.servicio'])
             ->where('cliente_id', $cliente->id)
             ->where('saldo_pendiente', '>', 0)
+            ->where('estado', '!=', 'CANCELADA')
             ->get();
 
         $ordenes = OrdenServicio::with(['detalles.producto', 'detalles.servicio', 'vehiculo', 'pagos'])
@@ -215,7 +218,7 @@ class CreditoController extends Controller
                       ->where('saldo_pendiente', '>', 0));
             })
             ->with([
-                'ventas' => fn($q) => $q->where('saldo_pendiente', '>', 0)->latest('fecha'),
+                'ventas' => fn($q) => $q->where('saldo_pendiente', '>', 0)->where('estado', '!=', 'CANCELADA')->latest('fecha'),
                 'ordenesServicio' => fn($q) => $q->where('estado', 'PENDIENTE DE PAGO')->where('saldo_pendiente', '>', 0)->latest('fecha_entrada')
             ])
             ->orderBy('nombre')

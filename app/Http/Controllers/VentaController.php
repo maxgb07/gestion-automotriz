@@ -247,6 +247,7 @@ class VentaController extends Controller
             DB::beginTransaction();
 
             $venta->estado = 'CANCELADA';
+            $venta->saldo_pendiente = 0;
             $venta->motivo_cancelacion = $request->motivo_cancelacion;
             $venta->cancelado_at = now();
             $venta->save();
