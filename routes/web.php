@@ -12,6 +12,7 @@ use App\Http\Controllers\VentaController;
 use App\Http\Controllers\PagoVentaController;
 use App\Http\Controllers\ReporteController;
 use App\Http\Controllers\CreditoController;
+use App\Http\Controllers\DashboardBetaController;
 
 // Ruta principal - redirige según autenticación
 Route::get('/', function () {
@@ -29,6 +30,7 @@ Route::get('orden/compartir/{token}', [\App\Http\Controllers\OrdenServicioContro
 // Rutas protegidas
 Route::middleware('auth')->group(function () {
     Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard');
+    Route::get('/estadisticas', [DashboardBetaController::class, 'index'])->name('estadisticas.index');
     
     // Gestión de Clientes
     Route::post('clientes/{id}/restore', [ClienteController::class, 'restore'])->name('clientes.restore');
