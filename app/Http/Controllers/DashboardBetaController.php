@@ -90,6 +90,7 @@ class DashboardBetaController extends Controller
         $year = $mesSeleccionado->year;
         $ingresosPorMes = array_fill(1, 12, 0);
         $egresosPorMes  = array_fill(1, 12, 0);
+        $pagosRealizadosPorMes = array_fill(1, 12, 0);
 
         $ventasYear = Venta::whereYear('fecha', $year)->where('estado', 'PAGADA')
             ->selectRaw('MONTH(fecha) as mes, SUM(total) as total')->groupBy('mes')->get();
@@ -98,14 +99,19 @@ class DashboardBetaController extends Controller
         $comprasYear = Compra::whereYear('fecha_compra', $year)
             ->selectRaw('MONTH(fecha_compra) as mes, SUM(total) as total')->groupBy('mes')->get();
 
+        $pagosRealizadosYear = \App\Models\PagoCompra::whereYear('fecha_pago', $year)
+            ->selectRaw('MONTH(fecha_pago) as mes, SUM(monto) as monto')->groupBy('mes')->get();
+
         foreach ($ventasYear  as $v) $ingresosPorMes[$v->mes] += $v->total;
         foreach ($ordenesYear as $o) $ingresosPorMes[$o->mes] += $o->total;
         foreach ($comprasYear as $c) $egresosPorMes[$c->mes]  += $c->total;
+        foreach ($pagosRealizadosYear as $p) $pagosRealizadosPorMes[$p->mes] += $p->monto;
 
         $chartIngresosEgresos = [
             'labels'   => ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'],
             'ingresos' => array_values($ingresosPorMes),
             'egresos'  => array_values($egresosPorMes),
+            'pagos_realizados' => array_values($pagosRealizadosPorMes),
         ];
 
         // -------------------------------------------------------------------------

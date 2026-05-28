@@ -316,6 +316,15 @@ document.addEventListener('DOMContentLoaded', function() {
                         borderWidth: 1.5,
                         borderRadius: 6,
                         borderSkipped: false,
+                    },
+                    {
+                        label: 'Pagos Realizados',
+                        data: {!! json_encode($chartIngresosEgresos['pagos_realizados']) !!},
+                        backgroundColor: 'rgba(245,158,11,0.65)',
+                        borderColor: 'rgb(245,158,11)',
+                        borderWidth: 1.5,
+                        borderRadius: 6,
+                        borderSkipped: false,
                     }
                 ]
             },
