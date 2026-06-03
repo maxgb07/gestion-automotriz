@@ -3,12 +3,19 @@
 @section('title', 'Cuentas por Pagar')
 
 @section('content')
-    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+    <div x-data="{ showCalendar: false, calendarInit: false }" x-init="$watch('showCalendar', val => { if(val && !calendarInit) { setTimeout(() => initCalendar(), 100); calendarInit = true; } })">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
         <div>
             <h1 class="text-3xl font-bold text-white uppercase tracking-tight">Cuentas por Pagar</h1>
             <p class="text-blue-200">Gestión de saldos, pagos y notas de crédito con proveedores</p>
         </div>
-        <div>
+        <div class="flex flex-wrap items-center gap-3">
+            <button @click="showCalendar = true" class="w-fit inline-flex items-center px-4 py-2 text-white font-black rounded-lg shadow-lg transition-all text-sm uppercase tracking-widest" style="background-color: #059669;">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                Calendario de Pagos
+            </button>
             <a href="{{ route('cuentas_por_pagar.pdf_global') }}" target="_blank" class="w-fit inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-lg shadow-lg shadow-indigo-900/40 transition-all text-sm uppercase tracking-widest cursor-pointer" style="background-color: #4f46e5;">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
@@ -92,4 +99,71 @@
         </div>
     @endif
 
+        <!-- Modal del Calendario -->
+        <div x-show="showCalendar" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" x-transition.opacity>
+            <div class="bg-[#111827] rounded-3xl w-full max-w-[90vw] flex flex-col max-h-[95vh] shadow-2xl border border-white/10" @click.away="showCalendar = false">
+                <div class="flex justify-between items-center p-6 border-b border-white/10">
+                    <h2 class="text-2xl font-bold text-white uppercase tracking-tight">Calendario de Pagos</h2>
+                    <button @click="showCalendar = false" class="text-gray-400 hover:text-white transition-colors">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <div class="p-6 overflow-y-auto bg-white/5 rounded-b-3xl flex-1">
+                    <style>
+                        .fc-theme-standard .fc-scrollgrid { border-color: #e5e7eb; }
+                        .fc-theme-standard th, .fc-theme-standard td { border-color: #e5e7eb; }
+                        .fc-day-today { background-color: #f3f4f6 !important; }
+                        .fc-toolbar-title { font-weight: 700; text-transform: uppercase; }
+                        .fc-button-primary { background-color: #4f46e5 !important; border-color: #4338ca !important; }
+                        .fc-button-primary:hover { background-color: #4338ca !important; }
+                        .fc-event { cursor: pointer; }
+                    </style>
+                    <div id="calendario" class="bg-white rounded-xl p-4 min-h-[700px] text-gray-800"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- FullCalendar Scripts -->
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+    <!-- Popper & Tippy (Tooltips) -->
+    <script src="https://unpkg.com/@popperjs/core@2"></script>
+    <script src="https://unpkg.com/tippy.js@6"></script>
+    <script>
+        function initCalendar() {
+            var calendarEl = document.getElementById('calendario');
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                locale: 'es',
+                height: 800,
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,listWeek'
+                },
+                events: '{{ route('cuentas_por_pagar.calendario_eventos') }}',
+                eventMouseEnter: function(info) {
+                    var props = info.event.extendedProps;
+                    var content = `
+                        <div style="text-align: left; padding: 4px; font-family: ui-sans-serif, system-ui, sans-serif;">
+                            <strong style="display: block; color: #a5b4fc; font-size: 1.1em; margin-bottom: 4px;">${props.proveedor}</strong>
+                            <span style="display: block; margin-bottom: 2px;">Folio de Factura: ${props.factura}</span>
+                            <span style="display: block; color: #fca5a5; font-weight: bold;">Saldo Pendiente: $${props.saldo_pendiente}</span>
+                        </div>
+                    `;
+                    
+                    if(!info.event._tippy) {
+                        tippy(info.el, {
+                            content: content,
+                            allowHTML: true,
+                            placement: 'top',
+                            theme: 'light-border',
+                        });
+                        info.event._tippy = true;
+                    }
+                }
+            });
+            calendar.render();
+        }
+    </script>
 @endsection

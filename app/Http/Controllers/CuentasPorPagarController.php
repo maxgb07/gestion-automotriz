@@ -40,6 +40,36 @@ class CuentasPorPagarController extends Controller
         return view('cuentas_por_pagar.index', compact('proveedores'));
     }
 
+    public function eventosCalendario(Request $request)
+    {
+        $compras = Compra::with('proveedor')
+            ->where('saldo_pendiente', '>', 0)
+            ->whereNotNull('fecha_vencimiento')
+            ->get();
+
+        $eventos = $compras->map(function ($compra) {
+            $proveedorNombre = $compra->proveedor ? $compra->proveedor->nombre : 'Desconocido';
+            $factura = $compra->factura ?? $compra->folio;
+            
+            return [
+                'id' => $compra->id,
+                'title' => mb_strtoupper($proveedorNombre, 'UTF-8'),
+                'start' => $compra->fecha_vencimiento,
+                'allDay' => true,
+                'backgroundColor' => '#059669', // emerald-600 para combinar con el boton
+                'borderColor' => '#047857',
+                'extendedProps' => [
+                    'proveedor' => $proveedorNombre,
+                    'factura' => $factura,
+                    'monto_total' => number_format($compra->monto_total, 2),
+                    'saldo_pendiente' => number_format($compra->saldo_pendiente, 2)
+                ]
+            ];
+        });
+
+        return response()->json($eventos);
+    }
+
     public function show(Proveedor $proveedor)
     {
         // Facturas pendientes (paginadas)
