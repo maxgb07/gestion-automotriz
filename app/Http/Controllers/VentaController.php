@@ -351,4 +351,156 @@ class VentaController extends Controller
             return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
         }
     }
+
+    public function storeItems(Request $request, Venta $venta)
+    {
+        $request->validate([
+            'items'                      => 'required|array|min:1',
+            'items.*.tipo'               => 'required|in:producto,servicio',
+            'items.*.item_id'            => 'required|integer|min:1',
+            'items.*.cantidad'           => 'required|numeric|min:0.01',
+            'items.*.precio_unitario'    => 'required|numeric|min:0',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            foreach ($request->items as $item) {
+                $subtotal = $item['cantidad'] * $item['precio_unitario'];
+
+                VentaDetalle::create([
+                    'venta_id'        => $venta->id,
+                    'producto_id'     => $item['tipo'] === 'producto' ? $item['item_id'] : null,
+                    'servicio_id'     => $item['tipo'] === 'servicio' ? $item['item_id'] : null,
+                    'cantidad'        => $item['cantidad'],
+                    'precio_unitario' => $item['precio_unitario'],
+                    'subtotal'        => $subtotal,
+                ]);
+
+                // Descontar stock si es producto
+                if ($item['tipo'] === 'producto') {
+                    $producto = Producto::find($item['item_id']);
+                    if ($producto) {
+                        $producto->stock -= $item['cantidad'];
+                        $producto->save();
+                    }
+                }
+            }
+
+            // Recalcular total de la venta
+            $nuevoTotal = $venta->detalles()->sum('subtotal');
+            $venta->total = $nuevoTotal;
+            if ($venta->estado !== 'PAGADA') {
+                $totalAbonado = $venta->pagos()->sum('monto');
+                $venta->saldo_pendiente = max(0, $nuevoTotal - $totalAbonado);
+            }
+            $venta->save();
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Ítems agregados correctamente',
+                'nuevo_total' => $nuevoTotal,
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function updateDetalle(Request $request, Venta $venta, VentaDetalle $detalle)
+    {
+        $request->validate([
+            'tipo'            => 'required|in:producto,servicio',
+            'item_id'         => 'required|integer|min:1',
+            'cantidad'        => 'required|numeric|min:0.01',
+            'precio_unitario' => 'required|numeric|min:0',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            // Restaurar stock anterior si era producto
+            if ($detalle->producto_id) {
+                $productoAnterior = Producto::find($detalle->producto_id);
+                if ($productoAnterior) {
+                    $productoAnterior->stock += $detalle->cantidad;
+                    $productoAnterior->save();
+                }
+            }
+
+            $subtotal = $request->cantidad * $request->precio_unitario;
+
+            $detalle->update([
+                'producto_id'     => $request->tipo === 'producto' ? $request->item_id : null,
+                'servicio_id'     => $request->tipo === 'servicio' ? $request->item_id : null,
+                'cantidad'        => $request->cantidad,
+                'precio_unitario' => $request->precio_unitario,
+                'subtotal'        => $subtotal,
+            ]);
+
+            // Descontar stock nuevo si es producto
+            if ($request->tipo === 'producto') {
+                $producto = Producto::find($request->item_id);
+                if ($producto) {
+                    $producto->stock -= $request->cantidad;
+                    $producto->save();
+                }
+            }
+
+            // Recalcular total
+            $nuevoTotal = $venta->detalles()->sum('subtotal');
+            $venta->total = $nuevoTotal;
+            if ($venta->estado !== 'PAGADA') {
+                $totalAbonado = $venta->pagos()->sum('monto');
+                $venta->saldo_pendiente = max(0, $nuevoTotal - $totalAbonado);
+            }
+            $venta->save();
+
+            DB::commit();
+
+            return response()->json(['success' => true, 'message' => 'Ítem actualizado correctamente']);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
+
+    public function destroyDetalle(Venta $venta, VentaDetalle $detalle)
+    {
+        try {
+            DB::beginTransaction();
+
+            // Restaurar stock si era producto
+            if ($detalle->producto_id) {
+                $producto = Producto::find($detalle->producto_id);
+                if ($producto) {
+                    $producto->stock += $detalle->cantidad;
+                    $producto->save();
+                }
+            }
+
+            $detalle->delete();
+
+            // Recalcular total
+            $nuevoTotal = $venta->detalles()->sum('subtotal');
+            $venta->total = $nuevoTotal;
+            if ($venta->estado !== 'PAGADA') {
+                $totalAbonado = $venta->pagos()->sum('monto');
+                $venta->saldo_pendiente = max(0, $nuevoTotal - $totalAbonado);
+            }
+            $venta->save();
+
+            DB::commit();
+
+            return response()->json(['success' => true, 'message' => 'Ítem eliminado correctamente']);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
+        }
+    }
 }

@@ -249,7 +249,20 @@
                                             <span class="text-white font-black font-mono text-md existing-subtotal" data-valor="{{ $detalle->subtotal }}">${{ number_format($detalle->subtotal, 2) }}</span>
                                         </td>
                                         @if($venta->estado === 'PRESTAMO' || $venta->estado === 'PENDIENTE')
-                                            <td class="px-4 py-5 text-center"></td>
+                                            <td class="px-4 py-5 text-center flex items-center justify-center gap-1">
+                                                <button type="button" class="p-2 text-white/20 hover:text-blue-400 transition-colors"
+                                                        onclick="abrirModalEditarItem({{ $detalle->id }}, '{{ $detalle->producto_id ? 'producto' : 'servicio' }}', {{ $detalle->producto_id ?? $detalle->servicio_id }}, {{ $detalle->cantidad }}, {{ $detalle->precio_unitario }})">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
+                                                    </svg>
+                                                </button>
+                                                <button type="button" class="p-2 text-white/20 hover:text-red-400 transition-colors"
+                                                        onclick="eliminarDetalle({{ $detalle->id }})">
+                                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                                    </svg>
+                                                </button>
+                                            </td>
                                         @endif
                                     </tr>
                                 @endforeach
@@ -588,6 +601,281 @@
                     .then(data => {
                         if (data.success) {
                             window.location.reload();
+                        }
+                    });
+                }
+            });
+        }
+
+        function abrirModalEditarItem(id, tipo, itemId, cantidad, precio) {
+            Swal.fire({
+                title: 'EDITAR ÍTEM',
+                background: '#1e293b',
+                color: '#fff',
+                width: '600px',
+                html: `
+                    <div class="space-y-4 text-left p-2">
+                        <div class="flex gap-8 justify-center mb-6 p-4 bg-white/5 rounded-2xl border border-white/10">
+                            <label class="flex items-center gap-3 cursor-pointer">
+                                <input type="radio" name="edit-tipo" value="producto" ${tipo === 'producto' ? 'checked' : ''} onchange="updateEditItemSelect(this.value)" class="w-5 h-5 text-blue-500 bg-white/10 border-white/20 focus:ring-blue-500">
+                                <span class="text-md font-black uppercase tracking-widest text-blue-100">Producto</span>
+                            </label>
+                            <label class="flex items-center gap-3 cursor-pointer">
+                                <input type="radio" name="edit-tipo" value="servicio" ${tipo === 'servicio' ? 'checked' : ''} onchange="updateEditItemSelect(this.value)" class="w-5 h-5 text-blue-500 bg-white/10 border-white/20 focus:ring-blue-500">
+                                <span class="text-md font-black uppercase tracking-widest text-blue-100">Servicio</span>
+                            </label>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">SELECCIONAR ÍTEM *</label>
+                            <div class="select2-container-swal">
+                                <select id="edit-item-id" class="w-full"></select>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">CANTIDAD *</label>
+                                <input type="number" id="edit-cantidad" step="any" value="${cantidad}" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1 ml-1">PRECIO UNITARIO *</label>
+                                <input type="number" id="edit-precio" step="0.01" value="${precio}" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                            </div>
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'ACTUALIZAR ÍTEM',
+                cancelButtonText: 'CANCELAR',
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#475569',
+                customClass: {
+                    popup: 'rounded-3xl border border-white/20 shadow-2xl',
+                    title: 'text-xl font-black uppercase tracking-tighter'
+                },
+                didOpen: () => {
+                    updateEditItemSelect(tipo, itemId);
+                },
+                preConfirm: () => {
+                    const nuevoTipo    = $('input[name="edit-tipo"]:checked').val();
+                    const nuevoItemId  = $('#edit-item-id').val();
+                    const nuevaCant    = $('#edit-cantidad').val();
+                    const nuevoPrecio  = $('#edit-precio').val();
+
+                    if (!nuevoItemId || !nuevaCant || !nuevoPrecio) {
+                        Swal.showValidationMessage('Todos los campos marcados con * son obligatorios');
+                        return false;
+                    }
+                    return { tipo: nuevoTipo, item_id: nuevoItemId, cantidad: nuevaCant, precio_unitario: nuevoPrecio };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({ title: 'Actualizando...', background: '#1e293b', color: '#fff', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+                    $.ajax({
+                        url: `/ventas/{{ $venta->id }}/detalles/${id}`,
+                        method: 'POST',
+                        data: { _token: '{{ csrf_token() }}', _method: 'PUT', ...result.value },
+                        success: (res) => {
+                            if (res.success) {
+                                Swal.fire({
+                                    icon: 'success', title: '¡ACTUALIZADO!', text: res.message,
+                                    background: '#1e293b', color: '#fff', timer: 1500, showConfirmButton: false
+                                }).then(() => location.reload());
+                            }
+                        },
+                        error: (xhr) => {
+                            Swal.fire({ icon: 'error', title: 'ERROR', text: xhr.responseJSON?.message || 'Error al actualizar', background: '#1e293b', color: '#fff' });
+                        }
+                    });
+                }
+            });
+        }
+
+        function updateEditItemSelect(tipo, selectedId = null) {
+            const select = $('#edit-item-id');
+            const data = (String(tipo).toLowerCase() === 'producto') ? PRODUCTOS : SERVICIOS;
+
+            if (select.data('select2')) select.select2('destroy');
+
+            select.empty().append('<option value="" disabled>SELECCIONAR...</option>');
+            data.forEach(item => {
+                const opt = new Option(`${item.nombre} - ${item.descripcion || ''}`, item.id, false, (selectedId && item.id == selectedId));
+                select.append(opt);
+            });
+
+            select.select2({
+                dropdownParent: Swal.getPopup(),
+                width: '100%',
+                placeholder: 'BUSCAR ÍTEM...',
+                language: { noResults: () => 'NO SE ENCONTRARON RESULTADOS' }
+            });
+
+            const s2c = select.next('.select2-container');
+            s2c.find('.select2-selection--single').css({ 'background-color': 'rgba(255,255,255,0.05)', 'border': '1px solid rgba(255,255,255,0.1)', 'height': '48px', 'border-radius': '0.75rem', 'display': 'flex', 'align-items': 'center', 'color': 'white' });
+            s2c.find('.select2-selection__rendered').css('color', 'white');
+            s2c.find('.select2-selection__arrow').css('top', '10px');
+        }
+
+        function eliminarDetalle(id) {
+            Swal.fire({
+                title: '¿Eliminar este ítem?',
+                text: 'Esta acción recalculará el total de la venta.',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#ef4444',
+                cancelButtonColor: '#475569',
+                confirmButtonText: 'SÍ, ELIMINAR',
+                cancelButtonText: 'CANCELAR',
+                background: '#1e293b',
+                color: '#fff',
+                customClass: { popup: 'rounded-3xl border border-white/20 shadow-2xl' }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    Swal.fire({ title: 'Eliminando...', background: '#1e293b', color: '#fff', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+                    $.ajax({
+                        url: `/ventas/{{ $venta->id }}/detalles/${id}`,
+                        method: 'POST',
+                        data: { _token: '{{ csrf_token() }}', _method: 'DELETE' },
+                        success: (res) => {
+                            if (res.success) {
+                                Swal.fire({
+                                    icon: 'success', title: '¡ELIMINADO!', text: res.message,
+                                    background: '#1e293b', color: '#fff', timer: 1500, showConfirmButton: false
+                                }).then(() => location.reload());
+                            }
+                        },
+                        error: (xhr) => {
+                            Swal.fire({ icon: 'error', title: 'ERROR', text: xhr.responseJSON?.message || 'Error al eliminar', background: '#1e293b', color: '#fff' });
+                        }
+                    });
+                }
+            });
+        }
+
+        function abrirModalNuevoItem() {
+            Swal.fire({
+                title: 'REGISTRAR NUEVO ÍTEM',
+                background: '#1e293b',
+                color: '#fff',
+                html: `
+                    <div class="mb-6">
+                        <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-2 text-center">TIPO DE ÍTEM *</label>
+                        <select id="swal-tipo" onchange="toggleSwalFields(this.value)" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold uppercase focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                            <option value="" disabled selected class="text-black">SELECCIONA TIPO...</option>
+                            <option value="producto" class="text-black">PRODUCTO</option>
+                            <option value="servicio" class="text-black">SERVICIO</option>
+                        </select>
+                    </div>
+                    <div class="space-y-4 text-left">
+                        <div>
+                            <label id="label-nombre" class="block text-md font-black text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">SKU / CLAVE *</label>
+                            <input type="text" id="swal-nombre" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold uppercase focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="EJ: BALATA-TR-01">
+                        </div>
+                        <div>
+                            <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">DESCRIPCIÓN</label>
+                            <textarea id="swal-descripcion" rows="2" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold uppercase focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="DESCRIPCIÓN DEL PRODUCTO O SERVICIO"></textarea>
+                        </div>
+                        <div>
+                            <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">PRECIO VENTA *</label>
+                            <input type="number" id="swal-precio" step="0.01" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="0.00">
+                        </div>
+                        <div id="div-marca" class="hidden">
+                            <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">MARCA</label>
+                            <input type="text" id="swal-marca" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold uppercase focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="MARCA DEL PRODUCTO">
+                        </div>
+                        <div id="div-stock" class="hidden">
+                            <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">EXISTENCIA INICIAL *</label>
+                            <input type="number" id="swal-stock" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all" value="1">
+                        </div>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'REGISTRAR',
+                cancelButtonText: 'CANCELAR',
+                confirmButtonColor: '#3b82f6',
+                cancelButtonColor: '#475569',
+                customClass: {
+                    popup: 'rounded-3xl border border-white/20 shadow-2xl',
+                    title: 'text-xl font-black uppercase tracking-tighter'
+                },
+                preConfirm: () => {
+                    const selectTipo = document.getElementById('swal-tipo');
+                    const tipo = selectTipo ? selectTipo.value : '';
+
+                    if (!tipo) {
+                        Swal.showValidationMessage('DEBES SELECCIONAR EL TIPO DE ÍTEM (PRODUCTO O SERVICIO)');
+                        return false;
+                    }
+
+                    const nombre = document.getElementById('swal-nombre').value;
+                    const precio = document.getElementById('swal-precio').value;
+                    const stock = document.getElementById('swal-stock').value;
+                    const descripcion = document.getElementById('swal-descripcion').value;
+                    const marca = document.getElementById('swal-marca').value;
+
+                    if (!nombre || !precio || (tipo === 'producto' && !stock)) {
+                        Swal.showValidationMessage('Todos los campos marcados con * son obligatorios');
+                        return false;
+                    }
+
+                    return { tipo, nombre, precio, stock, descripcion, marca };
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    const { tipo, nombre, precio, stock, descripcion, marca } = result.value;
+                    const url = tipo === 'producto' ? '{{ route("productos.store") }}' : '{{ route("servicios.store") }}';
+                    const data = {
+                        _token: '{{ csrf_token() }}',
+                        nombre: nombre,
+                        marca: tipo === 'producto' ? marca : null,
+                        descripcion: descripcion,
+                        [tipo === 'producto' ? 'precio_venta' : 'precio']: precio,
+                        stock: stock,
+                        stock_minimo: 0
+                    };
+
+                    Swal.fire({
+                        title: 'Guardando...',
+                        didOpen: () => Swal.showLoading()
+                    });
+
+                    $.ajax({
+                        url: url,
+                        method: 'POST',
+                        data: data,
+                        success: function(response) {
+                            if (response.success) {
+                                const newItem = response.data;
+                                if (tipo === 'producto') {
+                                    PRODUCTOS.push(newItem);
+                                } else {
+                                    SERVICIOS.push(newItem);
+                                }
+
+                                Swal.fire({
+                                    icon: 'success',
+                                    title: '¡Registrado!',
+                                    text: response.message,
+                                    timer: 1500,
+                                    showConfirmButton: false
+                                });
+
+                                // Refrescar los Select2 si existen filas abiertas
+                                $('.item-select').each(function() {
+                                    const row = this.closest('tr');
+                                    const rowTipo = row.querySelector('.tipo-select').value;
+                                    if (rowTipo === tipo) {
+                                        const option = new Option(`${newItem.nombre} - ${newItem.descripcion || ''}`, newItem.id, false, false);
+                                        option.dataset.precio = newItem.precio_venta || newItem.precio || 0;
+                                        option.dataset.descripcion = newItem.descripcion || newItem.nombre;
+                                        $(this).append(option);
+                                    }
+                                });
+                            }
+                        },
+                        error: function(xhr) {
+                            Swal.fire('Error', xhr.responseJSON.message || 'No se pudo registrar el ítem', 'error');
                         }
                     });
                 }

@@ -444,6 +444,10 @@
                             <option value="SI" class="text-black">SI</option>
                         </select>
                     </div>
+                     <div>
+                        <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">FECHA DE PAGO *</label>
+                        <input type="date" id="modal_fecha_pago" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all" value="${new Date().toLocaleDateString('en-CA')}">
+                    </div>
                     <div>
                         <label class="block text-sm font-black text-slate-500 uppercase tracking-widest mb-2 ml-1 text-center">REFERENCIA / NOTAS</label>
                         <input type="text" id="modal_referencia" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-bold uppercase focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="EJ: ÚLTIMOS 4 DÍGITOS, FOLIO, ETC.">
@@ -462,27 +466,34 @@
                 cancelButton: 'rounded-xl px-8 py-3 font-bold uppercase tracking-widest text-sm'
             },
             preConfirm: () => {
-                const metodo = document.getElementById('modal_metodo_pago').value;
-                const monto = document.getElementById('modal_monto').value;
-                const factura = document.getElementById('modal_requiere_factura').value;
-                const referencia = document.getElementById('modal_referencia').value;
+                const popup = Swal.getPopup();
+                const metodo = popup.querySelector('#modal_metodo_pago').value;
+                const monto  = popup.querySelector('#modal_monto').value;
+                const factura = popup.querySelector('#modal_requiere_factura').value;
+                const referencia = popup.querySelector('#modal_referencia').value;
+                const fechaPago  = popup.querySelector('#modal_fecha_pago').value;
  
                 if (!metodo) {
                     Swal.showValidationMessage('Debe seleccionar un método de pago');
                     return false;
                 }
  
-                if (metodo !== 'CRÉDITO 15 DÍAS' && (!monto || monto <= 0)) {
+                if (metodo !== 'CRÉDITO 15 DÍAS' && (!monto || parseFloat(monto) <= 0)) {
                     Swal.showValidationMessage('El monto debe ser mayor a 0');
+                    return false;
+                }
+
+                if (!fechaPago) {
+                    Swal.showValidationMessage('Debe seleccionar una fecha de pago');
                     return false;
                 }
  
                 return { 
                     metodo_pago: metodo, 
-                    monto: monto, 
+                    monto: metodo === 'CRÉDITO 15 DÍAS' ? 0 : parseFloat(monto), 
                     requiere_factura: factura,
                     referencia: referencia,
-                    fecha_pago: new Date().toISOString().split('T')[0]
+                    fecha_pago: fechaPago
                 };
             }
         }).then((result) => {
@@ -506,7 +517,22 @@
                     },
                     body: JSON.stringify(result.value)
                 })
-                .then(r => r.json())
+                .then(r => {
+                    if (!r.ok) {
+                        return r.text().then(text => {
+                            let devMsg = 'HTTP ' + r.status + ' — ' + r.url;
+                            try {
+                                const json = JSON.parse(text);
+                                devMsg += '\n' + JSON.stringify(json, null, 2);
+                            } catch(e) {
+                                devMsg += '\n' + text.substring(0, 500);
+                            }
+                            console.error('[PAGO ERROR]', devMsg);
+                            throw new Error('generic');
+                        });
+                    }
+                    return r.json();
+                })
                 .then(response => {
                     if (response.success) {
                         Swal.fire({
@@ -515,31 +541,36 @@
                             text: response.message,
                             background: '#1e293b',
                             color: '#fff',
-                            showConfirmButton: true,
-                            confirmButtonText: 'VER PDF'
-                        }).then(r => {
-                            if (r.isConfirmed && response.pdf_url) {
-                                window.open(response.pdf_url, '_blank');
-                            }
+                            confirmButtonText: 'CERRAR',
+                            confirmButtonColor: '#2563eb'
+                        }).then(() => {
                             window.location.reload();
                         });
                     } else {
+                        console.error('[PAGO ERROR]', response);
                         Swal.fire({
                             icon: 'error',
-                            title: 'ERROR',
-                            text: response.message ?? 'Error al procesar el pago.',
+                            title: 'Ocurrió un problema',
+                            text: 'No fue posible registrar el pago. Por favor intenta de nuevo.',
                             background: '#1e293b',
-                            color: '#fff'
+                            color: '#fff',
+                            confirmButtonText: 'ENTENDIDO',
+                            confirmButtonColor: '#ef4444'
                         });
                     }
                 })
-                .catch(() => {
+                .catch((err) => {
+                    if (err.message !== 'generic') {
+                        console.error('[PAGO ERROR]', err);
+                    }
                     Swal.fire({
                         icon: 'error',
-                        title: 'ERROR DE RED',
-                        text: 'No se pudo conectar con el servidor.',
+                        title: 'Ocurrió un problema',
+                        text: 'No fue posible registrar el pago. Por favor intenta de nuevo.',
                         background: '#1e293b',
-                        color: '#fff'
+                        color: '#fff',
+                        confirmButtonText: 'ENTENDIDO',
+                        confirmButtonColor: '#ef4444'
                     });
                 });
             }
@@ -735,7 +766,7 @@
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">¿Lleva Factura?</label>
+                            <label class="block text-[10px] font-black text-slate-500 uppercase tracking-widest mb-2 ml-1">REQUIERE FACTURA</label>
                             <select id="modal_lote_factura" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white font-bold text-sm focus:ring-2 focus:ring-blue-500 outline-none uppercase">
                                 <option value="NO" class="text-black">NO</option>
                                 <option value="SI" class="text-black">SI</option>
@@ -774,12 +805,12 @@
                 console.log("SENDING BATCH PAYMENT:", { items, metodo, monto, fecha });
 
                 if (!metodo) { Swal.showValidationMessage('Seleccione método'); return false; }
-                if (metodo !== 'CRÉDITO 15 DÍAS' && (!monto || monto <= 0)) {
+                if (metodo !== 'CRÉDITO 15 DÍAS' && (!monto || parseFloat(monto) <= 0)) {
                     Swal.showValidationMessage('Monto inválido');
                     return false;
                 }
 
-                return { documentos: items, metodo_pago: metodo, monto_total: monto, requiere_factura: factura, referencia, fecha_pago: fecha };
+                return { documentos: items, metodo_pago: metodo, monto_total: metodo === 'CRÉDITO 15 DÍAS' ? 0 : parseFloat(monto), requiere_factura: factura, referencia, fecha_pago: fecha };
             }
         }).then((result) => {
             if (result.isConfirmed) {

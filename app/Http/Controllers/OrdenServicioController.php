@@ -534,10 +534,10 @@ class OrdenServicioController extends Controller
 
             DB::commit();
 
-            if ($request->ajax()) {
+            if ($request->expectsJson()) {
                 return response()->json([
                     'success' => true,
-                    'message' => 'Pagos registrados correctamente. Estado: ' . $nuevoEstado,
+                    'message' => 'Pago registrado correctamente.',
                     'pdf_url' => route('ordenes.pdf', $orden)
                 ]);
             }
@@ -546,7 +546,7 @@ class OrdenServicioController extends Controller
 
         } catch (\Exception $e) {
             DB::rollBack();
-            if ($request->ajax()) {
+            if ($request->expectsJson()) {
                 return response()->json(['success' => false, 'message' => $e->getMessage()], 500);
             }
             return redirect()->back()->with('error', $e->getMessage());

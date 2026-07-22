@@ -101,7 +101,7 @@
 
         <!-- Modal del Calendario -->
         <div x-show="showCalendar" style="display: none;" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" x-transition.opacity>
-            <div class="bg-[#111827] rounded-3xl w-full max-w-[90vw] flex flex-col max-h-[95vh] shadow-2xl border border-white/10" @click.away="showCalendar = false">
+            <div class="bg-[#111827] rounded-3xl w-full max-w-[75vw] flex flex-col max-h-[80vh] shadow-2xl border border-white/10" @click.away="showCalendar = false">
                 <div class="flex justify-between items-center p-6 border-b border-white/10">
                     <h2 class="text-2xl font-bold text-white uppercase tracking-tight">Calendario de Pagos</h2>
                     <button @click="showCalendar = false" class="text-gray-400 hover:text-white transition-colors">
@@ -118,7 +118,7 @@
                         .fc-button-primary:hover { background-color: #4338ca !important; }
                         .fc-event { cursor: pointer; }
                     </style>
-                    <div id="calendario" class="bg-white rounded-xl p-4 min-h-[700px] text-gray-800"></div>
+                    <div id="calendario" class="bg-white rounded-xl p-4 min-h-[500px] text-gray-800"></div>
                 </div>
             </div>
         </div>
@@ -135,7 +135,7 @@
             var calendar = new FullCalendar.Calendar(calendarEl, {
                 initialView: 'dayGridMonth',
                 locale: 'es',
-                height: 800,
+                height: 600,
                 headerToolbar: {
                     left: 'prev,next today',
                     center: 'title',

@@ -13,12 +13,17 @@ class PagoVentaController extends Controller
     public function store(Request $request, Venta $venta)
     {
         $request->validate([
-            'monto' => 'required|numeric|min:0|max:' . $venta->saldo_pendiente,
-            'fecha_pago' => 'required|date',
-            'metodo_pago' => 'required|string',
-            'referencia' => 'nullable|string|max:100',
+            'monto'            => 'required|numeric|min:0',
+            'fecha_pago'       => 'required|date',
+            'metodo_pago'      => 'required|string',
+            'referencia'       => 'nullable|string|max:100',
             'requiere_factura' => 'nullable|string|in:SI,NO',
         ]);
+
+        // Validar max solo cuando no es crédito
+        if ($request->metodo_pago !== 'CRÉDITO 15 DÍAS' && floatval($request->monto) > $venta->saldo_pendiente) {
+            return response()->json(['success' => false, 'message' => 'El monto excede el saldo pendiente.'], 422);
+        }
         
         try {
             DB::beginTransaction();
@@ -48,7 +53,8 @@ class PagoVentaController extends Controller
                 $venta->estado = 'PENDIENTE';
             }
             
-            if ($venta->saldo_pendiente <= 0 && $request->has('requiere_factura')) {
+            // Siempre guardar requiere_factura si viene en el request
+            if ($request->has('requiere_factura')) {
                 $venta->requiere_factura = $request->requiere_factura;
             }
 

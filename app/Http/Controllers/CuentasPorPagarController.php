@@ -135,6 +135,37 @@ class CuentasPorPagarController extends Controller
         return back()->with('success', 'Nota de Crédito registrada exitosamente.');
     }
 
+    public function actualizarNotaCredito(Request $request, \App\Models\NotaCreditoProveedor $notaCredito)
+    {
+        $request->validate([
+            'folio'         => 'required|string|max:100',
+            'fecha'         => 'required|date',
+            'monto'         => 'required|numeric|min:0.01',
+            'observaciones' => 'nullable|string'
+        ]);
+
+        // Calcular diferencia usada y ajustar saldo disponible
+        $montoAnterior = $notaCredito->monto_original;
+        $diferencia = $request->monto - $montoAnterior;
+        $nuevoSaldo = max(0, $notaCredito->saldo_disponible + $diferencia);
+
+        $notaCredito->update([
+            'folio'           => mb_strtoupper($request->folio, 'UTF-8'),
+            'monto_original'  => $request->monto,
+            'saldo_disponible'=> $nuevoSaldo,
+            'fecha'           => $request->fecha,
+            'observaciones'   => $request->observaciones
+        ]);
+
+        return back()->with('success', 'Nota de Crédito actualizada exitosamente.');
+    }
+
+    public function eliminarNotaCredito(\App\Models\NotaCreditoProveedor $notaCredito)
+    {
+        $notaCredito->delete();
+        return back()->with('success', 'Nota de Crédito eliminada exitosamente.');
+    }
+
     public function registrarPago(Request $request)
     {
         $request->validate([
@@ -306,7 +337,7 @@ class CuentasPorPagarController extends Controller
             $factura = $item->compra->factura ?? $item->compra->folio;
             $montoStr = '$' . number_format($item->monto, 2);
             $color = $esDinero ? 'text-blue-300' : 'text-emerald-400';
-            $tipoStr = $esDinero ? 'EFECTIVO / TRANSF' : 'NOTA DE CREDITO';
+            $tipoStr = $esDinero ? ($item->forma_pago ?? 'TRANSFERENCIA') : 'NOTA DE CREDITO';
 
             $html .= '
                 <tr class="hover:bg-white/5 transition-colors">

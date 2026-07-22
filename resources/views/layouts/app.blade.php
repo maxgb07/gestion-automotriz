@@ -166,9 +166,9 @@
             });
         </script>
     @endif
-    @include('partials.eom-alert')
-    @include('partials.prev-month-alert')
-    @include('partials.finalizado-alert')
+    {{-- @include('partials.eom-alert') --}}
+    {{-- @include('partials.prev-month-alert') --}}
+    {{-- @include('partials.finalizado-alert') --}}
     @stack('scripts')
 </body>
 </html>

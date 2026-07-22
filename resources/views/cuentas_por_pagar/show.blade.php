@@ -222,6 +222,7 @@
                         <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Saldo Disponible</th>
                         <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Observaciones</th>
                         <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Estado</th>
+                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-white/10">
@@ -234,10 +235,28 @@
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 <span class="px-3 py-1 bg-emerald-500/20 text-emerald-300 text-xs font-bold rounded-full uppercase">{{ $nc->estado }}</span>
                             </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                <div class="flex items-center justify-center gap-2">
+                                    {{-- Botón Editar --}}
+                                    <button type="button"
+                                        onclick="abrirModalEditarNC({{ $nc->id }}, '{{ $nc->folio }}', '{{ $nc->fecha }}', {{ $nc->monto_original }}, '{{ addslashes($nc->observaciones ?? '') }}')"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-500/20 hover:bg-blue-500/40 text-blue-300 hover:text-white font-bold rounded-lg text-xs uppercase transition-all border border-blue-500/30 hover:border-blue-400">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path></svg>
+                                        Editar
+                                    </button>
+                                    {{-- Botón Eliminar --}}
+                                    <button type="button"
+                                        onclick="abrirModalEliminarNC({{ $nc->id }}, '{{ $nc->folio }}')"
+                                        class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-500/20 hover:bg-red-500/40 text-red-300 hover:text-white font-bold rounded-lg text-xs uppercase transition-all border border-red-500/30 hover:border-red-400">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                        Eliminar
+                                    </button>
+                                </div>
+                            </td>
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="5" class="px-6 py-10 text-center text-blue-200 uppercase">NO HAY NOTAS DE CRÉDITO O SALDOS A FAVOR</td>
+                            <td colspan="6" class="px-6 py-10 text-center text-blue-200 uppercase">NO HAY NOTAS DE CRÉDITO O SALDOS A FAVOR</td>
                         </tr>
                     @endforelse
                 </tbody>
@@ -280,6 +299,8 @@
                                 <option value="TRANSFERENCIA" class="text-black">TRANSFERENCIA</option>
                                 <option value="EFECTIVO" class="text-black">EFECTIVO</option>
                                 <option value="CHEQUE" class="text-black">CHEQUE</option>
+                                <option value="TARJETA DE DÉBITO" class="text-black">TARJETA DE DÉBITO</option>
+                                <option value="TARJETA DE CRÉDITO" class="text-black">TARJETA DE CRÉDITO</option>
                             </select>
                         </div>
                     </div>
@@ -494,10 +515,85 @@
                 </div>
             </div>
             <div class="p-6 border-t border-white/10 bg-white/5 flex justify-end">
-                <button onclick="document.getElementById('modal-facturas-pagadas').classList.add('hidden')" class="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition-all uppercase text-sm">Cerrar Tabla</button>
+                <button onclick="document.getElementById('modal-facturas-pagadas').classList.add('hidden')" class="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition-all uppercase text-sm">Cerrar</button>
             </div>
         </div>
     </div>
+
+    <!-- MODAL: EDITAR NOTA DE CRÉDITO -->
+    <div id="modal-editar-nc" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm overflow-y-auto flex items-center justify-center p-4">
+        <div class="bg-slate-800 rounded-3xl border border-white/20 shadow-2xl w-full max-w-md overflow-hidden relative">
+            <div class="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
+                <h3 class="text-xl font-black text-white uppercase tracking-tight">Editar NC / Saldo a Favor</h3>
+                <button onclick="document.getElementById('modal-editar-nc').classList.add('hidden')" class="text-blue-200 hover:text-white transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <form id="form-editar-nc" action="" method="POST" class="p-8">
+                @csrf
+                @method('PUT')
+                <div class="space-y-5 mb-8">
+                    <div>
+                        <label class="block text-sm font-medium text-blue-100 mb-2 uppercase">Folio NC / Referencia *</label>
+                        <input type="text" name="folio" id="edit-nc-folio" required
+                               class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 uppercase">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-blue-100 mb-2 uppercase">Fecha *</label>
+                        <input type="date" name="fecha" id="edit-nc-fecha" required
+                               class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-blue-100 mb-2 uppercase">Monto Original *</label>
+                        <input type="number" step="0.01" min="0.01" name="monto" id="edit-nc-monto" required
+                               class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 font-black text-lg text-emerald-400">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-blue-100 mb-2 uppercase">Observaciones</label>
+                        <textarea name="observaciones" id="edit-nc-observaciones" rows="2"
+                                  class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                    </div>
+                </div>
+                <div class="flex justify-end gap-4">
+                    <button type="button" onclick="document.getElementById('modal-editar-nc').classList.add('hidden')"
+                            class="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition-all uppercase text-sm">Cancelar</button>
+                    <button type="submit"
+                            class="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/20 transition-all uppercase text-sm">Guardar Cambios</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: CONFIRMAR ELIMINACIÓN DE NC -->
+    <div id="modal-eliminar-nc" class="fixed inset-0 z-50 hidden bg-black/60 backdrop-blur-sm overflow-y-auto flex items-center justify-center p-4">
+        <div class="bg-slate-800 rounded-3xl border border-white/20 shadow-2xl w-full max-w-md overflow-hidden relative">
+            <div class="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
+                <h3 class="text-xl font-black text-white uppercase tracking-tight">Confirmar Eliminación</h3>
+                <button onclick="document.getElementById('modal-eliminar-nc').classList.add('hidden')" class="text-blue-200 hover:text-white transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                </button>
+            </div>
+            <form id="form-eliminar-nc" action="" method="POST" class="p-8">
+                @csrf
+                @method('DELETE')
+                <div class="space-y-6 mb-8 text-center">
+                    <div class="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto">
+                        <svg class="w-8 h-8 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                    </div>
+                    <p class="text-white font-bold text-lg">¿Eliminar esta Nota de Crédito?</p>
+                    <p class="text-blue-200 text-sm uppercase font-semibold">Folio: <span id="eliminar-nc-folio" class="text-white font-black"></span></p>
+                    <p class="text-red-300 text-xs uppercase font-bold">Esta acción no se puede deshacer.</p>
+                </div>
+                <div class="flex justify-center gap-4">
+                    <button type="button" onclick="document.getElementById('modal-eliminar-nc').classList.add('hidden')"
+                            class="px-6 py-3 bg-white/10 hover:bg-white/20 text-white font-bold rounded-xl transition-all uppercase text-sm">Cancelar</button>
+                    <button type="submit"
+                            class="px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-xl shadow-lg shadow-red-600/20 transition-all uppercase text-sm">Sí, Eliminar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
 
 @endsection
 
@@ -588,6 +684,24 @@
     }
 
     let currentGrupoId = null;
+
+    function abrirModalEditarNC(id, folio, fecha, monto, observaciones) {
+        const baseUrl = '{{ url("cuentas-por-pagar/notas-credito") }}';
+        document.getElementById('form-editar-nc').action = baseUrl + '/' + id;
+        document.getElementById('edit-nc-folio').value = folio;
+        document.getElementById('edit-nc-fecha').value = fecha;
+        document.getElementById('edit-nc-monto').value = monto;
+        document.getElementById('edit-nc-observaciones').value = observaciones;
+        document.getElementById('modal-editar-nc').classList.remove('hidden');
+    }
+
+    function abrirModalEliminarNC(id, folio) {
+        const baseUrl = '{{ url("cuentas-por-pagar/notas-credito") }}';
+        document.getElementById('form-eliminar-nc').action = baseUrl + '/' + id;
+        document.getElementById('eliminar-nc-folio').textContent = folio;
+        document.getElementById('modal-eliminar-nc').classList.remove('hidden');
+    }
+
 
     function verFacturasPaginadas(grupoId, page) {
         if(page === 1) {

@@ -74,6 +74,8 @@ Route::middleware('auth')->group(function () {
     Route::resource('ventas', VentaController::class);
     Route::post('ventas/{venta}/pagos', [PagoVentaController::class, 'store'])->name('ventas.pagos.store');
     Route::post('ventas/{venta}/items', [VentaController::class, 'storeItems'])->name('ventas.items.store');
+    Route::put('ventas/{venta}/detalles/{detalle}', [VentaController::class, 'updateDetalle'])->name('ventas.detalles.update');
+    Route::delete('ventas/{venta}/detalles/{detalle}', [VentaController::class, 'destroyDetalle'])->name('ventas.detalles.destroy');
 
     // Órdenes de Servicio
     Route::get('clientes-buscar', [ClienteController::class, 'buscar'])->name('clientes.buscar');
@@ -102,6 +104,8 @@ Route::middleware('auth')->group(function () {
         Route::get('/pagos/{grupo_pago_id}/facturas', [\App\Http\Controllers\CuentasPorPagarController::class, 'getFacturasPagadas'])->name('pagos.facturas');
         Route::post('/complementos', [\App\Http\Controllers\CuentasPorPagarController::class, 'registrarComplemento'])->name('complementos.store');
         Route::post('/notas-credito', [\App\Http\Controllers\CuentasPorPagarController::class, 'registrarNotaCredito'])->name('notas_credito.store');
+        Route::put('/notas-credito/{notaCredito}', [\App\Http\Controllers\CuentasPorPagarController::class, 'actualizarNotaCredito'])->name('notas_credito.update');
+        Route::delete('/notas-credito/{notaCredito}', [\App\Http\Controllers\CuentasPorPagarController::class, 'eliminarNotaCredito'])->name('notas_credito.destroy');
     });
 
     // Cuentas por Cobrar
