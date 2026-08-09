@@ -166,13 +166,13 @@
             <tbody>
                 @foreach($ventas as $venta)
                     <tr>
-                        <td class="text-bold">{{ $venta->folio }}</td>
+                        <td>{{ $venta->folio }}</td>
                         <td>{{ $venta->fecha->format('d/m/Y') }}</td>
-                        <td class="{{ $venta->fecha->lt(now()->subDays(15)) ? 'vencido' : '' }}">
+                        <td class="text-bold {{ $venta->fecha->lt(now()->subDays(15)) ? 'vencido' : '' }}">
                             {{ $venta->fecha->addDays(15)->format('d/m/Y') }}
                         </td>
                         <td class="text-right">${{ number_format($venta->total, 2) }}</td>
-                        <td class="text-right text-bold" style="color: #1e293b;">${{ number_format($venta->saldo_pendiente, 2) }}</td>
+                        <td class="text-right text-bold">${{ number_format($venta->saldo_pendiente, 2) }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -185,27 +185,27 @@
             <thead>
                 <tr>
                     <th style="width: 15%;">Folio</th>
-                    <th style="width: 20%;">Fecha</th>
-                    <th style="width: 20%;">Vencimiento</th>
-                    <th style="width: 20%; text-align: right;">Total Doc.</th>
-                    <th style="width: 25%; text-align: right;">Saldo Pendiente</th>
+                    <th style="width: 20%;">Vehículo</th>
+                    <th style="width: 18%;">Fecha</th>
+                    <th style="width: 17%;">Vencimiento</th>
+                    <th style="width: 17%; text-align: right;">Total Doc.</th>
+                    <th style="width: 18%; text-align: right;">Saldo Pendiente</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach($ordenes as $orden)
                     <tr>
-                        <td class="text-bold">
-                            {{ $orden->folio }}<br>
-                            <span style="font-size: 8px; font-weight: bold; color: #000;">
-                                {{ $orden->vehiculo->marca }} {{ $orden->vehiculo->modelo }}
-                            </span>
+                        <td>{{ $orden->folio }}</td>
+                        <td style="text-transform: uppercase;">
+                            {{ $orden->vehiculo->marca }} {{ $orden->vehiculo->modelo }}<br>
+                            Placas: {{ $orden->vehiculo->placas ?? 'S/P' }}
                         </td>
                         <td>{{ $orden->fecha_entrada->format('d/m/Y') }}</td>
-                        <td class="{{ $orden->fecha_entrada->lt(now()->subDays(15)) ? 'vencido' : '' }}">
+                        <td class="text-bold {{ $orden->fecha_entrada->lt(now()->subDays(15)) ? 'vencido' : '' }}">
                             {{ $orden->fecha_entrada->addDays(15)->format('d/m/Y') }}
                         </td>
                         <td class="text-right">${{ number_format($orden->total, 2) }}</td>
-                        <td class="text-right text-bold" style="color: #1e293b;">${{ number_format($orden->saldo_pendiente, 2) }}</td>
+                        <td class="text-right text-bold">${{ number_format($orden->saldo_pendiente, 2) }}</td>
                     </tr>
                 @endforeach
             </tbody>
@@ -213,9 +213,9 @@
     @endif
 
     <div class="summary-section">
-        <div class="summary-label">Saldo Total Adeudado</div>
+        <div class="summary-label"><strong>Saldo Total Adeudado</strong></div>
         <div class="summary-value">
-            ${{ number_format($ventas->sum('saldo_pendiente') + $ordenes->sum('saldo_pendiente'), 2) }}
+            <strong>${{ number_format($ventas->sum('saldo_pendiente') + $ordenes->sum('saldo_pendiente'), 2) }}</strong>
         </div>
     </div>
 

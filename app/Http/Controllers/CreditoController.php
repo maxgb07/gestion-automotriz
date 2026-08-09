@@ -203,7 +203,7 @@ class CreditoController extends Controller
 
         $pdf = Pdf::loadView('creditos.pdf_estado_cuenta', compact('cliente', 'ventas', 'ordenes'));
 
-        return $pdf->stream('Estado_Cuenta_' . \Illuminate\Support\Str::slug($cliente->nombre) . '.pdf');
+        return $pdf->stream('Estado_Cuenta_' . \Illuminate\Support\Str::slug($cliente->nombre, '_') . '_' . now()->format('Ymd') . '.pdf');
     }
 
     public function reporteGeneral(Request $request)

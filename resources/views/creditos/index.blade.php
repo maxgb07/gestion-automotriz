@@ -126,7 +126,17 @@
                                     </div>
                                     <div>
                                         <div class="font-black text-white group-hover:text-blue-300 transition-colors text-md">{{ $cliente->nombre }}</div>
-                                        <div class="text-[10px] text-blue-300/40 font-bold uppercase tracking-widest">{{ $cliente->rfc ?? 'SIN RFC' }}</div>
+                                        <div class="text-md text-blue-300/40 font-bold uppercase tracking-widest">{{ $cliente->rfc ?? 'SIN RFC' }}</div>
+                                        @if($cliente->celular)
+                                            <div class="text-md font-bold text-white/80">
+                                                <span class="text-blue-300/40 uppercase tracking-widest">Celular:</span> {{ $cliente->celular }}
+                                            </div>
+                                        @endif
+                                        @if($cliente->telefono)
+                                            <div class="text-md font-bold text-white/80">
+                                                <span class="text-blue-300/40 uppercase tracking-widest">Teléfono:</span> {{ $cliente->telefono }}
+                                            </div>
+                                        @endif
                                     </div>
                                 </div>
                             </td>
