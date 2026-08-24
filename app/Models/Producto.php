@@ -17,6 +17,7 @@ class Producto extends Model
         'descripcion',
         'sku',
         'marca',
+        'clasificacion',
         'codigo_barras',
         'aplicacion',
         'imagen',
@@ -50,6 +51,11 @@ class Producto extends Model
     protected function setMarcaAttribute($value)
     {
         $this->attributes['marca'] = mb_strtoupper($value);
+    }
+
+    protected function setClasificacionAttribute($value)
+    {
+        $this->attributes['clasificacion'] = $value !== null ? mb_strtoupper($value) : null;
     }
 
     protected function setAplicacionAttribute($value)

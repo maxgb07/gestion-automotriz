@@ -21,12 +21,7 @@
                 </svg>
                 Generar Pedimento
             </button>
-            <button onclick="abrirModalMasVendidos()" class="w-fit inline-flex items-center px-4 py-2 text-white font-black rounded-lg shadow-lg transition-all text-sm uppercase tracking-widest" style="background-color: #059669;">
-                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-                </svg>
-                Más Vendidos
-            </button>
+
             <a href="{{ route('productos.crear_lote') }}" class="w-fit inline-flex items-center px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-lg shadow-lg shadow-indigo-900/40 transition-all text-sm uppercase tracking-widest">
                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
@@ -44,20 +39,33 @@
 
     <!-- Search Box -->
     <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 mb-8 shadow-xl">
-        <form action="{{ route('productos.index') }}" method="GET" class="flex flex-col md:flex-row gap-4">
-            <div class="flex-grow relative">
+        <form action="{{ route('productos.index') }}" method="GET" class="flex flex-col md:flex-row gap-3 items-stretch">
+            {{-- flex-1: ocupa todo el espacio sobrante --}}
+            <div class="relative flex-1">
                 <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                     <svg class="h-5 w-5 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
                     </svg>
                 </div>
-                <input type="text" name="buscar" value="{{ request('buscar') }}" placeholder="BUSCAR POR SKU, MARCA, CLAVE, CÓDIGO O APLICACIÓN..." class="block w-full pl-12 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-200/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm uppercase">
+                <input type="text" name="buscar" value="{{ request('buscar') }}" placeholder="BUSCAR POR SKU, MARCA, CLAVE, CÓDIGO O APLICACIÓN..." class="block w-full h-full pl-12 pr-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-200/50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm uppercase">
             </div>
-            <button type="submit" class="w-fit px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/20 transition-all">
+            {{-- ancho fijo para clasificación --}}
+            <div class="shrink-0 md:w-56">
+                <select name="clasificacion" onchange="this.form.submit()" class="block w-full h-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white font-bold focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm uppercase">
+                    <option value="" class="bg-slate-800">TODA CLASIFICACIÓN</option>
+                    <option value="A" class="bg-slate-800" {{ request('clasificacion') == 'A' ? 'selected' : '' }}>A - ALTA ROTACIÓN</option>
+                    <option value="B" class="bg-slate-800" {{ request('clasificacion') == 'B' ? 'selected' : '' }}>B - MEDIA ROTACIÓN</option>
+                    <option value="C" class="bg-slate-800" {{ request('clasificacion') == 'C' ? 'selected' : '' }}>C - BAJA ROTACIÓN</option>
+                    <option value="Z" class="bg-slate-800" {{ request('clasificacion') == 'Z' ? 'selected' : '' }}>Z - SIN MOVIMIENTO</option>
+                </select>
+            </div>
+            {{-- ancho fijo para botón buscar --}}
+            <button type="submit" class="shrink-0 w-28 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg shadow-blue-600/20 transition-all uppercase tracking-widest">
                 BUSCAR
             </button>
-            @if(request('buscar'))
-                <a href="{{ route('productos.index') }}" class="w-fit px-5 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-200 font-semibold rounded-xl border border-red-500/30 transition-all text-center">
+            {{-- ancho fijo para botón limpiar (solo si hay filtros activos) --}}
+            @if(request('buscar') || request('clasificacion'))
+                <a href="{{ route('productos.index') }}" class="shrink-0 w-28 px-4 py-3 bg-red-500/20 hover:bg-red-500/30 text-red-200 font-semibold rounded-xl border border-red-500/30 transition-all text-center uppercase tracking-widest flex items-center justify-center">
                     LIMPIAR
                 </a>
             @endif
@@ -74,6 +82,7 @@
                         <th class="px-6 py-4 text-sm font-semibold text-blue-200 uppercase tracking-wider text-center">Marca</th>
                         <!-- <th class="px-6 py-4 text-sm font-semibold text-blue-200 uppercase tracking-wider text-center">Código Barras</th> -->
                         <th class="px-6 py-4 text-sm font-semibold text-blue-200 uppercase tracking-wider text-center">Aplicación</th>
+                        <th class="px-6 py-4 text-sm font-semibold text-blue-200 uppercase tracking-wider text-center">Clasificación</th>
                         <th class="px-6 py-4 text-sm font-semibold text-blue-200 uppercase tracking-wider text-center">Stock</th>
                         <th class="px-6 py-4 text-sm font-semibold text-blue-200 uppercase tracking-wider text-center">Precios</th>
                         <th class="px-6 py-4 text-sm font-semibold text-blue-200 uppercase tracking-wider text-center">Acciones</th>
@@ -113,6 +122,9 @@
                             </td> -->
                             <td class="px-6 py-4 text-center">
                                 <span class="text-blue-100 text-sm font-bold uppercase line-clamp-2 text-center">{{ $producto->aplicacion ?? 'N/A' }}</span>
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <span class="text-white font-bold uppercase">{{ $producto->clasificacion ?? 'N/D' }}</span>
                             </td>
                             <td class="px-6 py-4 text-center">
                                 <div class="flex flex-col items-center">
@@ -180,6 +192,153 @@
     </div>
 
 <script>
+    const ultimasVentasBaseUrl = '{{ url("productos") }}';
+    const UC_PER_PAGE = 10;
+
+    function renderUltimasCompras(compras, page) {
+        const container = document.getElementById('uc-table-container');
+        if (!container) return;
+
+        if (!compras || compras.length === 0) {
+            container.innerHTML = `<p class="px-4 py-6 text-center text-blue-200/40 font-bold text-xs uppercase tracking-widest">SIN HISTORIAL DE COMPRAS</p>`;
+            return;
+        }
+
+        const total    = compras.length;
+        const lastPage = Math.ceil(total / UC_PER_PAGE);
+        page = Math.max(1, Math.min(page, lastPage));
+        const slice    = compras.slice((page - 1) * UC_PER_PAGE, page * UC_PER_PAGE);
+
+        const fmt     = (n) => new Intl.NumberFormat('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+        const fmtQty  = (n) => new Intl.NumberFormat('es-MX').format(n);
+        const fmtDate = (d) => d ? d.split('-').reverse().join('/') : '-';
+
+        let rows = slice.map(comp => `
+            <tr class="hover:bg-white/5 transition-colors">
+                <td class="px-4 py-3 text-md font-bold text-white">${fmtDate(comp.fecha_compra)}</td>
+                <td class="px-4 py-3 text-md font-bold uppercase text-white truncate" title="${comp.proveedor_nombre || 'N/A'}">${comp.proveedor_nombre || 'N/A'}</td>
+                <td class="px-4 py-3 text-md font-bold text-center text-white">${comp.cantidad ? fmtQty(comp.cantidad) : '0'}</td>
+                <td class="px-4 py-3 text-md font-bold uppercase text-center text-white font-mono">${comp.folio || '-'}</td>
+                <td class="px-4 py-3 text-md font-bold uppercase text-center text-white">${comp.factura || '-'}</td>
+                <td class="px-4 py-3 text-md font-black text-white text-right pr-6">$${fmt(comp.precio_compra)}</td>
+            </tr>`).join('');
+
+        let paginacion = '';
+        if (lastPage > 1) {
+            const prevDis = page <= 1 ? 'opacity-40 pointer-events-none' : 'cursor-pointer hover:bg-white/10';
+            const nextDis = page >= lastPage ? 'opacity-40 pointer-events-none' : 'cursor-pointer hover:bg-white/10';
+            paginacion = `
+                <div class="flex items-center justify-between px-4 py-3 border-t border-white/10">
+                    <span class="text-[11px] text-blue-200/50 uppercase font-bold">
+                        Página ${page} de ${lastPage} &bull; ${total} registros
+                    </span>
+                    <div class="flex items-center gap-2">
+                        <button onclick="renderUltimasCompras(window._ucCompras, ${page - 1})"
+                            class="px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-white text-xs font-bold transition-all ${prevDis}">
+                            &#8592; Anterior
+                        </button>
+                        <button onclick="renderUltimasCompras(window._ucCompras, ${page + 1})"
+                            class="px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-white text-xs font-bold transition-all ${nextDis}">
+                            Siguiente &#8594;
+                        </button>
+                    </div>
+                </div>`;
+        }
+
+        container.innerHTML = `
+            <table class="w-full text-left border-collapse text-md">
+                <thead class="bg-white/10 sticky top-0 backdrop-blur-md">
+                    <tr>
+                        <th class="px-4 py-2 text-md text-white font-bold uppercase">FECHA</th>
+                        <th class="px-4 py-2 text-md text-white font-bold uppercase">PROVEEDOR</th>
+                        <th class="px-4 py-2 text-md text-white font-bold uppercase text-center">CANTIDAD</th>
+                        <th class="px-4 py-2 text-md text-white font-bold uppercase text-center">FOLIO COMPRA</th>
+                        <th class="px-4 py-2 text-md text-white font-bold uppercase text-center">FACTURA</th>
+                        <th class="px-4 py-2 text-md text-white font-bold uppercase text-right pr-6">PRECIO</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-white/5">${rows}</tbody>
+            </table>
+            ${paginacion}`;
+    }
+
+    function renderUltimasVentas(productoId, page) {
+        const container = document.getElementById('uv-table-container');
+        if (!container) return;
+
+        container.innerHTML = `
+            <div class="flex items-center justify-center py-8">
+                <svg class="animate-spin w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                </svg>
+                <span class="ml-3 text-blue-300/60 text-xs uppercase font-bold tracking-widest">Cargando...</span>
+            </div>`;
+
+        fetch(`${ultimasVentasBaseUrl}/${productoId}/ultimas-ventas?page=${page}`)
+            .then(r => r.json())
+            .then(res => {
+                if (!res.data || res.data.length === 0) {
+                    container.innerHTML = `<p class="px-4 py-6 text-center text-blue-200/40 font-bold text-xs uppercase tracking-widest">SIN HISTORIAL DE VENTAS</p>`;
+                    return;
+                }
+
+                const fmt    = (n) => new Intl.NumberFormat('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(n);
+                const fmtQty = (n) => new Intl.NumberFormat('es-MX').format(n);
+                const fmtDate = (d) => d ? d.split('-').reverse().join('/') : '-';
+
+                let rows = res.data.map(r => {
+                    return `
+                        <tr class="hover:bg-white/5 transition-colors">
+                            <td class="px-4 py-3 text-md font-bold text-white">${fmtDate(r.fecha)}</td>
+                            <td class="px-4 py-3 text-md font-bold text-white text-center font-mono">${r.folio || '-'}</td>
+                            <td class="px-4 py-3 text-md font-bold text-white text-center">${fmtQty(r.cantidad)}</td>
+                            <td class="px-4 py-3 text-md font-black text-emerald-400 text-right pr-4">$${fmt(r.precio_venta)}</td>
+                        </tr>`;
+                }).join('');
+
+                // Paginación
+                let paginacion = '';
+                if (res.last_page > 1) {
+                    const prevDis = res.current_page <= 1 ? 'opacity-40 pointer-events-none' : 'cursor-pointer hover:bg-white/10';
+                    const nextDis = res.current_page >= res.last_page ? 'opacity-40 pointer-events-none' : 'cursor-pointer hover:bg-white/10';
+                    paginacion = `
+                        <div class="flex items-center justify-between px-4 py-3 border-t border-white/10 bg-white/3">
+                            <span class="text-[11px] text-blue-200/50 uppercase font-bold">
+                                Página ${res.current_page} de ${res.last_page} &bull; ${res.total} registros
+                            </span>
+                            <div class="flex items-center gap-2">
+                                <button onclick="renderUltimasVentas(${productoId}, ${res.current_page - 1})"
+                                    class="px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-white text-xs font-bold transition-all ${prevDis}">
+                                    &#8592; Anterior
+                                </button>
+                                <button onclick="renderUltimasVentas(${productoId}, ${res.current_page + 1})"
+                                    class="px-3 py-1 rounded-lg bg-white/5 border border-white/10 text-white text-xs font-bold transition-all ${nextDis}">
+                                    Siguiente &#8594;
+                                </button>
+                            </div>
+                        </div>`;
+                }
+
+                container.innerHTML = `
+                    <table class="w-full text-left border-collapse text-md">
+                        <thead class="bg-white/10 sticky top-0 backdrop-blur-md">
+                            <tr>
+                                <th class="px-4 py-2 text-md text-white font-bold uppercase">FECHA</th>
+                                <th class="px-4 py-2 text-md text-white font-bold uppercase text-center">FOLIO</th>
+                                <th class="px-4 py-2 text-md text-white font-bold uppercase text-center">CANTIDAD</th>
+                                <th class="px-4 py-2 text-md text-white font-bold uppercase text-right pr-4">PRECIO VENTA</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/5">${rows}</tbody>
+                    </table>
+                    ${paginacion}`;
+            })
+            .catch(() => {
+                container.innerHTML = `<p class="px-4 py-6 text-center text-red-400/60 font-bold text-xs uppercase tracking-widest">Error al cargar las ventas</p>`;
+            });
+    }
+
     function verProducto(producto) {
         const imagenHtml = producto.imagen 
             ? `<div class="flex justify-center mb-6">
@@ -241,33 +400,21 @@
 
                     <div class="mt-8 border-t border-white/10 pt-6">
                         <h4 class="text-md font-black text-blue-200 uppercase tracking-widest mb-4">Últimas Compras</h4>
-                        <div class="max-h-60 overflow-y-auto overflow-x-hidden rounded-xl bg-white/5 border border-white/10">
-                            ${producto.historial_compras && producto.historial_compras.length > 0 ? `
-                                <table class="w-full text-left border-collapse text-md">
-                                    <thead class="bg-white/10 sticky top-0 backdrop-blur-md">
-                                        <tr>
-                                            <th class="px-4 py-2 text-md text-white font-bold uppercase first:rounded-tl-xl">FECHA</th>
-                                            <th class="px-4 py-2 text-md text-white font-bold uppercase">PROVEEDOR</th>
-                                            <th class="px-4 py-2 text-md text-white font-bold uppercase text-center">CANTIDAD</th>
-                                            <th class="px-4 py-2 text-md text-white font-bold uppercase text-center">FOLIO COMPRA</th>
-                                            <th class="px-4 py-2 text-md text-white font-bold uppercase text-center">FACTURA</th>
-                                            <th class="px-4 py-2 text-md text-white font-bold uppercase text-right last:rounded-tr-xl pr-6 w-32">PRECIO</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody class="divide-y divide-white/5">
-                                        ${producto.historial_compras.map((comp, index) => `
-                                            <tr class="hover:bg-white/5 transition-colors ${index === producto.historial_compras.length - 1 ? 'last:rounded-b-xl' : ''}">
-                                                <td class="px-4 py-3 text-md font-bold text-white ${index === producto.historial_compras.length - 1 ? 'first:rounded-bl-xl' : ''}">${comp.fecha_compra ? comp.fecha_compra.split('-').reverse().join('/') : ''}</td>
-                                                <td class="px-4 py-3 text-md font-bold uppercase text-white truncate" title="${comp.proveedor_nombre || 'N/A'}">${comp.proveedor_nombre || 'N/A'}</td>
-                                                <td class="px-4 py-3 text-md font-bold text-center text-white">${comp.cantidad ? new Intl.NumberFormat('en-US').format(comp.cantidad) : '0'}</td>
-                                                <td class="px-4 py-3 text-md font-bold uppercase text-center text-white truncate max-w-[100px]">${comp.folio || '-'}</td>
-                                                <td class="px-4 py-3 text-md font-bold uppercase text-center text-white truncate max-w-[100px]">${comp.factura || '-'}</td>
-                                                <td class="px-4 py-3 text-md font-black text-white text-right ${index === producto.historial_compras.length - 1 ? 'last:rounded-br-xl' : ''} pr-6 min-w-[100px]">$${new Intl.NumberFormat('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(comp.precio_compra)}</td>
-                                            </tr>
-                                        `).join('')}
-                                    </tbody>
-                                </table>
-                            ` : `<p class="px-4 py-6 text-center text-blue-200/40 font-bold text-xs uppercase tracking-widest">SIN HISTORIAL DE COMPRAS</p>`}
+                        <div id="uc-table-container" class="rounded-xl bg-white/5 border border-white/10 overflow-hidden">
+                            <p class="px-4 py-6 text-center text-blue-200/40 font-bold text-xs uppercase tracking-widest">Cargando...</p>
+                        </div>
+                    </div>
+
+                    <div class="mt-8 border-t border-white/10 pt-6">
+                        <h4 class="text-md font-black text-blue-200 uppercase tracking-widest mb-4">Últimas Ventas</h4>
+                        <div id="uv-table-container" class="rounded-xl bg-white/5 border border-white/10 overflow-hidden">
+                            <div class="flex items-center justify-center py-8">
+                                <svg class="animate-spin w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+                                </svg>
+                                <span class="ml-3 text-blue-300/60 text-xs uppercase font-bold tracking-widest">Cargando...</span>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -281,6 +428,11 @@
             customClass: {
                 popup: 'backdrop-blur-xl border border-white/20 rounded-[3rem] p-8',
                 confirmButton: 'px-8 py-3 rounded-2xl font-black uppercase tracking-widest text-xs'
+            },
+            didOpen: () => {
+                window._ucCompras = producto.historial_compras || [];
+                renderUltimasCompras(window._ucCompras, 1);
+                renderUltimasVentas(producto.id, 1);
             }
         });
     }
@@ -321,16 +473,16 @@
                     <div>
                         <p class="text-blue-200 text-sm mb-2 uppercase font-bold">1. Selecciona el periodo</p>
                         <select id="swal-periodo" class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all uppercase">
+                            <option value="personalizado" class="bg-slate-800" selected>PERSONALIZADO (FECHAS)</option>
                             <option value="completo" class="bg-slate-800">COMPLETO (TODO BAJO STOCK)</option>
                             <option value="hoy" class="bg-slate-800">HOY</option>
                             <option value="semanal" class="bg-slate-800">SEMANAL (LUNES A HOY)</option>
                             <option value="quincenal" class="bg-slate-800">QUINCENAL (2 SEMANAS)</option>
                             <option value="mensual" class="bg-slate-800">MENSUAL (MES ACTUAL)</option>
-                            <option value="personalizado" class="bg-slate-800">PERSONALIZADO (FECHAS)</option>
                         </select>
                     </div>
 
-                    <div id="div-fechas" class="hidden grid grid-cols-2 gap-4">
+                    <div id="div-fechas" class="grid grid-cols-2 gap-4">
                         <div>
                             <p class="text-blue-200 text-xs mb-1 uppercase font-bold">Inicio</p>
                             <input type="date" id="swal-fecha-inicio" class="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm">
@@ -467,87 +619,7 @@
         });
     }
 
-    function abrirModalMasVendidos() {
-        const marcas = @json($marcas);
-        let options = '<option value="">TODAS</option>';
-        marcas.forEach(marca => {
-            options += `<option value="${marca}">${marca}</option>`;
-        });
 
-        Swal.fire({
-            title: 'MÁS VENDIDOS',
-            html: `
-                <div class="text-left space-y-4">
-                    <div>
-                        <p class="text-blue-200 text-sm mb-2 uppercase font-bold">1. Selecciona el periodo</p>
-                        <select id="mv-periodo" class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white text-sm font-bold focus:ring-2 focus:ring-emerald-500 outline-none uppercase">
-                            <option value="completo" class="bg-slate-800">HISTORIAL COMPLETO</option>
-                            <option value="hoy" class="bg-slate-800">HOY</option>
-                            <option value="semanal" class="bg-slate-800">SEMANAL (LUNES A HOY)</option>
-                            <option value="quincenal" class="bg-slate-800">QUINCENAL (2 SEMANAS)</option>
-                            <option value="mensual" class="bg-slate-800">MENSUAL (MES ACTUAL)</option>
-                            <option value="personalizado" class="bg-slate-800">PERSONALIZADO (FECHAS)</option>
-                        </select>
-                    </div>
-                    <div id="mv-div-fechas" class="hidden grid grid-cols-2 gap-4">
-                        <div>
-                            <p class="text-blue-200 text-xs mb-1 uppercase font-bold">Inicio</p>
-                            <input type="date" id="mv-fecha-inicio" class="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm">
-                        </div>
-                        <div>
-                            <p class="text-blue-200 text-xs mb-1 uppercase font-bold">Fin</p>
-                            <input type="date" id="mv-fecha-fin" class="w-full px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white text-sm">
-                        </div>
-                    </div>
-                    <div>
-                        <p class="text-blue-200 text-sm mb-2 uppercase font-bold">2. Selecciona la marca (Opcional)</p>
-                        <select id="mv-marca" class="w-full">${options}</select>
-                    </div>
-                </div>
-            `,
-            showCancelButton: true,
-            confirmButtonText: 'VER RESULTADOS',
-            cancelButtonText: 'CANCELAR',
-            confirmButtonColor: '#10b981',
-            cancelButtonColor: '#475569',
-            background: '#1e293b',
-            color: '#fff',
-            customClass: {
-                popup: 'rounded-3xl border border-white/20 shadow-2xl overflow-visible',
-                title: 'text-xl font-black uppercase tracking-tighter'
-            },
-            didOpen: () => {
-                $('#mv-marca').select2({ width: '100%', dropdownParent: Swal.getPopup() });
-                $('#mv-periodo').on('change', function() {
-                    if ($(this).val() === 'personalizado') {
-                        $('#mv-div-fechas').removeClass('hidden');
-                    } else {
-                        $('#mv-div-fechas').addClass('hidden');
-                    }
-                });
-            },
-            preConfirm: () => {
-                const periodo = $('#mv-periodo').val();
-                const marca   = $('#mv-marca').val();
-                const fi      = $('#mv-fecha-inicio').val();
-                const ff      = $('#mv-fecha-fin').val();
-                if (periodo === 'personalizado' && (!fi || !ff)) {
-                    Swal.showValidationMessage('DEBES SELECCIONAR AMBAS FECHAS');
-                    return false;
-                }
-                return { periodo, marca, fi, ff };
-            }
-        }).then(result => {
-            if (result.isConfirmed) {
-                const { periodo, marca, fi, ff } = result.value;
-                let url = '{{ route("productos.mas_vendidos") }}?periodo=' + periodo;
-                if (marca) url += '&marca=' + encodeURIComponent(marca);
-                if (fi)    url += '&fecha_inicio=' + fi;
-                if (ff)    url += '&fecha_fin=' + ff;
-                window.location.href = url;
-            }
-        });
-    }
 </script>
 
 @push('styles')

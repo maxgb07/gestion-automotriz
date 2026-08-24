@@ -55,10 +55,22 @@ class ProductoController extends Controller
             });
         }
 
-        $productos = $query->orderBy('descripcion', 'asc')
-                           ->orderBy('nombre', 'asc')
-                           ->paginate(15)
-                           ->withQueryString();
+        if ($request->has('clasificacion') && $request->get('clasificacion') != '') {
+            $query->where('clasificacion', $request->get('clasificacion'));
+        }
+
+        $hayFiltros = ($request->filled('buscar') || $request->filled('clasificacion'));
+
+        if ($hayFiltros) {
+            $productos = $query->orderByRaw("FIELD(clasificacion, 'A', 'B', 'C', 'Z')")
+                               ->orderBy('descripcion', 'asc')
+                               ->paginate(15)
+                               ->withQueryString();
+        } else {
+            $productos = $query->orderBy('descripcion', 'asc')
+                               ->paginate(15)
+                               ->withQueryString();
+        }
         $marcas = Producto::whereNotNull('marca')->where('marca', '!=', '')->distinct()->orderBy('marca')->pluck('marca');
 
         return view('productos.index', compact('productos', 'marcas'));
@@ -74,6 +86,7 @@ class ProductoController extends Controller
         $request->validate([
             'nombre' => 'nullable|string|max:255',
             'marca' => 'nullable|string|max:100',
+            'clasificacion' => 'nullable|string|max:100',
             'codigo_barras' => 'nullable|string|max:100',
             'precio_compra' => 'nullable|numeric|min:0',
             'precio_venta' => 'nullable|numeric|min:0',
@@ -114,6 +127,7 @@ class ProductoController extends Controller
         $request->validate([
             'nombre' => 'nullable|string|max:255',
             'marca' => 'nullable|string|max:100',
+            'clasificacion' => 'nullable|string|max:100',
             'codigo_barras' => 'nullable|string|max:100',
             'precio_compra' => 'nullable|numeric|min:0',
             'precio_venta' => 'nullable|numeric|min:0',
@@ -208,11 +222,13 @@ class ProductoController extends Controller
                 return $producto->ventas_periodo > 0;
             })->values()
             ->sortBy([
+                ['clasificacion', 'asc'],
                 ['marca', 'asc'],
                 ['nombre', 'asc'],
             ]);
         } else {
-            $productos = $query->orderBy('marca', 'asc')
+            $productos = $query->orderBy('clasificacion', 'asc')
+                                ->orderBy('marca', 'asc')
                                 ->orderBy('nombre', 'asc')
                                 ->get()
                                 ->map(function($p) {
@@ -384,222 +400,63 @@ class ProductoController extends Controller
         }
     }
 
-    public function masVendidos(Request $request)
+
+    public function ultimasVentas(Request $request, Producto $producto)
     {
-        $periodo    = $request->get('periodo', 'completo');
-        $marca      = $request->get('marca');
-        $fecha_inicio = null;
-        $fecha_fin    = Carbon::now();
-        $search       = $request->get('search');
+        $perPage = 10;
+        $page    = max(1, (int) $request->get('page', 1));
 
-        switch ($periodo) {
-            case 'hoy':
-                $fecha_inicio = Carbon::today();
-                break;
-            case 'semanal':
-                $fecha_inicio = Carbon::now()->startOfWeek();
-                break;
-            case 'quincenal':
-                $fecha_inicio = Carbon::now()->subWeek()->startOfWeek();
-                break;
-            case 'mensual':
-                $fecha_inicio = Carbon::now()->startOfMonth();
-                break;
-            case 'personalizado':
-                $fecha_inicio = $request->filled('fecha_inicio') ? Carbon::parse($request->fecha_inicio)->startOfDay() : null;
-                $fecha_fin    = $request->filled('fecha_fin')    ? Carbon::parse($request->fecha_fin)->endOfDay()       : Carbon::now();
-                break;
-        }
-
-        // Subquery: ventas directas
-        $ventasQuery = DB::table('venta_detalles')
+        // Ventas
+        $ventasQ = DB::table('venta_detalles')
             ->join('ventas', 'venta_detalles.venta_id', '=', 'ventas.id')
+            ->where('venta_detalles.producto_id', $producto->id)
             ->whereNull('ventas.cancelado_at')
-            ->whereNotNull('venta_detalles.producto_id')
             ->select(
-                'venta_detalles.producto_id',
-                DB::raw('SUM(venta_detalles.cantidad) as total_qty'),
-                DB::raw('MAX(ventas.created_at) as ultima_venta')
-            )
-            ->groupBy('venta_detalles.producto_id');
+                DB::raw("DATE(ventas.created_at) as fecha"),
+                'ventas.folio as folio',
+                DB::raw("'Venta' as tipo"),
+                'venta_detalles.cantidad',
+                'venta_detalles.precio_unitario as precio_venta'
+            );
 
-        // Subquery: órdenes de servicio
-        $ordenesQuery = DB::table('orden_servicio_detalles')
+        // Órdenes de servicio
+        $ordenesQ = DB::table('orden_servicio_detalles')
             ->join('ordenes_servicio', 'orden_servicio_detalles.orden_servicio_id', '=', 'ordenes_servicio.id')
-            ->whereNotNull('orden_servicio_detalles.producto_id')
+            ->where('orden_servicio_detalles.producto_id', $producto->id)
+            ->whereNull('ordenes_servicio.deleted_at')
             ->select(
-                'orden_servicio_detalles.producto_id',
-                DB::raw('SUM(orden_servicio_detalles.cantidad) as total_qty'),
-                DB::raw('MAX(ordenes_servicio.created_at) as ultima_venta')
-            )
-            ->groupBy('orden_servicio_detalles.producto_id');
-
-        // Aplicar filtro de fechas a ambos subqueries
-        if ($periodo !== 'completo' && $fecha_inicio) {
-            $ventasQuery->whereBetween('ventas.created_at', [$fecha_inicio, $fecha_fin]);
-            $ordenesQuery->whereBetween('ordenes_servicio.created_at', [$fecha_inicio, $fecha_fin]);
-        }
-
-        // UNION ALL: consolida ventas + órdenes de servicio
-        $unionBindings = array_merge($ventasQuery->getBindings(), $ordenesQuery->getBindings());
-
-        $rawResults = DB::select("
-            SELECT
-                producto_id,
-                SUM(total_qty)    AS cantidad_vendida,
-                MAX(ultima_venta) AS ultima_venta
-            FROM (
-                {$ventasQuery->toSql()}
-                UNION ALL
-                {$ordenesQuery->toSql()}
-            ) AS movimientos
-            GROUP BY producto_id
-            ORDER BY cantidad_vendida DESC
-        ", $unionBindings);
-
-        // Obtener IDs en orden
-        $productosIds = array_column($rawResults, 'producto_id');
-
-        if (empty($productosIds)) {
-            $productos = collect()->paginate(15);
-            // Crear paginador vacío manualmente
-            $productos = new \Illuminate\Pagination\LengthAwarePaginator(
-                collect(),
-                0,
-                15,
-                1,
-                ['path' => $request->url(), 'query' => $request->query()]
+                DB::raw("DATE(ordenes_servicio.created_at) as fecha"),
+                'ordenes_servicio.folio as folio',
+                DB::raw("'Orden de Servicio' as tipo"),
+                'orden_servicio_detalles.cantidad',
+                'orden_servicio_detalles.precio_unitario as precio_venta'
             );
-        } else {
-            // Traer productos preservando el orden, excluyendo los de la lista negra.
-            // Nota: whereNotIn con NULL en MySQL retorna NULL (falso), por eso
-            // se trata nombre y SKU por separado para no excluir productos con SKU vacío.
-            $excluidos = self::PRODUCTOS_EXCLUIDOS;
-            $productosList = Producto::whereIn('id', $productosIds)
-                ->when($marca, fn($q) => $q->where('marca', $marca))
-                ->whereNotIn('nombre', $excluidos)
-                ->where(function($q) use ($excluidos) {
-                    // SKU nulo/vacío pasa el filtro; SKU con valor debe no estar en la lista
-                    $q->whereNull('sku')
-                      ->orWhere('sku', '')
-                      ->orWhereNotIn('sku', $excluidos);
-                })
-                ->get()
-                ->keyBy('id');
 
-            // Última compra por producto
-            $ultimasCompras = DB::table('detalles_compra')
-                ->join('compras', 'detalles_compra.compra_id', '=', 'compras.id')
-                ->whereIn('detalles_compra.producto_id', $productosIds)
-                ->select(
-                    'detalles_compra.producto_id',
-                    DB::raw('MAX(compras.fecha_compra) as ultima_compra')
-                )
-                ->groupBy('detalles_compra.producto_id')
-                ->get()
-                ->keyBy('producto_id');
+        // UNION + total
+        $unionSql      = "({$ventasQ->toSql()}) UNION ALL ({$ordenesQ->toSql()})";
+        $unionBindings = array_merge($ventasQ->getBindings(), $ordenesQ->getBindings());
 
-            // Ensamblar en orden de cantidad descendente
-            $ordenados = collect($rawResults)
-                ->filter(fn($r) => isset($productosList[$r->producto_id]))
-                ->values()
-                ->map(function ($r, $index) use ($productosList, $ultimasCompras) {
-                    $p = $productosList[$r->producto_id];
-                    $p->cantidad_vendida = (int) $r->cantidad_vendida;
-                    $p->ultima_venta     = $r->ultima_venta;
-                    $p->ultima_compra    = $ultimasCompras[$r->producto_id]->ultima_compra ?? null;
-                    $p->ranking_real     = $index + 1;
-                    return $p;
-                });
+        $total = DB::select(
+            "SELECT COUNT(*) as total FROM ({$unionSql}) AS u",
+            $unionBindings
+        );
+        $total = $total[0]->total ?? 0;
 
-            // Filtrar por texto multi-término en resultados precalculados
-            if ($search) {
-                $terminos = array_filter(explode(' ', strtolower($search)));
-                
-                $ordenados = $ordenados->filter(function($p) use ($terminos) {
-                    foreach ($terminos as $termino) {
-                        $matchEnTermino = 
-                            str_contains(strtolower($p->nombre), $termino) ||
-                            str_contains(strtolower($p->descripcion ?? ''), $termino) ||
-                            str_contains(strtolower($p->aplicacion ?? ''), $termino) ||
-                            str_contains(strtolower($p->marca ?? ''), $termino) ||
-                            str_contains(strtolower($p->sku ?? ''), $termino) ||
-                            str_contains(strtolower($p->codigo_barras ?? ''), $termino);
-                        
-                        if (!$matchEnTermino) {
-                            return false;
-                        }
-                    }
-                    return true;
-                })->values();
-            }
+        $offset = ($page - 1) * $perPage;
+        $rows   = DB::select(
+            "SELECT * FROM ({$unionSql}) AS u ORDER BY fecha DESC LIMIT {$perPage} OFFSET {$offset}",
+            $unionBindings
+        );
 
-            // Paginación manual
-            $perPage     = 15;
-            $currentPage = \Illuminate\Pagination\Paginator::resolveCurrentPage();
-            $slice       = $ordenados->slice(($currentPage - 1) * $perPage, $perPage)->values();
-
-            // Cargar historial de ventas/órdenes para los productos en la página actual ($slice)
-            $sliceIds = $slice->pluck('id')->toArray();
-            if (!empty($sliceIds)) {
-                $historialVentasQ = DB::table('venta_detalles')
-                    ->join('ventas', 'venta_detalles.venta_id', '=', 'ventas.id')
-                    ->whereIn('venta_detalles.producto_id', $sliceIds)
-                    ->whereNull('ventas.cancelado_at')
-                    ->select(
-                        'venta_detalles.producto_id',
-                        'venta_detalles.cantidad',
-                        'ventas.created_at as fecha',
-                        'ventas.folio',
-                        DB::raw("'Venta' as tipo")
-                    );
-
-                $historialOrdenesQ = DB::table('orden_servicio_detalles')
-                    ->join('ordenes_servicio', 'orden_servicio_detalles.orden_servicio_id', '=', 'ordenes_servicio.id')
-                    ->whereIn('orden_servicio_detalles.producto_id', $sliceIds)
-                    ->whereNotNull('orden_servicio_detalles.producto_id')
-                    ->select(
-                        'orden_servicio_detalles.producto_id',
-                        'orden_servicio_detalles.cantidad',
-                        'ordenes_servicio.created_at as fecha',
-                        'ordenes_servicio.folio',
-                        DB::raw("'Orden de Servicio' as tipo")
-                    );
-
-                // Aplicar filtros de fecha si aplican
-                if ($periodo !== 'completo' && $fecha_inicio) {
-                    $historialVentasQ->whereBetween('ventas.created_at', [$fecha_inicio, $fecha_fin]);
-                    $historialOrdenesQ->whereBetween('ordenes_servicio.created_at', [$fecha_inicio, $fecha_fin]);
-                }
-
-                $hBindings = array_merge($historialVentasQ->getBindings(), $historialOrdenesQ->getBindings());
-                $historialUnido = DB::select("
-                    SELECT producto_id, cantidad, fecha, folio, tipo 
-                    FROM ({$historialVentasQ->toSql()} UNION ALL {$historialOrdenesQ->toSql()}) AS h 
-                    ORDER BY fecha DESC
-                ", $hBindings);
-
-                $historialAgrupado = collect($historialUnido)->groupBy('producto_id');
-
-                $slice = $slice->map(function ($p) use ($historialAgrupado) {
-                    $p->historial_transacciones = $historialAgrupado->get($p->id, collect())->take(50); // Muestra top 50
-                    return $p;
-                });
-            }
-
-            $productos = new \Illuminate\Pagination\LengthAwarePaginator(
-                $slice,
-                $ordenados->count(),
-                $perPage,
-                $currentPage,
-                ['path' => $request->url(), 'query' => $request->query()]
-            );
-        }
-
-        $marcas = Producto::whereNotNull('marca')->where('marca', '!=', '')->distinct()->orderBy('marca')->pluck('marca');
-
-        return view('productos.mas_vendidos', compact('productos', 'marcas', 'periodo', 'marca', 'fecha_inicio', 'fecha_fin'));
+        return response()->json([
+            'data'         => $rows,
+            'total'        => $total,
+            'per_page'     => $perPage,
+            'current_page' => $page,
+            'last_page'    => (int) ceil($total / $perPage),
+        ]);
     }
+
     public function crearLote()
     {
         return view('productos.crear_lote');

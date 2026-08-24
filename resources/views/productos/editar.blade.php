@@ -37,6 +37,11 @@
                             <input type="text" name="marca" id="marca" value="{{ old('marca', $producto->marca) }}" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-200/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm uppercase" placeholder="EJ: LUK, MOOG, AC DELCO...">
                         </div>
 
+                        <div>
+                            <label for="clasificacion" class="block text-sm font-medium text-blue-100 mb-2 uppercase">Clasificación</label>
+                            <input type="text" name="clasificacion" id="clasificacion" value="{{ old('clasificacion', $producto->clasificacion) }}" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-200/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm uppercase" placeholder="EJ: MOTOR, SUSPENSION, FRENOS...">
+                        </div>
+
                         <div class="md:col-span-2">
                             <label for="descripcion" class="block text-sm font-medium text-blue-100 mb-2 uppercase">Descripción / Nombre Completo</label>
                             <textarea name="descripcion" id="descripcion" rows="2" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-blue-200/30 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm uppercase" placeholder="OPCIONAL: INGRESA UNA DESCRIPCIÓN DETALLADA DEL PRODUCTO">{{ old('descripcion', $producto->descripcion) }}</textarea>

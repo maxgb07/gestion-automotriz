@@ -35,11 +35,11 @@
             <tr>
                 <!-- <th width="5%" class="text-center">ID</th> -->
                 <th width="20%" class="text-center">CLAVE</th>
-                <th width="35%" class="text-center">DESCRIPCIÓN</th>
+                <th width="30%" class="text-center">DESCRIPCIÓN</th>
+                <th width="15%" class="text-center">CLASIFICACIÓN</th>
                 <th width="10%" class="text-center">VENTAS</th>
-                <th width="10%" class="text-center">STOCK ACTUAL</th>
-                <th width="10%" class="text-center">STOCK MINIMO</th>
-                <th width="15%" class="text-center">SUGERIDO</th>
+                <th width="12%" class="text-center">STOCK ACTUAL</th>
+                <th width="13%" class="text-center">STOCK MINIMO</th>
             </tr>
         </thead>
         <tbody>
@@ -54,6 +54,9 @@
                         {{ $producto->descripcion }}<br>
                         <span style="font-size: 12px;">APLICA: {{ $producto->aplicacion ?? 'N/A' }}</span>
                     </td>
+                    <td class="uppercase text-center" style="font-weight: bold;">
+                        {{ $producto->clasificacion ?? 'N/D' }}
+                    </td>
                     <td class="text-center" style="font-weight: bold;">
                         {{ $producto->ventas_periodo }}
                     </td>
@@ -61,9 +64,6 @@
                         {{ $producto->stock }}
                     </td>
                     <td class="text-center">{{ $producto->stock_minimo }}</td>
-                    <td class="text-center" style="background-color: #eff6ff; font-weight: bold; color: #1e40af;">
-                        {{ $producto->sugerido }}
-                    </td>
                 </tr>
             @endforeach
         </tbody>
