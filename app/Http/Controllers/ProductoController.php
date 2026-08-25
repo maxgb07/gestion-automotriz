@@ -62,7 +62,19 @@ class ProductoController extends Controller
         $hayFiltros = ($request->filled('buscar') || $request->filled('clasificacion'));
 
         if ($hayFiltros) {
-            $productos = $query->orderByRaw("FIELD(clasificacion, 'A', 'B', 'C', 'Z')")
+            // Calcular volumen de últimos 12 meses para ordenar igual que ClasificarInventario
+            $fecha_inicio = \Carbon\Carbon::now()->subMonths(12)->startOfDay();
+            $fecha_fin = \Carbon\Carbon::now()->endOfDay();
+
+            $productos = $query->select('productos.*')
+                               ->selectRaw("
+                                    (
+                                        COALESCE((SELECT SUM(vd.cantidad) FROM venta_detalles vd INNER JOIN ventas v ON vd.venta_id = v.id WHERE vd.producto_id = productos.id AND v.created_at BETWEEN ? AND ?), 0) +
+                                        COALESCE((SELECT SUM(osd.cantidad) FROM orden_servicio_detalles osd INNER JOIN ordenes_servicio os ON osd.orden_servicio_id = os.id WHERE osd.producto_id = productos.id AND os.created_at BETWEEN ? AND ?), 0)
+                                    ) as volumen_total
+                               ", [$fecha_inicio, $fecha_fin, $fecha_inicio, $fecha_fin])
+                               ->orderByRaw("FIELD(clasificacion, 'A', 'B', 'C', 'Z')")
+                               ->orderBy('volumen_total', 'desc')
                                ->orderBy('descripcion', 'asc')
                                ->paginate(15)
                                ->withQueryString();
