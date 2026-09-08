@@ -115,19 +115,13 @@
             <!-- Layout Shell -->
             <div class="w-full flex pt-16">
 
-                <!-- Sidebar (Only if not dashboard) -->
-                @if(!Route::is('dashboard'))
-                    @include('partials.sidebar')
-                    <main id="main-content" class="flex-grow transition-all duration-300 w-full">
-                        <div class="p-4 sm:p-6 lg:p-8">
-                            @yield('content')
-                        </div>
-                    </main>
-                @else
-                    <main class="w-full flex-grow min-h-[calc(100vh-64px)] flex flex-col justify-center items-center">
+                <!-- Sidebar -->
+                @include('partials.sidebar')
+                <main id="main-content" class="flex-grow transition-all duration-300 w-full">
+                    <div class="p-4 sm:p-6 lg:p-8">
                         @yield('content')
-                    </main>
-                @endif
+                    </div>
+                </main>
             </div>
         </div>
     @else

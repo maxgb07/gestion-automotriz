@@ -6,154 +6,259 @@
     <!-- Main Content -->
     <div class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-12">
         <!-- Welcome Section -->
-        <div class="mb-16 text-center">
-            <h1 class="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight uppercase">Gestión Automotriz Integral</h1>
-            <div class="w-24 h-1.5 bg-gradient-to-r from-blue-500 to-purple-600 mx-auto rounded-full mb-4"></div>
-            <p class="text-blue-200 text-lg md:text-xl uppercase font-black tracking-widest">Control Total de Taller y Refaccionaria</p>
+        <div class="mb-12 text-center">
+            <h1 class="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight uppercase">{{ config('app.name') }}</h1>
+            <div class="w-24 h-1.5 bg-gradient-to-r from-blue-500 to-purple-600 mx-auto rounded-full"></div>
         </div>
 
-        <!-- Quick Access Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <!-- Clientes Card -->
-            <a href="{{ route('clientes.index') }}" class="group bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20 cursor-pointer block">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="p-3 bg-blue-500/20 rounded-xl group-hover:bg-blue-500/30 transition-colors">
-                        <svg class="w-8 h-8 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                        </svg>
-                    </div>
+        <!-- Accesos rápidos -->
+        <h2 class="text-white/70 text-sm font-bold uppercase tracking-widest mb-4">Acciones Rápidas</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-12">
+            <a href="{{ route('ventas.create') }}" class="group bg-gradient-to-br from-purple-600/30 to-purple-800/30 backdrop-blur-xl rounded-2xl p-8 border border-purple-500/30 hover:from-purple-600/40 hover:to-purple-800/40 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20 cursor-pointer flex items-center gap-4">
+                <div class="p-4 bg-purple-500/30 rounded-xl group-hover:bg-purple-500/40 transition-colors">
+                    <svg class="w-8 h-8 text-purple-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
                 </div>
-                <h3 class="text-xl font-bold text-white mb-2 uppercase">Clientes</h3>
-                <p class="text-blue-200 text-sm">Gestión de clientes y sus vehículos</p>
+                <span class="text-xl font-bold text-white uppercase">Nueva Venta</span>
             </a>
 
-            <!-- Ventas Card -->
-            <a href="{{ route('ventas.index') }}" class="group bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-purple-500/20 cursor-pointer block">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="p-3 bg-purple-500/20 rounded-xl group-hover:bg-purple-500/30 transition-colors">
-                        <svg class="w-8 h-8 text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
-                        </svg>
-                    </div>
+            <a href="{{ route('ordenes.create') }}" class="group bg-gradient-to-br from-blue-600/30 to-blue-800/30 backdrop-blur-xl rounded-2xl p-8 border border-blue-500/30 hover:from-blue-600/40 hover:to-blue-800/40 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20 cursor-pointer flex items-center gap-4">
+                <div class="p-4 bg-blue-500/30 rounded-xl group-hover:bg-blue-500/40 transition-colors">
+                    <svg class="w-8 h-8 text-blue-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
                 </div>
-                <h3 class="text-xl font-bold text-white mb-2 uppercase">Ventas</h3>
-                <p class="text-purple-200 text-sm">Registro de ventas y gestión de créditos</p>
+                <span class="text-xl font-bold text-white uppercase">Nueva Orden</span>
             </a>
 
-            @if(auth()->user()->hasFullAccess())
-                <!-- Órdenes de Servicio Card -->
-                <a href="{{ route('ordenes.index') }}" class="group bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-blue-500/20 cursor-pointer block">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="p-3 bg-blue-500/20 rounded-xl group-hover:bg-blue-500/30 transition-colors">
-                            <svg class="w-8 h-8 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <a href="{{ route('compras.create') }}" class="group bg-gradient-to-br from-yellow-600/30 to-yellow-800/30 backdrop-blur-xl rounded-2xl p-8 border border-yellow-500/30 hover:from-yellow-600/40 hover:to-yellow-800/40 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-yellow-500/20 cursor-pointer flex items-center gap-4">
+                <div class="p-4 bg-yellow-500/30 rounded-xl group-hover:bg-yellow-500/40 transition-colors">
+                    <svg class="w-8 h-8 text-yellow-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                    </svg>
+                </div>
+                <span class="text-xl font-bold text-white uppercase">Nueva Compra</span>
+            </a>
+        </div>
+
+        <!-- Pendientes por atender -->
+        <h2 class="text-white/70 text-sm font-bold uppercase tracking-widest mb-4">Pendientes por Atender</h2>
+        <div class="space-y-8">
+
+            <!-- Órdenes por entregar -->
+            <div id="ordenes-pendientes" class="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 overflow-hidden scroll-mt-24">
+                <div class="flex items-center justify-between p-6 border-b border-white/10">
+                    <div class="flex items-center gap-4">
+                        <div class="p-3 bg-blue-500/20 rounded-xl">
+                            <svg class="w-6 h-6 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                             </svg>
                         </div>
+                        <h3 class="text-lg font-bold text-white uppercase">Órdenes por Entregar</h3>
                     </div>
-                    <h3 class="text-xl font-bold text-white mb-2 uppercase">Órdenes de Servicio</h3>
-                    <p class="text-blue-200 text-sm">Recepción, reparación y entrega de vehículos</p>
-                </a>
-            @endif
-
-            <!-- Inventario Card -->
-            <a href="{{ route('productos.index') }}" class="group bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-green-500/20 cursor-pointer block">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="p-3 bg-green-500/20 rounded-xl group-hover:bg-green-500/30 transition-colors">
-                        <svg class="w-8 h-8 text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
-                        </svg>
-                    </div>
+                    <span class="text-3xl font-black text-white">{{ $ordenesPendientesTotal }}</span>
                 </div>
-                <h3 class="text-xl font-bold text-white mb-2 uppercase">Inventario</h3>
-                <p class="text-blue-200 text-sm">Control de productos y existencias</p>
-            </a>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-white/5 border-b border-white/10">
+                            <tr>
+                                <th class="px-6 py-3 text-xs font-semibold text-blue-200 uppercase tracking-wider text-left">Fecha</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-blue-200 uppercase tracking-wider text-left">Folio</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-blue-200 uppercase tracking-wider text-left">Cliente</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-blue-200 uppercase tracking-wider text-left">Vehículo (Placas)</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-blue-200 uppercase tracking-wider text-right">Total</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/10">
+                            @forelse($ordenesPendientes as $orden)
+                                <tr class="hover:bg-white/5 transition-colors">
+                                    <td class="px-6 py-3 text-sm text-white">{{ \Carbon\Carbon::parse($orden->fecha_entrada)->format('d/m/Y') }}</td>
+                                    <td class="px-6 py-3 text-sm text-white">{{ $orden->folio }}</td>
+                                    <td class="px-6 py-3 text-sm text-white">{{ optional($orden->cliente)->nombre ?? 'N/A' }}</td>
+                                    <td class="px-6 py-3 text-sm text-white">
+                                        @if($orden->vehiculo)
+                                            {{ $orden->vehiculo->marca }} {{ $orden->vehiculo->modelo }} ({{ $orden->vehiculo->placas ?? 'S/P' }})
+                                        @else
+                                            N/A
+                                        @endif
+                                    </td>
+                                    <td class="px-6 py-3 text-sm text-white text-right">${{ number_format($orden->total, 2) }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="5" class="px-6 py-6 text-center text-blue-200/60">No hay órdenes pendientes de entrega.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                @if($ordenesPendientes->hasPages())
+                    <div class="p-4 border-t border-white/10">
+                        {{ $ordenesPendientes->links('vendor.pagination.custom') }}
+                    </div>
+                @endif
+            </div>
 
-            @if(auth()->user()->hasFullAccess())
-                <!-- Servicios Card -->
-                <a href="{{ route('servicios.index') }}" class="group bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-indigo-500/20 cursor-pointer block">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="p-3 bg-indigo-500/20 rounded-xl group-hover:bg-indigo-500/30 transition-colors">
-                            <svg class="w-8 h-8 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+            <!-- Stock bajo o agotado -->
+            <div id="stock-bajo" class="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 overflow-hidden scroll-mt-24">
+                <div class="flex items-center justify-between p-6 border-b border-white/10">
+                    <div class="flex items-center gap-4">
+                        <div class="p-3 bg-red-500/20 rounded-xl">
+                            <svg class="w-6 h-6 text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path>
                             </svg>
                         </div>
+                        <h3 class="text-lg font-bold text-white uppercase">Stock Bajo o Agotado</h3>
                     </div>
-                    <h3 class="text-xl font-bold text-white mb-2 uppercase">Servicios</h3>
-                    <p class="text-blue-200 text-sm">Catálogo de servicios del taller</p>
-                </a>
-            @endif
-
-
-            @if(auth()->user()->hasFullAccess())
-                <!-- Reportes Card -->
-                <a href="{{ route('reportes.index') }}" class="group bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-cyan-500/20 cursor-pointer block">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="p-3 bg-cyan-500/20 rounded-xl group-hover:bg-cyan-500/30 transition-colors">
-                            <svg class="w-8 h-8 text-cyan-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                            </svg>
-                        </div>
-                    </div>
-                    <h3 class="text-xl font-bold text-white mb-2 uppercase">Reportes y Corte</h3>
-                    <p class="text-blue-200 text-sm">Corte diario y balances históricos</p>
-                </a>
-            @endif
-            
-            <!-- Proveedores Card -->
-            <a href="{{ route('proveedores.index') }}" class="group bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-orange-500/20 cursor-pointer block">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="p-3 bg-orange-500/20 rounded-xl group-hover:bg-orange-500/30 transition-colors">
-                        <svg class="w-8 h-8 text-orange-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z"></path>
-                        </svg>
-                    </div>
+                    <span class="text-3xl font-black text-white">{{ $stockBajoTotal }}</span>
                 </div>
-                <h3 class="text-xl font-bold text-white mb-2 uppercase">Proveedores</h3>
-                <p class="text-blue-200 text-sm">Gestión de proveedores locales</p>
-            </a>
-
-            <!-- Compras Card -->
-            <a href="{{ route('compras.index') }}" class="group bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-yellow-500/20 cursor-pointer block">
-                <div class="flex items-center justify-between mb-4">
-                    <div class="p-3 bg-yellow-500/20 rounded-xl group-hover:bg-yellow-500/30 transition-colors">
-                        <svg class="w-8 h-8 text-yellow-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path>
-                        </svg>
-                    </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-white/5 border-b border-white/10">
+                            <tr>
+                                <th class="px-6 py-3 text-xs font-semibold text-blue-200 uppercase tracking-wider text-left">Nombre</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-blue-200 uppercase tracking-wider text-left">Descripción</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-blue-200 uppercase tracking-wider text-left">Aplicación</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-blue-200 uppercase tracking-wider text-center">Clasificación</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-blue-200 uppercase tracking-wider text-center">Stock</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-blue-200 uppercase tracking-wider text-center">Mínimo</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/10">
+                            @forelse($stockBajo as $producto)
+                                <tr class="hover:bg-white/5 transition-colors">
+                                    <td class="px-6 py-3 text-sm text-white">{{ $producto->nombre }}</td>
+                                    <td class="px-6 py-3 text-sm text-white">{{ $producto->descripcion }}</td>
+                                    <td class="px-6 py-3 text-sm text-white">{{ $producto->aplicacion }}</td>
+                                    <td class="px-6 py-3 text-sm text-white text-center">{{ $producto->clasificacion }}</td>
+                                    <td class="px-6 py-3 text-sm text-center {{ $producto->stock <= 0 ? 'text-red-400 font-bold' : 'text-white' }}">{{ $producto->stock }}</td>
+                                    <td class="px-6 py-3 text-sm text-white text-center">{{ $producto->stock_minimo }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="6" class="px-6 py-6 text-center text-blue-200/60">No hay productos A/B con stock bajo.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
-                <h3 class="text-xl font-bold text-white mb-2 uppercase">Compras</h3>
-                <p class="text-blue-200 text-sm">Registro de compras y abastecimiento</p>
-            </a>
+                @if($stockBajo->hasPages())
+                    <div class="p-4 border-t border-white/10">
+                        {{ $stockBajo->links('vendor.pagination.custom') }}
+                    </div>
+                @endif
+            </div>
 
-            @if(auth()->user()->hasFullAccess())
-                <!-- Cuentas por Cobrar Card -->
-                <a href="{{ route('creditos.index') }}" class="group bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 hover:bg-white/15 transition-all duration-300 hover:scale-105 hover:shadow-2xl hover:shadow-rose-500/20 cursor-pointer block">
-                    <div class="flex items-center justify-between mb-4">
-                        <div class="p-3 bg-rose-500/20 rounded-xl group-hover:bg-rose-500/30 transition-colors">
-                            <svg class="w-8 h-8 text-rose-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <!-- Cuentas por pagar por vencer -->
+            <div id="cuentas-por-pagar" class="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 overflow-hidden scroll-mt-24">
+                <div class="flex items-center justify-between p-6 border-b border-white/10">
+                    <div class="flex items-center gap-4">
+                        <div class="p-3 bg-yellow-500/20 rounded-xl">
+                            <svg class="w-6 h-6 text-yellow-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path>
                             </svg>
                         </div>
+                        <h3 class="text-lg font-bold text-white uppercase">Cuentas por Pagar</h3>
                     </div>
-                    <h3 class="text-xl font-bold text-white mb-2 uppercase">Cuentas por Cobrar</h3>
-                    <p class="text-rose-200 text-sm">Seguimiento de saldos y cobranza</p>
-                </a>
-            @endif
-        </div>
-
-        <div class="mt-16 bg-blue-500/20 backdrop-blur-xl rounded-2xl p-8 border border-blue-500/30">
-            <div class="flex flex-col items-center text-center gap-4 max-w-3xl mx-auto">
-                <div class="p-3 bg-blue-500/30 rounded-xl">
-                    <svg class="w-8 h-8 text-blue-200" fill="currentColor" viewBox="0 0 20 20">
-                        <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path>
-                    </svg>
+                    <span class="text-3xl font-black text-white">{{ $cuentasPorPagarTotal }}</span>
                 </div>
-                <div>
-                    <h3 class="text-xl font-bold text-white mb-2 tracking-wide uppercase">Operaciones Centralizadas</h3>
-                    <p class="text-blue-100/80 leading-relaxed uppercase text-[10px] font-bold">Desde la recepción de vehículos y el seguimiento de reparaciones, hasta el control total de refacciones y ventas integradas.</p>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-white/5 border-b border-white/10">
+                            <tr>
+                                <th class="px-6 py-3 text-xs font-semibold text-blue-200 uppercase tracking-wider text-left">Fecha de Vencimiento</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-blue-200 uppercase tracking-wider text-left">Proveedor</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-blue-200 uppercase tracking-wider text-center">Total de Facturas</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-blue-200 uppercase tracking-wider text-right">Total a Pagar</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/10">
+                            @forelse($cuentasPorPagar as $fila)
+                                <tr class="hover:bg-white/5 transition-colors">
+                                    <td class="px-6 py-3 text-sm text-white">{{ \Carbon\Carbon::parse($fila->fecha_vencimiento)->format('d/m/Y') }}</td>
+                                    <td class="px-6 py-3 text-sm text-white">{{ $fila->proveedor }}</td>
+                                    <td class="px-6 py-3 text-sm text-white text-center">{{ $fila->total_facturas }}</td>
+                                    <td class="px-6 py-3 text-sm text-white text-right">${{ number_format($fila->total_pagar, 2) }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="px-6 py-6 text-center text-blue-200/60">No hay cuentas por pagar próximas a vencer.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
                 </div>
+                @if($cuentasPorPagar->hasPages())
+                    <div class="p-4 border-t border-white/10">
+                        {{ $cuentasPorPagar->links('vendor.pagination.custom') }}
+                    </div>
+                @endif
             </div>
+
+            <!-- Cuentas por cobrar vencidas -->
+            <div id="cuentas-por-cobrar" class="bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 overflow-hidden scroll-mt-24">
+                <div class="flex items-center justify-between p-6 border-b border-white/10">
+                    <div class="flex items-center gap-4">
+                        <div class="p-3 bg-rose-500/20 rounded-xl">
+                            <svg class="w-6 h-6 text-rose-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-bold text-white uppercase">Cuentas por Cobrar</h3>
+                    </div>
+                    <span class="text-3xl font-black text-white">{{ $cuentasPorCobrarTotal }}</span>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full">
+                        <thead class="bg-white/5 border-b border-white/10">
+                            <tr>
+                                <th class="px-6 py-3 text-xs font-semibold text-blue-200 uppercase tracking-wider text-left">Fecha de Vencimiento</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-blue-200 uppercase tracking-wider text-left">Cliente</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-blue-200 uppercase tracking-wider text-center">Total de Documentos Vencidos</th>
+                                <th class="px-6 py-3 text-xs font-semibold text-blue-200 uppercase tracking-wider text-right">Total $</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-white/10">
+                            @forelse($cuentasPorCobrar as $fila)
+                                <tr class="hover:bg-white/5 transition-colors">
+                                    <td class="px-6 py-3 text-sm text-white">{{ \Carbon\Carbon::parse($fila->fecha_vencimiento)->format('d/m/Y') }}</td>
+                                    <td class="px-6 py-3 text-sm text-white">{{ $fila->cliente }}</td>
+                                    <td class="px-6 py-3 text-sm text-white text-center">{{ $fila->total_documentos }}</td>
+                                    <td class="px-6 py-3 text-sm text-white text-right">${{ number_format($fila->total_saldo, 2) }}</td>
+                                </tr>
+                            @empty
+                                <tr>
+                                    <td colspan="4" class="px-6 py-6 text-center text-blue-200/60">No hay créditos de cliente vencidos.</td>
+                                </tr>
+                            @endforelse
+                        </tbody>
+                    </table>
+                </div>
+                @if($cuentasPorCobrar->hasPages())
+                    <div class="p-4 border-t border-white/10">
+                        {{ $cuentasPorCobrar->links('vendor.pagination.custom') }}
+                    </div>
+                @endif
+            </div>
+
         </div>
     </div>
+
+    <script>
+        // Al paginar cualquiera de las tablas de "Pendientes por Atender" la URL
+        // trae un hash (#ordenes-pendientes, #stock-bajo, etc). El navegador debería
+        // saltar solo a esa sección, pero en la práctica el salto no ocurre de forma
+        // confiable (contenido que aún se está reflow-eando, orden de eventos del
+        // navegador, etc), así que forzamos el scroll manualmente como respaldo.
+        function irAHashDashboard() {
+            if (!window.location.hash) return;
+            const el = document.querySelector(window.location.hash);
+            if (el) {
+                el.scrollIntoView({ behavior: 'instant', block: 'start' });
+            }
+        }
+        irAHashDashboard();
+        window.addEventListener('load', irAHashDashboard);
+    </script>
 @endsection
