@@ -529,6 +529,12 @@
             });
 
             $(itemSelect).select2({ width: '100%' });
+
+            // El artículo seleccionado ya no es válido para el nuevo tipo: limpiar precio/importe
+            // para que el total no siga contando una fila sin artículo real.
+            row.querySelector('[name*="[precio_unitario]"]').value = '0.00';
+            row.querySelector('.subtotal-input').value = '0.00';
+            calculateTotal();
         }
 
         function updateItemData(select) {
@@ -562,7 +568,7 @@
                 total += parseFloat(input.value) || 0;
             });
 
-            document.getElementById('total-main').textContent = '$' + total.toLocaleString('es-MX', {minimumFractionDigits: 2});
+            document.getElementById('total-main').textContent = '$' + total.toLocaleString('es-MX', {minimumFractionDigits: 2, maximumFractionDigits: 2});
         }
 
         function removeRow(btn) {
@@ -600,7 +606,19 @@
                     .then(response => response.json())
                     .then(data => {
                         if (data.success) {
-                            window.location.reload();
+                            const tieneAviso = data.message && (data.message.includes('ADVERTENCIA') || data.message.includes('AVISO'));
+                            if (tieneAviso) {
+                                Swal.fire({
+                                    title: data.message.includes('ADVERTENCIA') ? 'Ítems Agregados con Advertencias' : 'Ítems Agregados',
+                                    text: data.message,
+                                    icon: data.message.includes('ADVERTENCIA') ? 'warning' : 'info',
+                                    confirmButtonColor: '#3b82f6',
+                                    background: '#1e293b',
+                                    color: '#fff'
+                                }).then(() => window.location.reload());
+                            } else {
+                                window.location.reload();
+                            }
                         }
                     });
                 }

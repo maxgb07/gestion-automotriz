@@ -97,20 +97,6 @@
                 <div class="bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl overflow-hidden mb-8">
                     <div class="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
                         <h2 class="text-xl font-bold text-white uppercase tracking-tight">Artículos y Servicios</h2>
-                        <div class="flex gap-3">
-                            <button type="button" onclick="abrirModalNuevoItem()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black rounded-xl transition-all uppercase tracking-widest flex items-center justify-center cursor-pointer shadow-lg shadow-blue-900/40">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                Nuevo Item
-                            </button>
-                            <button type="button" onclick="addRow()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black rounded-xl transition-all uppercase tracking-widest flex items-center justify-center cursor-pointer shadow-lg shadow-blue-900/40">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                                </svg>
-                                Agregar Fila
-                            </button>
-                        </div>
                     </div>
 
                     <div class="overflow-x-auto">
@@ -119,8 +105,7 @@
                                 <tr>
                                     <th class="px-2 py-4 text-md font-bold text-blue-200 uppercase tracking-widest w-28">Cantidad</th>
                                     <th class="px-6 py-4 text-md font-bold text-blue-200 uppercase tracking-widest">Tipo</th>
-                                    <th class="px-3 py-4 text-md font-bold text-blue-200 uppercase tracking-widest w-80">Clave</th>
-                                    <th class="px-6 py-4 text-md font-bold text-blue-200 uppercase tracking-widest w-80">Descripción</th>
+                                    <th class="px-3 py-4 text-md font-bold text-blue-200 uppercase tracking-widest">Clave / Descripción</th>
                                     <th class="px-4 py-4 text-md font-bold text-blue-200 uppercase tracking-widest w-32">Precio</th>
                                     <!-- <th class="px-4 py-4 text-xs font-bold text-blue-200 uppercase tracking-widest w-28">Descuento</th> -->
                                     <th class="px-6 py-4 text-md font-bold text-blue-200 uppercase tracking-widest w-40 text-right">Importe</th>
@@ -131,6 +116,21 @@
                                 <!-- Filas dinámicas -->
                             </tbody>
                         </table>
+                    </div>
+
+                    <div class="p-4 border-t border-white/10 flex justify-start gap-3 bg-white/5">
+                        <button type="button" onclick="abrirModalNuevoItem()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black rounded-xl transition-all uppercase tracking-widest flex items-center justify-center cursor-pointer shadow-lg shadow-blue-900/40">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Nuevo Item
+                        </button>
+                        <button type="button" onclick="addRow()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black rounded-xl transition-all uppercase tracking-widest flex items-center justify-center cursor-pointer shadow-lg shadow-blue-900/40">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                            </svg>
+                            Agregar Fila
+                        </button>
                     </div>
 
                     <div class="bg-white/5 p-8 border-t border-white/10 flex justify-end">
@@ -184,9 +184,6 @@
                 </select>
             </td>
             <td class="px-3 py-4">
-                <input type="text" name="items[INDEX][descripcion]" class="descripcion-input block w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-white text-md uppercase focus:outline-none" readonly>
-            </td>
-            <td class="px-3 py-4">
                 <input type="number" step="any" name="items[INDEX][precio_unitario]" value="0.00" oninput="calculateRow(this)" class="block w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-white text-center text-md font-bold focus:ring-1 focus:ring-blue-500/50 outline-none" required>
             </td>
             <!-- <td class="px-3 py-4">
@@ -195,7 +192,7 @@
                 </div>
             </td> -->
             <td class="px-3 py-4 text-right">
-                <input type="number" step="any" name="items[INDEX][subtotal]" value="0.00" oninput="calculateTotal()" class="subtotal-input block w-full px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-white text-right text-md font-black font-mono focus:ring-1 focus:ring-blue-500/50 outline-none" required>
+                <input type="number" step="any" name="items[INDEX][subtotal]" value="0.00" readonly class="subtotal-input block w-full px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-white text-right text-md font-black font-mono outline-none cursor-not-allowed" required>
             </td>
             <td class="px-3 py-4 text-center">
                 <button type="button" onclick="removeRow(this)" class="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-xl transition-all">
@@ -221,11 +218,41 @@
             $('#cliente_id').select2({ width: '100%' });
             addRow();
 
+            // Quitar filas sin artículo seleccionado ANTES de que el navegador valide el formulario.
+            // Debe ir en el 'click' del botón (no en 'submit'): la validación nativa de HTML5 corre
+            // como parte del envío disparado por este click, antes de que el evento 'submit' llegue
+            // a dispararse -- si la fila vacía sigue ahí en ese momento, el navegador bloquea el
+            // envío completo (con su propio tooltip) y el handler de 'submit' de abajo nunca corre,
+            // así que limpiar ahí sería inútil.
+            $('#venta-form button[type="submit"]').on('click', function() {
+                const itemsTbody = document.querySelector('#items-table tbody');
+                itemsTbody.querySelectorAll('tr').forEach(row => {
+                    const itemSelect = row.querySelector('.item-select');
+                    if (!itemSelect.value) {
+                        if ($(itemSelect).data('select2')) {
+                            $(itemSelect).select2('destroy');
+                        }
+                        row.remove();
+                    }
+                });
+
+                if (itemsTbody.children.length === 0) {
+                    addRow();
+                }
+
+                calculateTotal();
+            });
+
             // Manejo de envío de formulario vía AJAX
             $('#venta-form').on('submit', function(e) {
                 e.preventDefault();
+                // Evitar que el guard global anti-doble-envío (layouts/app.blade.php) capture este submit:
+                // ese guard congela el botón en "Procesando..." apenas se dispara el evento, sin esperar
+                // la confirmación del modal, y nunca lo restaura si el usuario cancela. Este formulario
+                // gestiona su propio estado de carga vía SweetAlert, así que no debe llegar a ese guard.
+                e.stopPropagation();
                 const form = $(this);
-                
+
                 const clienteId = parseInt($('#cliente_id').val());
                 const metodoPago = $('#metodo_pago').val();
                 const esCredito = metodoPago === 'CREDITO';
@@ -416,26 +443,33 @@
                 option.value = item.id;
                 option.textContent = item.nombre + ' - ' + item.descripcion;
                 option.dataset.precio = item.precio_venta || item.precio || 0;
-                option.dataset.descripcion = item.descripcion || item.nombre;
                 itemSelect.appendChild(option);
             });
 
             $(itemSelect).select2({ width: '100%' });
+
+            // El artículo seleccionado ya no es válido para el nuevo tipo: limpiar precio/importe
+            // para que el total no siga contando una fila sin artículo real.
+            row.querySelector('[name*="[precio_unitario]"]').value = '0.00';
+            row.querySelector('.subtotal-input').value = '0.00';
+            calculateTotal();
         }
 
         function updateItemData(select) {
             const row = select.closest('tr');
             const option = select.options[select.selectedIndex];
             const precioInput = row.querySelector('[name*="[precio_unitario]"]');
-            const descInput = row.querySelector('.descripcion-input');
-            
+
             if (option.dataset.precio) {
                 precioInput.value = option.dataset.precio;
             }
-            if (option.dataset.descripcion) {
-                descInput.value = option.dataset.descripcion;
-            }
             calculateRow(select);
+
+            // UX Auto-Row: si es la última fila, agregar una nueva al seleccionar un artículo.
+            const tbody = document.querySelector('#items-table tbody');
+            if (row === tbody.lastElementChild) {
+                setTimeout(() => { addRow(); }, 150); // Ligero delay para que el usuario sienta la fluidez
+            }
         }
 
         function calculateRow(input) {
@@ -460,7 +494,7 @@
                 total += parseFloat(input.value) || 0;
             });
 
-            document.getElementById('total-general').textContent = '$' + total.toLocaleString(undefined, {minimumFractionDigits: 2});
+            document.getElementById('total-general').textContent = '$' + total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
         }
 
         function removeRow(btn) {
@@ -612,7 +646,6 @@
                                     if (rowTipo === tipo) {
                                         const option = new Option(`${newItem.nombre} - ${newItem.descripcion || ''}`, newItem.id, false, false);
                                         option.dataset.precio = newItem.precio_venta || newItem.precio || 0;
-                                        option.dataset.descripcion = newItem.descripcion || newItem.nombre;
                                         $(this).append(option);
                                     }
                                 });

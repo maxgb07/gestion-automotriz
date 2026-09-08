@@ -161,20 +161,6 @@
                 <div class="bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl overflow-hidden mb-8">
                     <div class="p-6 border-b border-white/10 flex justify-between items-center bg-white/5">
                         <h2 class="text-xl font-bold text-white uppercase tracking-tight">Detalle de Productos</h2>
-                        <div class="flex gap-3">
-                            <button type="button" onclick="abrirModalNuevoProducto()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black rounded-xl transition-all uppercase tracking-widest flex items-center justify-center cursor-pointer shadow-lg shadow-blue-900/40">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                </svg>
-                                Nuevo Producto
-                            </button>
-                            <button type="button" onclick="addRow()" class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-6 py-2.5 focus:outline-none inline-flex items-center transition-colors">
-                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                </svg>
-                                Fila Manual
-                            </button>
-                        </div>
                     </div>
                     
                     <div class="overflow-x-auto">
@@ -200,6 +186,21 @@
                     
                     <div id="no-products-msg" class="p-12 text-center text-blue-200/50 uppercase italic text-sm">
                         No has agregado productos a esta compra
+                    </div>
+
+                    <div class="p-4 border-t border-white/10 flex justify-start gap-3 bg-white/5">
+                        <button type="button" onclick="abrirModalNuevoProducto()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black rounded-xl transition-all uppercase tracking-widest flex items-center justify-center cursor-pointer shadow-lg shadow-blue-900/40">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            Nuevo Producto
+                        </button>
+                        <button type="button" onclick="addRow()" class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-medium leading-5 rounded-base text-sm px-6 py-2.5 focus:outline-none inline-flex items-center transition-colors">
+                            <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                            </svg>
+                            Fila Manual
+                        </button>
                     </div>
 
                     <!-- Footer de la Tabla: Resumen -->
@@ -357,6 +358,18 @@
                 document.querySelector('.select2-search__field').focus();
             });
 
+            // Arreglo: un dropdown de Select2 abierto no se reposiciona al hacer scroll de la página
+            // (usa dropdownParent custom). Si el usuario sube/baja con un dropdown abierto en otra fila,
+            // este queda flotando en la posición vieja, tapa botones y su foco fuerza el scroll de regreso.
+            // Cerrarlo en cuanto la página se mueve evita que intercepte clicks fuera de su fila.
+            $(window).on('scroll', function() {
+                $('.select2-hidden-accessible').each(function() {
+                    if ($(this).next('.select2-container').hasClass('select2-container--open')) {
+                        $(this).select2('close');
+                    }
+                });
+            });
+
             // Inicializar Select2 para Proveedor
             $('#proveedor_id').select2({
                 placeholder: 'SELECCIONA PROVEEDOR',
@@ -443,16 +456,15 @@
                     const pVenta = tr.querySelector('[name*="[precio_venta]"]');
                     const cant = tr.querySelector('[name*="[cantidad]"]');
 
-                    if (data.precio_compra !== undefined) {
-                        pCompra.value = data.precio_compra;
-                        pVenta.value = data.precio_venta;
-                    }
-                    
+                    pCompra.value = data.precio_compra ?? 0;
+                    pVenta.value = data.precio_venta ?? 0;
+
                     calculateRow(this);
-                    
-                    // UX Auto-Row: Si es la última fila y acabamos de seleccionar un producto válido, agregar una nueva fila automáticamente.
+
+                    // UX Auto-Row: si es la última fila, siempre agregar una nueva al seleccionar un producto
+                    // (independiente de si el producto tiene precio_compra registrado o no).
                     const tbody = document.querySelector('#productos-table tbody');
-                    if (tr === tbody.lastElementChild && pCompra.value !== "") {
+                    if (tr === tbody.lastElementChild) {
                         setTimeout(() => { addRow(); }, 150); // Ligero delay para que el usuario sienta la fluidez
                     }
                     

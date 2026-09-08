@@ -128,7 +128,8 @@ class VentaController extends Controller
             ]);
 
             $total = 0;
-            $productosSinStock = [];
+            $productosSinExistencias = [];
+            $productosStockNegativo = [];
 
             foreach ($request->items as $item) {
                 $subtotal = $item['cantidad'] * $item['precio_unitario'];
@@ -149,8 +150,10 @@ class VentaController extends Controller
                     $producto->stock -= $item['cantidad'];
                     $producto->save();
 
-                    if ($producto->stock <= 0) {
-                        $productosSinStock[] = $producto->nombre;
+                    if ($producto->stock < 0) {
+                        $productosStockNegativo[] = $producto->nombre;
+                    } elseif ($producto->stock === 0) {
+                        $productosSinExistencias[] = $producto->nombre;
                     }
                 }
             }
@@ -173,8 +176,11 @@ class VentaController extends Controller
             DB::commit();
 
             $mensaje = "Venta {$folio} registrada correctamente.";
-            if (!empty($productosSinStock)) {
-                $mensaje .= " (ADVERTENCIA: Algunos productos quedaron con stock negativo: " . implode(', ', $productosSinStock) . ")";
+            if (!empty($productosStockNegativo)) {
+                $mensaje .= " (ADVERTENCIA: Algunos productos quedaron con stock negativo: " . implode(', ', $productosStockNegativo) . ")";
+            }
+            if (!empty($productosSinExistencias)) {
+                $mensaje .= " (AVISO: Algunos productos se quedaron sin existencias: " . implode(', ', $productosSinExistencias) . ")";
             }
 
             if ($request->ajax() || $request->wantsJson()) {
@@ -365,6 +371,9 @@ class VentaController extends Controller
         try {
             DB::beginTransaction();
 
+            $productosSinExistencias = [];
+            $productosStockNegativo = [];
+
             foreach ($request->items as $item) {
                 $subtotal = $item['cantidad'] * $item['precio_unitario'];
 
@@ -383,6 +392,12 @@ class VentaController extends Controller
                     if ($producto) {
                         $producto->stock -= $item['cantidad'];
                         $producto->save();
+
+                        if ($producto->stock < 0) {
+                            $productosStockNegativo[] = $producto->nombre;
+                        } elseif ($producto->stock === 0) {
+                            $productosSinExistencias[] = $producto->nombre;
+                        }
                     }
                 }
             }
@@ -398,9 +413,17 @@ class VentaController extends Controller
 
             DB::commit();
 
+            $mensaje = 'Ítems agregados correctamente';
+            if (!empty($productosStockNegativo)) {
+                $mensaje .= ' (ADVERTENCIA: Algunos productos quedaron con stock negativo: ' . implode(', ', $productosStockNegativo) . ')';
+            }
+            if (!empty($productosSinExistencias)) {
+                $mensaje .= ' (AVISO: Algunos productos se quedaron sin existencias: ' . implode(', ', $productosSinExistencias) . ')';
+            }
+
             return response()->json([
                 'success' => true,
-                'message' => 'Ítems agregados correctamente',
+                'message' => $mensaje,
                 'nuevo_total' => $nuevoTotal,
             ]);
 
