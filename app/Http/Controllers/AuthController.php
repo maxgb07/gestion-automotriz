@@ -74,7 +74,7 @@ class AuthController extends Controller
         // Órdenes por entregar
         // -------------------------------------------------------------
         $ordenesQuery = OrdenServicio::with(['cliente', 'vehiculo'])
-            ->where('estado', '!=', 'ENTREGADO')
+            ->where('estado', 'FINALIZADO')
             ->orderBy('fecha_entrada', 'desc');
         $ordenesPendientesTotal = $ordenesQuery->count();
         $ordenesPendientes = $ordenesQuery->paginate(10, ['*'], 'ordenes_page')
