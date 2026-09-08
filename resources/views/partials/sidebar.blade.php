@@ -1,10 +1,22 @@
-<aside id="sidebar" class="fixed w-64 bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl z-40 overflow-y-auto shadow-2xl transition-all duration-300 hidden">
+<aside
+    id="sidebar"
+    x-show="sidebarOpen"
+    x-cloak
+    @keydown.escape.window="sidebarOpen = false"
+    x-transition:enter="transition ease-out duration-200"
+    x-transition:enter-start="opacity-0 -translate-x-4"
+    x-transition:enter-end="opacity-100 translate-x-0"
+    x-transition:leave="transition ease-in duration-150"
+    x-transition:leave-start="opacity-100 translate-x-0"
+    x-transition:leave-end="opacity-0 -translate-x-4"
+    class="fixed left-4 top-24 bottom-4 w-64 bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl z-40 overflow-y-auto shadow-2xl"
+>
     <div class="p-6 space-y-8">
 
         <!-- Main Navigation -->
         <div>
             <p class="text-[10px] font-black text-blue-300/40 uppercase tracking-[0.2em] mb-4 px-4">Menu Principal</p>
-            <nav class="space-y-2">
+            <nav class="space-y-2" @click="sidebarOpen = false">
                 @if(auth()->user()->hasFullAccess())
                     <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-200 {{ request()->routeIs('dashboard') ? 'bg-gradient-to-r from-blue-500/80 to-purple-600/80 text-white shadow-lg shadow-blue-500/20 font-bold' : 'text-blue-100 hover:bg-white/5 hover:text-white' }}">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

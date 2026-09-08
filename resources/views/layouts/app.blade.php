@@ -90,16 +90,19 @@
     </script>
 
     <style>
-        /* Custom Breakpoint Logic for 1400px (Covers iPad Pro Landscape) */
-        @media (min-width: 1400px) {
+        /* A partir de 1280px (laptop/escritorio) el sidebar queda fijo y visible,
+           sin overlay ni boton de menu. Por debajo de eso sigue siendo un panel
+           deslizante controlado por Alpine (sidebarOpen), necesario aqui con
+           !important porque Alpine fija el display via estilo inline. */
+        @media (min-width: 1280px) {
             #sidebar {
                 display: block !important;
-                left: 1rem; /* equivalent to left-4 */
-                top: 6rem;  /* equivalent to top-24 */
-                bottom: 1rem; /* equivalent to bottom-4 */
+            }
+            #sidebar-backdrop {
+                display: none !important;
             }
             #main-content {
-                margin-left: 18rem; /* equivalent to ml-72 */
+                margin-left: 18rem;
             }
         }
     </style>
@@ -108,16 +111,31 @@
 <body class="antialiased text-white">
     @auth
         <!-- Global Background wrapper -->
-        <div class="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900">
+        <div class="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-slate-900" x-data="{ sidebarOpen: false }">
             <!-- Header -->
             @include('partials.navbar')
+
+            <!-- Sidebar backdrop (overlay por debajo de 1280px) -->
+            <div
+                id="sidebar-backdrop"
+                x-show="sidebarOpen"
+                x-cloak
+                @click="sidebarOpen = false"
+                x-transition:enter="transition ease-out duration-200"
+                x-transition:enter-start="opacity-0"
+                x-transition:enter-end="opacity-100"
+                x-transition:leave="transition ease-in duration-150"
+                x-transition:leave-start="opacity-100"
+                x-transition:leave-end="opacity-0"
+                class="fixed inset-0 bg-black/60 z-30"
+            ></div>
 
             <!-- Layout Shell -->
             <div class="w-full flex pt-16">
 
                 <!-- Sidebar -->
                 @include('partials.sidebar')
-                <main id="main-content" class="flex-grow transition-all duration-300 w-full">
+                <main id="main-content" class="flex-grow w-full">
                     <div class="p-4 sm:p-6 lg:p-8">
                         @yield('content')
                     </div>
