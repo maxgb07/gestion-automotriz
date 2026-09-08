@@ -209,36 +209,6 @@
                                 <span class="text-xs font-black text-blue-100 uppercase tracking-widest">Mecánico: <span class="text-white">{{ $orden->mecanico }}</span></span>
                             </div>
                         @endif
-                        @if($orden->estado !== 'ENTREGADO' && $orden->estado !== 'PENDIENTE DE PAGO')
-                            <div class="flex gap-3">
-                                <button type="button" onclick="abrirModalNuevoItem()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black rounded-xl transition-all uppercase tracking-widest flex items-center justify-center cursor-pointer shadow-lg shadow-blue-900/40">
-                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                                    </svg>
-                                    Nuevo Item
-                                </button>
-                                <button type="button" onclick="addRow()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black rounded-xl transition-all uppercase tracking-widest flex items-center justify-center cursor-pointer shadow-lg shadow-blue-900/40">
-                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-                                    </svg>
-                                    Agregar Fila
-                                </button>
-                                <button type="button" onclick="guardarItems()" class="btn-premium-success px-6 py-2.5 text-white text-xs font-black rounded-xl shadow-lg shadow-green-500/20 transition-all uppercase tracking-widest flex items-center justify-center">
-                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                    </svg>
-                                    Guardar Items
-                                </button>
-                                @if($orden->detalles->count() > 0)
-                                    <a href="{{ route('ordenes.cotizacion.pdf', $orden) }}" target="_blank" class="px-6 py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-black rounded-xl shadow-lg shadow-amber-900/40 transition-all uppercase tracking-widest flex items-center justify-center" style="background-color: #d97706;">
-                                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-                                        </svg>
-                                        Cotización
-                                    </a>
-                                @endif
-                            </div>
-                        @endif
                     </div>
 
                     <div class="overflow-x-auto">
@@ -247,8 +217,7 @@
                                 <tr>
                                     <th class="px-2 py-4 text-sm font-bold text-blue-200 uppercase tracking-widest w-28">Cantidad</th>
                                     <th class="px-6 py-4 text-sm font-bold text-blue-200 uppercase tracking-widest">Tipo</th>
-                                    <th class="px-6 py-4 text-sm font-bold text-blue-200 uppercase tracking-widest">Clave</th>
-                                    <th class="px-6 py-4 text-sm font-bold text-blue-200 uppercase tracking-widest">Descripción</th>
+                                    <th class="px-6 py-4 text-sm font-bold text-blue-200 uppercase tracking-widest">Clave / Descripción</th>
                                     <th class="px-6 py-4 text-sm font-bold text-blue-200 uppercase tracking-widest">Notas</th>
                                     <th class="px-4 py-4 text-sm font-bold text-blue-200 uppercase tracking-widest w-32">Precio</th>
                                     <!-- <th class="px-4 py-4 text-xs font-bold text-blue-200 uppercase tracking-widest w-28">Descuento</th> -->
@@ -271,10 +240,11 @@
                                             </span>
                                         </td>
                                         <td class="px-3 py-4">
-                                            <p class="text-white font-bold text-md">{{ $detalle->producto?->nombre ?? $detalle->servicio?->nombre ?? 'N/A' }}</p>
-                                        </td>
-                                        <td class="px-3 py-4">
-                                            <p class="text-white font-bold text-md">{{ $detalle->producto?->descripcion ?? $detalle->servicio?->descripcion ?? '---' }}</p>
+                                            @php
+                                                $nombreItem = $detalle->producto?->nombre ?? $detalle->servicio?->nombre ?? 'N/A';
+                                                $descripcionItem = $detalle->producto?->descripcion ?? $detalle->servicio?->descripcion;
+                                            @endphp
+                                            <p class="text-white font-bold text-md">{{ $nombreItem }}{{ $descripcionItem ? ' - ' . $descripcionItem : '' }}</p>
                                         </td>
                                         <td class="px-3 py-4">
                                             <p class="text-blue-200/60 font-medium text-md uppercase">{{ $detalle->notas ?? '---' }}</p>
@@ -308,8 +278,8 @@
                                         @endif
                                     </tr>
                                 @empty
-                                    <tr>
-                                        <td colspan="7" class="px-8 py-16 text-center">
+                                    <tr id="no-items-row">
+                                        <td colspan="6" class="px-8 py-16 text-center">
                                             <p class="text-sm text-blue-200/30 uppercase font-black tracking-widest italic">No se han registrado artículos o servicios aún</p>
                                         </td>
                                     </tr>
@@ -317,7 +287,7 @@
                             </tbody>
                             <tfoot class="bg-white/5 border-t border-white/10">
                                 <tr>
-                                    <td colspan="6" class="px-8 py-6 text-right">
+                                    <td colspan="5" class="px-8 py-6 text-right">
                                         <span class="text-blue-200 text-lg uppercase font-black tracking-[0.2em] mb-2 block">Total:</span>
                                     </td>
                                     <td class="px-8 py-6 text-right">
@@ -330,6 +300,37 @@
                             </tfoot>
                         </table>
                     </div>
+
+                    @if($orden->estado !== 'ENTREGADO' && $orden->estado !== 'PENDIENTE DE PAGO')
+                        <div class="p-4 border-t border-white/10 flex flex-wrap justify-start gap-3 bg-white/5">
+                            <button type="button" onclick="abrirModalNuevoItem()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black rounded-xl transition-all uppercase tracking-widest flex items-center justify-center cursor-pointer shadow-lg shadow-blue-900/40">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                Nuevo Item
+                            </button>
+                            <button type="button" onclick="addRow()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black rounded-xl transition-all uppercase tracking-widest flex items-center justify-center cursor-pointer shadow-lg shadow-blue-900/40">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+                                </svg>
+                                Agregar Fila
+                            </button>
+                            <button type="button" onclick="guardarItems()" class="btn-premium-success px-6 py-2.5 text-white text-xs font-black rounded-xl shadow-lg shadow-green-500/20 transition-all uppercase tracking-widest flex items-center justify-center">
+                                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                Guardar Items
+                            </button>
+                            @if($orden->detalles->count() > 0)
+                                <a href="{{ route('ordenes.cotizacion.pdf', $orden) }}" target="_blank" class="px-6 py-2.5 bg-amber-600 hover:bg-amber-700 text-white text-xs font-black rounded-xl shadow-lg shadow-amber-900/40 transition-all uppercase tracking-widest flex items-center justify-center" style="background-color: #d97706;">
+                                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                                    </svg>
+                                    Cotización
+                                </a>
+                            @endif
+                        </div>
+                    @endif
                 </div>
 
                     <!-- Evidencia Fotográfica -->
@@ -452,9 +453,6 @@
                 </select>
             </td>
             <td class="px-3 py-4">
-                <input type="text" name="items[INDEX][descripcion]" class="descripcion-input block w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-white text-xs uppercase focus:outline-none" readonly>
-            </td>
-            <td class="px-3 py-4">
                 <input type="text" name="items[INDEX][notas]" class="block w-full px-3 py-2 bg-white/10 border border-white/20 rounded-xl text-white text-xs uppercase focus:ring-1 focus:ring-blue-500/50 outline-none transition-all" placeholder="NOTA OPCIONAL...">
             </td>
             <td class="px-3 py-4">
@@ -466,7 +464,7 @@
                 </div>
             </td> -->
             <td class="px-3 py-4 text-right">
-                <input type="number" step="any" name="items[INDEX][subtotal]" value="0.00" oninput="calculateTotal()" class="subtotal-input block w-full px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-white text-right text-sm font-black font-mono focus:ring-1 focus:ring-blue-500/50 outline-none" required>
+                <input type="number" step="any" name="items[INDEX][subtotal]" value="0.00" readonly class="subtotal-input block w-full px-3 py-2 bg-white/5 border border-white/10 rounded-xl text-white text-right text-sm font-black font-mono outline-none cursor-not-allowed" required>
             </td>
             <td class="px-3 py-4 text-center">
                 <button type="button" onclick="removeRow(this)" class="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-xl transition-all">
@@ -613,12 +611,23 @@
 
             const newRow = clone.querySelector('tr');
             tbody.appendChild(newRow);
-            
+
             const typeSelect = newRow.querySelector('.tipo-select');
             $(typeSelect).select2({ width: '100%' });
             changeType(typeSelect);
-            
+
             rowIndex++;
+            checkEmptyItems();
+        }
+
+        // El placeholder "no hay items" viene renderizado por Blade como una <tr> más dentro
+        // del mismo tbody; addRow()/removeRow() deben ocultarlo o mostrarlo de vuelta a mano.
+        function checkEmptyItems() {
+            const noItemsRow = document.getElementById('no-items-row');
+            if (!noItemsRow) return;
+            const tbody = document.querySelector('#items-table tbody');
+            const hasRows = Array.from(tbody.children).some(tr => tr.id !== 'no-items-row');
+            noItemsRow.classList.toggle('hidden', hasRows);
         }
 
         function changeType(select) {
@@ -637,26 +646,33 @@
                 option.value = item.id;
                 option.textContent = item.nombre + ' - ' + item.descripcion;
                 option.dataset.precio = item.precio_venta || item.precio || 0;
-                option.dataset.descripcion = item.descripcion || item.nombre;
                 itemSelect.appendChild(option);
             });
 
             $(itemSelect).select2({ width: '100%' });
+
+            // El artículo seleccionado ya no es válido para el nuevo tipo: limpiar precio/importe
+            // para que el total no siga contando una fila sin artículo real.
+            row.querySelector('[name*="[precio_unitario]"]').value = '0.00';
+            row.querySelector('.subtotal-input').value = '0.00';
+            calculateTotal();
         }
 
         function updateItemData(select) {
             const row = select.closest('tr');
             const option = select.options[select.selectedIndex];
             const precioInput = row.querySelector('[name*="[precio_unitario]"]');
-            const descInput = row.querySelector('.descripcion-input');
-            
+
             if (option.dataset.precio) {
                 precioInput.value = option.dataset.precio;
             }
-            if (option.dataset.descripcion) {
-                descInput.value = option.dataset.descripcion;
-            }
             calculateRow(row.querySelector('[name*="[cantidad]"]'));
+
+            // UX Auto-Row: si es la última fila, agregar una nueva al seleccionar un artículo.
+            const tbody = document.querySelector('#items-table tbody');
+            if (row === tbody.lastElementChild) {
+                setTimeout(() => { addRow(); }, 150); // Ligero delay para que el usuario sienta la fluidez
+            }
         }
 
         function calculateRow(input) {
@@ -685,12 +701,13 @@
                 total += parseFloat(input.value) || 0;
             });
 
-            document.getElementById('total-reparacion').textContent = '$' + total.toLocaleString(undefined, {minimumFractionDigits: 2});
+            document.getElementById('total-reparacion').textContent = '$' + total.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
         }
 
         function removeRow(btn) {
             btn.closest('tr').remove();
             calculateTotal();
+            checkEmptyItems();
         }
 
         // --- Registro Rápido de Ítems ---
@@ -835,7 +852,6 @@
                                     if (rowTipo === tipo) {
                                         const option = new Option(`${newItem.nombre} - ${newItem.descripcion || ''}`, newItem.id, false, false);
                                         option.dataset.precio = newItem.precio_venta || newItem.precio || 0;
-                                        option.dataset.descripcion = newItem.descripcion || newItem.nombre;
                                         $(this).append(option);
                                     }
                                 });
@@ -850,6 +866,22 @@
         }
 
         function guardarItems() {
+            // Quitar primero cualquier fila nueva sin artículo seleccionado. La fila que se
+            // auto-agrega al elegir el último artículo normalmente queda vacía y no debe
+            // bloquear el guardado con un error de validación.
+            document.querySelectorAll('#items-table tbody tr').forEach(row => {
+                const tipoSelect = row.querySelector('.tipo-select');
+                if (!tipoSelect) return;
+                const itemSelect = row.querySelector('.item-select');
+                if (!itemSelect.value) {
+                    if ($(itemSelect).data('select2')) {
+                        $(itemSelect).select2('destroy');
+                    }
+                    row.remove();
+                }
+            });
+            checkEmptyItems();
+
             const items = [];
             const rows = document.querySelectorAll('#items-table tbody tr');
             let valid = true;
@@ -1562,14 +1594,15 @@
                         },
                         success: (res) => {
                             if (res.success) {
+                                const isWarning = res.message && res.message.includes('ADVERTENCIA');
                                 Swal.fire({
-                                    icon: 'success',
-                                    title: '¡ACTUALIZADO!',
+                                    icon: isWarning ? 'warning' : 'success',
+                                    title: isWarning ? '¡ACTUALIZADO CON ADVERTENCIAS!' : '¡ACTUALIZADO!',
                                     text: res.message,
                                     background: '#1e293b',
                                     color: '#fff',
-                                    timer: 1500,
-                                    showConfirmButton: false
+                                    timer: isWarning ? null : 1500,
+                                    showConfirmButton: isWarning
                                 }).then(() => {
                                     isSubmitting = true;
                                     location.reload();

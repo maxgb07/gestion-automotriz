@@ -238,13 +238,14 @@ class OrdenServicioController extends Controller
 
         try {
             DB::beginTransaction();
-            $productosSinStock = [];
+            $productosSinExistencias = [];
+            $productosStockNegativo = [];
 
             foreach ($request->items as $item) {
                 $precio = $item['precio_unitario'];
                 $cantidad = $item['cantidad'];
                 $porcentajeDesc = $item['descuento_porcentaje'] ?? 0;
-                
+
                 $baseCalculada = $precio * $cantidad;
                 $montoDesc = $baseCalculada * ($porcentajeDesc / 100);
                 $subtotal = $baseCalculada - $montoDesc;
@@ -266,8 +267,6 @@ class OrdenServicioController extends Controller
                 if ($item['tipo'] === 'producto') {
                     $producto = Producto::find($item['item_id']);
                     if ($producto->stock < $cantidad) {
-                        // throw new \Exception("Stock insuficiente para: " . $producto->nombre);
-
                         // Registrar Incidencia de Stock
                         StockAlerta::create([
                             'producto_id' => $producto->id,
@@ -278,11 +277,15 @@ class OrdenServicioController extends Controller
                             'referencia_id' => $orden->id,
                             'fecha' => now(),
                         ]);
-
-                        $productosSinStock[] = $producto->nombre;
                     }
-                    $producto->stock = max(0, $producto->stock - $cantidad);
+                    $producto->stock -= $cantidad;
                     $producto->save();
+
+                    if ($producto->stock < 0) {
+                        $productosStockNegativo[] = $producto->nombre;
+                    } elseif ($producto->stock === 0) {
+                        $productosSinExistencias[] = $producto->nombre;
+                    }
                 }
             }
 
@@ -291,10 +294,13 @@ class OrdenServicioController extends Controller
             }
 
             DB::commit();
-            
+
             $mensaje = 'Ítems agregados correctamente';
-            if (!empty($productosSinStock)) {
-                $mensaje .= ' (ADVERTENCIA: Algunos productos quedaron con stock negativo: ' . implode(', ', $productosSinStock) . ')';
+            if (!empty($productosStockNegativo)) {
+                $mensaje .= ' (ADVERTENCIA: Algunos productos quedaron con stock negativo: ' . implode(', ', $productosStockNegativo) . ')';
+            }
+            if (!empty($productosSinExistencias)) {
+                $mensaje .= ' (AVISO: Algunos productos se quedaron sin existencias: ' . implode(', ', $productosSinExistencias) . ')';
             }
 
             return response()->json(['success' => true, 'message' => $mensaje]);
@@ -370,10 +376,15 @@ class OrdenServicioController extends Controller
                             'referencia_id' => $orden->id,
                             'fecha' => now(),
                         ]);
-                        $mensajeWarning = ' (ADVERTENCIA: Stock insuficiente)';
                     }
-                    $productoNuevo->stock = $productoNuevo->stock - $cantidad;
+                    $productoNuevo->stock -= $cantidad;
                     $productoNuevo->save();
+
+                    if ($productoNuevo->stock < 0) {
+                        $mensajeWarning = ' (ADVERTENCIA: Algunos productos quedaron con stock negativo: ' . $productoNuevo->nombre . ')';
+                    } elseif ($productoNuevo->stock === 0) {
+                        $mensajeWarning = ' (AVISO: Algunos productos se quedaron sin existencias: ' . $productoNuevo->nombre . ')';
+                    }
                 }
             }
 
