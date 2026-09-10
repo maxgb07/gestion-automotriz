@@ -169,14 +169,14 @@
                         <table class="w-full text-left" id="productos-table">
                             <thead class="bg-white/5 border-b border-white/10">
                                 <tr>
-                                    <th class="px-2 py-4 text-md font-bold text-blue-200 uppercase tracking-widest w-24 text-center">Cant</th>
-                                    <th class="px-6 py-4 text-md font-bold text-blue-200 uppercase tracking-wider text-center">Producto</th>
-                                    <th class="px-4 py-4 text-md font-bold text-blue-200 uppercase tracking-wider w-32 text-center">P. Compra</th>
-                                    <th class="px-4 py-4 text-md font-bold text-blue-200 uppercase tracking-wider w-32 text-center">P. Venta</th>
-                                    <th class="px-4 py-4 text-md font-bold text-blue-200 uppercase tracking-wider w-28 text-center">Descuento 1</th>
-                                    <th class="px-4 py-4 text-md font-bold text-blue-200 uppercase tracking-wider w-28 text-center">Descuento 2</th>
-                                    <th class="px-4 py-4 text-md font-bold text-blue-200 uppercase tracking-wider w-28 text-center">Interno</th>
-                                    <th class="px-4 py-4 text-md font-bold text-blue-200 uppercase tracking-wider w-36 text-right">Subtotal</th>
+                                    <th class="px-2 py-4 text-xs font-semibold text-blue-200 uppercase tracking-widest w-24 text-center">Cant</th>
+                                    <th class="px-6 py-4 text-xs font-semibold text-blue-200 uppercase tracking-wider text-center">Producto</th>
+                                    <th class="px-4 py-4 text-xs font-semibold text-blue-200 uppercase tracking-wider w-32 text-center">P. Compra</th>
+                                    <th class="px-4 py-4 text-xs font-semibold text-blue-200 uppercase tracking-wider w-32 text-center">P. Venta</th>
+                                    <th class="px-4 py-4 text-xs font-semibold text-blue-200 uppercase tracking-wider w-28 text-center">Global</th>
+                                    <th class="px-4 py-4 text-xs font-semibold text-blue-200 uppercase tracking-wider w-28 text-center">Descuento Extra</th>
+                                    <th class="px-4 py-4 text-xs font-semibold text-blue-200 uppercase tracking-wider w-28 text-center">Interno</th>
+                                    <th class="px-4 py-4 text-xs font-semibold text-blue-200 uppercase tracking-wider w-36 text-right">Subtotal</th>
                                     <th class="px-4 py-4 w-16"></th>
                                 </tr>
                             </thead>
@@ -191,7 +191,7 @@
                     </div>
 
                     <div class="p-4 border-t border-white/10 flex justify-start gap-3 bg-white/5">
-                        <button type="button" onclick="abrirModalNuevoProducto()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-black rounded-xl transition-all uppercase tracking-widest flex items-center justify-center cursor-pointer shadow-lg shadow-blue-900/40">
+                        <button type="button" onclick="abrirModalNuevoProducto()" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-xl transition-all uppercase tracking-widest flex items-center justify-center cursor-pointer shadow-lg shadow-blue-900/40">
                             <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v3m0 0v3m0-3h3m-3 0H9m12 0a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
@@ -213,7 +213,7 @@
                             <div class="flex flex-col gap-2 w-full mb-4 border-b border-white/10 pb-4">
                                 <div class="flex flex-col w-full mb-3">
                                     <div class="flex justify-between items-center mb-1.5">
-                                        <span class="text-blue-200 text-[10px] uppercase font-black tracking-[0.15em]">Gastos de Maniobra</span>
+                                        <span class="text-blue-200 text-[10px] uppercase font-semibold tracking-[0.15em]">Gastos de Maniobra</span>
                                         <input type="number" step="any" name="monto_maniobra" id="monto_maniobra" value="{{ number_format($compra->monto_maniobra, 2, '.', '') }}" oninput="calculateTotal()" onfocus="this.select()" class="w-32 px-3 py-1 bg-white/10 border border-white/20 rounded-lg text-white text-right focus:ring-2 focus:ring-blue-500 transition-all font-mono">
                                     </div>
                                     <div class="flex items-center">
@@ -222,13 +222,13 @@
                                                 <input type="checkbox" name="aplica_descuento_maniobra" id="aplica_descuento_maniobra" onchange="calculateTotal()" {{ $compra->aplica_descuento_maniobra ? 'checked' : '' }}>
                                                 <span class="ios-slider"></span>
                                             </div>
-                                            <span class="ml-3 text-[10px] font-black text-blue-200/40 uppercase tracking-widest group-hover:text-blue-200 transition-colors">Aplica descuento</span>
+                                            <span class="ml-3 text-[10px] font-semibold text-blue-200/40 uppercase tracking-widest group-hover:text-blue-200 transition-colors">Aplica descuento</span>
                                         </label>
                                     </div>
                                 </div>
                                 <div class="flex flex-col w-full">
                                     <div class="flex justify-between items-center mb-1.5">
-                                        <span class="text-blue-200 text-[10px] uppercase font-black tracking-[0.15em]">Costo de Seguro</span>
+                                        <span class="text-blue-200 text-[10px] uppercase font-semibold tracking-[0.15em]">Costo de Seguro</span>
                                         <input type="number" step="any" name="monto_seguro" id="monto_seguro" value="{{ number_format($compra->monto_seguro, 2, '.', '') }}" oninput="calculateTotal()" onfocus="this.select()" class="w-32 px-3 py-1 bg-white/10 border border-white/20 rounded-lg text-white text-right focus:ring-2 focus:ring-blue-500 transition-all font-mono">
                                     </div>
                                     <div class="flex items-center">
@@ -237,40 +237,42 @@
                                                 <input type="checkbox" name="aplica_descuento_seguro" id="aplica_descuento_seguro" onchange="calculateTotal()" {{ $compra->aplica_descuento_seguro ? 'checked' : '' }}>
                                                 <span class="ios-slider"></span>
                                             </div>
-                                            <span class="ml-3 text-[10px] font-black text-blue-200/40 uppercase tracking-widest group-hover:text-blue-200 transition-colors">Aplica descuento</span>
+                                            <span class="ml-3 text-[10px] font-semibold text-blue-200/40 uppercase tracking-widest group-hover:text-blue-200 transition-colors">Aplica descuento</span>
                                         </label>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="flex justify-between w-full">
-                                <span class="text-blue-200 text-sm uppercase font-semibold">Subtotal (Bruto)</span>
+                                <span class="text-blue-200 text-sm uppercase font-semibold">Subtotal</span>
                                 <span class="text-white text-lg font-bold" id="resumen-subtotal">$0.00</span>
                             </div>
-                            <div class="flex justify-between w-full border-b border-white/10 pb-2">
-                                <span class="text-blue-200 text-sm uppercase font-semibold">IVA (16%)</span>
-                                <span class="text-white text-lg font-bold" id="resumen-iva">$0.00</span>
-                            </div>
-                            <div class="flex justify-between w-full pt-2">
-                                <span class="text-blue-100 text-sm uppercase font-black">Total Factura</span>
-                                <span class="text-white text-xl font-black" id="total-factura">$0.00</span>
-                            </div>
-                            
-                            <!-- Desgloses de Descuentos -->
+
+                            <!-- Desgloses de Descuentos (cascada por producto, antes del IVA) -->
                             <div class="flex justify-between w-full pt-4 text-amber-400">
                                 <span class="text-xs uppercase font-bold">1. Descuento Global</span>
                                 <span class="text-lg font-bold" id="monto-desc-global">$0.00</span>
                             </div>
                             <div class="flex justify-between w-full text-amber-400">
-                                <span class="text-xs uppercase font-bold">2. Descuento Extra Global</span>
+                                <span class="text-xs uppercase font-bold">2. Descuento Extra</span>
                                 <span class="text-lg font-bold" id="monto-desc-extra">$0.00</span>
                             </div>
                             <div class="flex justify-between w-full text-amber-400 border-b border-white/10 pb-4">
-                                <span class="text-xs uppercase font-bold">3. Descuento Interno (Productos)</span>
+                                <span class="text-xs uppercase font-bold">3. Descuento Interno</span>
                                 <span class="text-lg font-bold" id="monto-desc-interno">$0.00</span>
                             </div>
 
-                            <!-- Pronto Pago -->
+                            <div class="flex justify-between w-full pt-4 border-b border-white/10 pb-2">
+                                <span class="text-blue-200 text-sm uppercase font-semibold">IVA (16%)</span>
+                                <span class="text-white text-lg font-bold" id="resumen-iva">$0.00</span>
+                            </div>
+
+                            <div class="flex justify-between w-full pt-2">
+                                <span class="text-blue-100 text-sm uppercase font-bold">Total de Factura</span>
+                                <span class="text-white text-xl font-bold" id="total-a-pagar">$0.00</span>
+                            </div>
+
+                            <!-- Descuento por Pronto Pago / Nota de Crédito: único, sobre TODA la compra -->
                             <div class="flex justify-between items-center w-full pt-4 pb-4 border-b border-white/10">
                                 <span class="text-green-400 text-[10px] uppercase font-black tracking-widest">Desc. Financiero / Pronto Pago (%)</span>
                                 <div class="flex items-center gap-2">
@@ -280,7 +282,7 @@
                             </div>
 
                             <div class="flex justify-between w-full pt-4">
-                                <span class="text-blue-200 text-sm uppercase font-black mt-1 tracking-widest">Saldo Pendiente</span>
+                                <span class="text-blue-200 text-sm uppercase font-bold mt-1 tracking-widest">Saldo Pendiente</span>
                                 <span class="text-4xl font-black text-white" id="total-general">$0.00</span>
                             </div>
                         </div>
@@ -289,7 +291,7 @@
 
                 <!-- Sección 3: Acciones -->
                 <div class="flex items-center justify-center gap-6 py-12 mt-10 border-t border-white/5">
-                    <button type="submit" class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-black leading-5 rounded-base text-sm px-10 py-4 focus:outline-none inline-flex items-center min-w-[220px] justify-center uppercase tracking-widest">
+                    <button type="submit" class="text-white bg-brand box-border border border-transparent hover:bg-brand-strong focus:ring-4 focus:ring-brand-medium shadow-xs font-semibold leading-5 rounded-base text-sm px-10 py-4 focus:outline-none inline-flex items-center min-w-[220px] justify-center uppercase tracking-widest">
                         <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                         </svg>
@@ -310,7 +312,7 @@
     <template id="row-template">
         <tr class="hover:bg-white/5 transition-colors">
             <td class="px-4 py-4 text-center">
-                <input type="number" step="any" name="productos[INDEX][cantidad]" value="1" min="0.1" oninput="calculateRow(this)" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm text-md text-center">
+                <input type="number" step="any" name="productos[INDEX][cantidad]" value="1" min="0.1" oninput="calculateRow(this)" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm text-sm text-center">
             </td>
             <td class="px-6 py-4 text-center">
                 <select name="productos[INDEX][id]" class="select-product block w-full" required>
@@ -318,22 +320,22 @@
                 </select>
             </td>
             <td class="px-4 py-4 text-center">
-                <input type="number" step="any" name="productos[INDEX][precio_compra]" value="0.00" min="0.00" oninput="calculateRow(this)" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm text-md text-center">
+                <input type="number" step="any" name="productos[INDEX][precio_compra]" value="0.00" min="0.00" oninput="calculateRow(this)" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm text-sm text-center">
             </td>
             <td class="px-4 py-4 text-center">
-                <input type="number" step="any" name="productos[INDEX][precio_venta]" value="0.00" min="0.00" oninput="calculateRow(this)" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm text-md font-bold text-center">
+                <input type="number" step="any" name="productos[INDEX][precio_venta]" value="0.00" min="0.00" oninput="calculateRow(this)" class="block w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all backdrop-blur-sm text-sm font-medium text-center">
             </td>
             <td class="px-4 py-4 text-center">
-                <input type="number" step="any" name="productos[INDEX][descuento_porcentaje]" value="0.00" min="0" max="100" oninput="calculateRow(this)" class="row-desc1 block w-full px-2 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-xs text-center">
+                <span class="row-global-display block text-blue-200/70 text-xs font-bold">0.00%</span>
             </td>
             <td class="px-4 py-4 text-center">
-                <input type="number" step="any" name="productos[INDEX][descuento_extra_porcentaje]" value="0.00" min="0" max="100" oninput="calculateRow(this)" class="row-desc2 block w-full px-2 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-xs text-center">
+                <input type="number" step="any" name="productos[INDEX][descuento_extra_porcentaje]" value="0.00" min="0" max="100" oninput="calculateRow(this)" class="row-desc-extra block w-full px-2 py-3 bg-white/10 border border-white/20 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all text-xs text-center">
             </td>
             <td class="px-4 py-4 text-center">
                 <input type="number" step="any" name="productos[INDEX][descuento_interno_porcentaje]" value="0.00" min="0" max="100" oninput="calculateRow(this)" class="row-desc-int block w-full px-2 py-3 bg-white/10 border border-amber-500/50 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all text-xs text-center" placeholder="0.00">
             </td>
             <td class="px-4 py-4 text-center">
-                <span class="text-white text-md font-bold subtotal" data-value="0">$0.00</span>
+                <span class="text-white text-sm font-semibold subtotal" data-value="0">$0.00</span>
             </td>
             <td class="px-4 py-4 text-center">
                 <button type="button" onclick="removeRow(this)" class="p-2 bg-red-500/20 hover:bg-red-500/30 text-red-300 rounded-xl transition-all">
@@ -381,8 +383,6 @@
             }).on('change', function() {
                 const opt = $(this).find('option:selected');
                 const dias = parseInt(opt.data('dias')) || 0;
-                const descGlobal = parseFloat(opt.data('descuento')) || 0;
-                const descExtra = parseFloat(opt.data('descuento-extra')) || 0;
 
                 // Update date
                 if(dias >= 0) {
@@ -397,12 +397,6 @@
                     }
                 }
 
-                // Update Hidden Inputs and Display
-                $('#porcentaje_descuento').val(descGlobal);
-                $('#porcentaje_descuento_extra').val(descExtra);
-                $('#display-pct-global').text(descGlobal + '%');
-                $('#display-pct-extra').text(descExtra + '%');
-                
                 calculateTotal();
             });
 
@@ -490,14 +484,13 @@
                 
                 const newRow = clone.querySelector('tr');
                 tbody.appendChild(newRow);
-                
-                // Aplicar descuentos del proveedor actual a la nueva fila
+
+                // Descuento Extra por defecto del proveedor actual (el usuario lo puede cambiar por fila)
                 const opt = $('#proveedor_id').find('option:selected');
                 if(opt.val()){
-                    newRow.querySelector('.row-desc1').value = opt.data('descuento') || 0;
-                    newRow.querySelector('.row-desc2').value = opt.data('descuento-extra') || 0;
+                    newRow.querySelector('.row-desc-extra').value = opt.data('descuento-extra') || 0;
                 }
-                
+
                 // Inicializar Select2 para el nuevo producto después de añadir al DOM
                 initSelect2(newRow);
                 
@@ -521,7 +514,6 @@
                 newRow.querySelector('[name*="[cantidad]"]').value = data.cantidad;
                 newRow.querySelector('[name*="[precio_compra]"]').value = data.precio_compra;
                 newRow.querySelector('[name*="[precio_venta]"]').value = data.precio_venta;
-                newRow.querySelector('[name*="[descuento_porcentaje]"]').value = data.descuento_porcentaje;
                 newRow.querySelector('[name*="[descuento_extra_porcentaje]"]').value = data.descuento_extra_porcentaje;
                 newRow.querySelector('[name*="[descuento_interno_porcentaje]"]').value = data.descuento_interno_porcentaje || 0;
 
@@ -553,102 +545,109 @@
             };
 
             window.calculateRow = function(input) {
-                const row = input.closest('tr');
-                const cant = parseFloat(row.querySelector('[name*="[cantidad]"]').value) || 0;
-                const price = parseFloat(row.querySelector('[name*="[precio_compra]"]').value) || 0;
-                const desc1 = parseFloat(row.querySelector('[name*="[descuento_porcentaje]"]').value) || 0;
-                const desc2 = parseFloat(row.querySelector('[name*="[descuento_extra_porcentaje]"]').value) || 0;
-                const subtotalSpan = row.querySelector('.subtotal');
-                
-                const base = cant * price;
-                
-                subtotalSpan.dataset.value = base;
-                subtotalSpan.textContent = '$' + base.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-                
                 calculateTotal();
             };
 
+            // Formatear moneda helper
+            const fmt = (val) => '$' + val.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
+
+            // Espejo exacto de App\Services\CompraCalculator (mismos nombres de variable).
+            // Etapa 1: cascada comercial por producto (Global -> Extra -> Interno), IVA al final -> Total de Factura.
+            // Etapa 2: Descuento por Pronto Pago / Nota de Crédito, una sola vez sobre el Total de Factura -> Saldo Pendiente.
             window.calculateTotal = function() {
-                let grossSubtotal = 0;
-                let rowsData = [];
-                let maxPctGlobal = 0;
-                let maxPctExtra = 0;
+                const pctGlobal = parseFloat($('#proveedor_id').find('option:selected').data('descuento')) || 0;
+
+                let subtotal = 0;
+                let descuentoGlobal = 0;
+                let descuentoExtra = 0;
+                let descuentoInterno = 0;
+                let iva = 0;
+                let totalAPagar = 0;
 
                 document.querySelectorAll('#productos-table tbody tr').forEach(row => {
-                    const cant = parseFloat(row.querySelector('[name*="[cantidad]"]')?.value) || 0;
-                    const price = parseFloat(row.querySelector('[name*="[precio_compra]"]')?.value) || 0;
-                    const pctInt = parseFloat(row.querySelector('.row-desc-int')?.value) || 0;
-                    
-                    if (cant && price) {
-                        const base = cant * price;
-                        grossSubtotal += base;
-                        
-                        rowsData.push({
-                            rowTotal: base, // Base SIN IVA
-                            pctInt: pctInt
-                        });
+                    const globalDisplay = row.querySelector('.row-global-display');
+                    if (globalDisplay) globalDisplay.textContent = pctGlobal.toFixed(2) + '%';
 
-                        maxPctGlobal = parseFloat(row.querySelector('.row-desc1')?.value) || maxPctGlobal;
-                        maxPctExtra = parseFloat(row.querySelector('.row-desc2')?.value) || maxPctExtra;
+                    const cantidad = parseFloat(row.querySelector('[name*="[cantidad]"]')?.value) || 0;
+                    const precioCompra = parseFloat(row.querySelector('[name*="[precio_compra]"]')?.value) || 0;
+                    const pctExtra = parseFloat(row.querySelector('.row-desc-extra')?.value) || 0;
+                    const pctInterno = parseFloat(row.querySelector('.row-desc-int')?.value) || 0;
+
+                    const subtotalFila = cantidad * precioCompra;
+
+                    const subtotalSpan = row.querySelector('.subtotal');
+                    if (subtotalSpan) {
+                        subtotalSpan.dataset.value = subtotalFila;
+                        subtotalSpan.textContent = fmt(subtotalFila);
                     }
+
+                    if (!cantidad || !precioCompra) return;
+
+                    // 1. Descuento Global (del proveedor), sobre el precio crudo
+                    const montoGlobal = subtotalFila * (pctGlobal / 100);
+                    const resto1 = subtotalFila - montoGlobal;
+
+                    // 2. Descuento Extra (de esta fila)
+                    const montoExtra = resto1 * (pctExtra / 100);
+                    const resto2 = resto1 - montoExtra;
+
+                    // 3. Descuento Interno (de esta fila)
+                    const montoInterno = resto2 * (pctInterno / 100);
+                    const baseGravableFila = resto2 - montoInterno;
+
+                    // 4. IVA al final, sobre la base ya neta de descuentos
+                    const ivaFila = baseGravableFila * 0.16;
+                    const totalFilaFinal = baseGravableFila + ivaFila;
+
+                    subtotal += subtotalFila;
+                    descuentoGlobal += montoGlobal;
+                    descuentoExtra += montoExtra;
+                    descuentoInterno += montoInterno;
+                    iva += ivaFila;
+                    totalAPagar += totalFilaFinal;
                 });
-                
+
+                // Maniobra y Seguro entran a la MISMA cascada que un producto más:
+                // participan de Subtotal/IVA, nunca reciben Extra ni Interno, y Global
+                // solo si su propio switch "Aplica descuento" está activo.
                 const montoManiobra = parseFloat(document.getElementById('monto_maniobra')?.value) || 0;
                 const montoSeguro = parseFloat(document.getElementById('monto_seguro')?.value) || 0;
-                const aplicaM = document.getElementById('aplica_descuento_maniobra')?.checked;
-                const aplicaS = document.getElementById('aplica_descuento_seguro')?.checked;
+                const aplicaManiobra = document.getElementById('aplica_descuento_maniobra')?.checked;
+                const aplicaSeguro = document.getElementById('aplica_descuento_seguro')?.checked;
 
-                const grossSubtotalGeneral = grossSubtotal + montoManiobra + montoSeguro;
+                [
+                    { monto: montoManiobra, aplicaGlobal: aplicaManiobra },
+                    { monto: montoSeguro, aplicaGlobal: aplicaSeguro },
+                ].forEach(({ monto, aplicaGlobal }) => {
+                    if (!monto) return;
 
-                // Base descontable (SIN IVA)
-                const discountableTotal = grossSubtotal + (aplicaM ? montoManiobra : 0) + (aplicaS ? montoSeguro : 0);
+                    const montoGlobal = aplicaGlobal ? monto * (pctGlobal / 100) : 0;
+                    const baseGravableFila = monto - montoGlobal;
+                    const ivaFila = baseGravableFila * 0.16;
+                    const totalFilaFinal = baseGravableFila + ivaFila;
 
-                let remaining = discountableTotal;
-                
-                // 1. Global
-                const montoGlobal = remaining * (maxPctGlobal / 100);
-                remaining -= montoGlobal;
-
-                // 2. Extra Global
-                const montoExtra = remaining * (maxPctExtra / 100);
-                remaining -= montoExtra;
-
-                // 3. Interno (Productos)
-                let sumInternalDiscount = 0;
-                const factorCascadaGlobal = (1 - (maxPctGlobal/100)) * (1 - (maxPctExtra/100));
-                
-                rowsData.forEach(data => {
-                    const rowRemaining = data.rowTotal * factorCascadaGlobal;
-                    sumInternalDiscount += (rowRemaining * (data.pctInt / 100));
+                    subtotal += monto;
+                    descuentoGlobal += montoGlobal;
+                    iva += ivaFila;
+                    totalAPagar += totalFilaFinal;
                 });
 
-                const totalDescuentosComerciales = montoGlobal + montoExtra + sumInternalDiscount;
-                
-                // Base Imponible Real (Subtotal - Descuentos Comerciales)
-                const baseImponible = grossSubtotalGeneral - totalDescuentosComerciales;
-
-                const iva = baseImponible * 0.16;
-                const totalFactura = baseImponible + iva;
-
-                // Descuento Financiero (Pronto Pago)
+                // Etapa 2: Descuento por Pronto Pago / Nota de Crédito, una sola vez sobre el Total de Factura
                 const pctProntoPago = parseFloat(document.getElementById('porcentaje_pronto_pago')?.value) || 0;
-                const montoProntoPago = totalFactura * (pctProntoPago / 100);
+                const montoProntoPago = totalAPagar * (pctProntoPago / 100);
+                const saldoPendiente = totalAPagar - montoProntoPago;
 
-                const saldoPendiente = Math.max(0, totalFactura - montoProntoPago);
-                
-                // Formatear moneda helper
-                const fmt = (val) => '$' + val.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2});
-
-                document.getElementById('resumen-subtotal').textContent = fmt(grossSubtotalGeneral);
+                document.getElementById('resumen-subtotal').textContent = fmt(subtotal);
                 document.getElementById('resumen-iva').textContent = fmt(iva);
-                document.getElementById('total-factura').textContent = fmt(totalFactura);
-                
-                document.getElementById('monto-desc-global').textContent = '-' + fmt(montoGlobal);
-                document.getElementById('monto-desc-extra').textContent = '-' + fmt(montoExtra);
-                document.getElementById('monto-desc-interno').textContent = '-' + fmt(sumInternalDiscount);
-                
+
+                document.getElementById('monto-desc-global').textContent = '-' + fmt(descuentoGlobal);
+                document.getElementById('monto-desc-extra').textContent = '-' + fmt(descuentoExtra);
+                document.getElementById('monto-desc-interno').textContent = '-' + fmt(descuentoInterno);
+
+                document.getElementById('total-a-pagar').textContent = fmt(totalAPagar);
+
                 const spanProntoPago = document.getElementById('monto-pronto-pago');
-                if(spanProntoPago) spanProntoPago.textContent = '-' + fmt(montoProntoPago);
+                if (spanProntoPago) spanProntoPago.textContent = '-' + fmt(montoProntoPago);
 
                 document.getElementById('total-general').textContent = fmt(saldoPendiente);
             };
@@ -728,30 +727,30 @@
                 html: `
                     <div class="space-y-4 text-left mt-4">
                         <div>
-                            <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">SKU / CLAVE *</label>
-                            <input type="text" id="swal-nombre" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-md font-bold uppercase focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="EJ: WX333">
+                            <label class="block text-xs font-semibold text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">SKU / CLAVE *</label>
+                            <input type="text" id="swal-nombre" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-medium uppercase focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="EJ: WX333">
                         </div>
                         <div>
-                            <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">MARCA</label>
-                            <input type="text" id="swal-marca" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-md font-bold uppercase focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="EJ: WAGNER">
+                            <label class="block text-xs font-semibold text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">MARCA</label>
+                            <input type="text" id="swal-marca" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-medium uppercase focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="EJ: WAGNER">
                         </div>
                         <div>
-                            <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">DESCRIPCIÓN</label>
-                            <textarea id="swal-descripcion" rows="2" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-md font-bold uppercase focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="EJ: BALATAS FRENO DE DISCO"></textarea>
+                            <label class="block text-xs font-semibold text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">DESCRIPCIÓN</label>
+                            <textarea id="swal-descripcion" rows="2" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-medium uppercase focus:ring-2 focus:ring-blue-500 outline-none transition-all" placeholder="EJ: BALATAS FRENO DE DISCO"></textarea>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">PRECIO COMPRA</label>
-                                <input type="number" id="swal-costo" step="0.01" value="0.00" onfocus="this.select()" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-md font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                                <label class="block text-xs font-semibold text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">PRECIO COMPRA</label>
+                                <input type="number" id="swal-costo" step="0.01" value="0.00" onfocus="this.select()" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none transition-all">
                             </div>
                             <div>
-                                <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">PRECIO VENTA</label>
-                                <input type="number" id="swal-precio" step="0.01" value="0.00" onfocus="this.select()" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-md font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                                <label class="block text-xs font-semibold text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">PRECIO VENTA</label>
+                                <input type="number" id="swal-precio" step="0.01" value="0.00" onfocus="this.select()" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none transition-all">
                             </div>
                         </div>
                         <div>
-                            <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">STOCK MÍNIMO</label>
-                            <input type="number" id="swal-stock-minimo" step="1" value="1" onfocus="this.select()" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-md font-bold focus:ring-2 focus:ring-blue-500 outline-none transition-all">
+                            <label class="block text-xs font-semibold text-blue-200 uppercase tracking-widest mb-1 ml-1 text-center">STOCK MÍNIMO</label>
+                            <input type="number" id="swal-stock-minimo" step="1" value="1" onfocus="this.select()" class="w-full px-4 py-3 bg-white/5 border border-white/10 rounded-xl text-white text-center text-sm font-medium focus:ring-2 focus:ring-blue-500 outline-none transition-all">
                         </div>
                     </div>
                 `,

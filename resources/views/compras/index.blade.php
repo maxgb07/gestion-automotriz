@@ -22,7 +22,7 @@
     <div class="bg-white/10 backdrop-blur-xl rounded-2xl p-6 border border-white/20 mb-8 shadow-xl">
         <form action="{{ route('compras.index') }}" method="GET" class="flex flex-col md:flex-row gap-4 items-end">
             <div class="md:flex-[3] relative w-full">
-                <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-2 ml-1">Buscar OC / Factura</label>
+                <label class="block text-xs font-semibold text-blue-200 uppercase tracking-widest mb-2 ml-1">Buscar OC / Factura</label>
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
                         <svg class="h-5 w-5 text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -34,7 +34,7 @@
             </div>
 
             <div class="md:flex-[2] w-full">
-                <label class="block text-md font-black text-blue-200 uppercase tracking-widest mb-2 ml-1">Proveedor</label>
+                <label class="block text-xs font-semibold text-blue-200 uppercase tracking-widest mb-2 ml-1">Proveedor</label>
                 <select name="proveedor_id" id="proveedor_id_filter" class="select2-filter">
                     <option value="">TODOS LOS PROVEEDORES</option>
                     @foreach(\App\Models\Proveedor::orderBy('nombre')->get() as $proveedor)
@@ -62,24 +62,41 @@
             <table class="w-full text-center border-collapse">
                 <thead class="bg-white/5 border-b border-white/10">
                     <tr>
-                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Folio</th>
-                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Fecha</th>
-                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Proveedor</th>
-                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Factura</th>
-                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Total</th>
-                        <th class="px-6 py-4 text-md font-semibold text-blue-200 uppercase tracking-wider text-center">Acciones</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-blue-200 uppercase tracking-wider text-center">Folio</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-blue-200 uppercase tracking-wider text-center">Fecha</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-blue-200 uppercase tracking-wider text-center">Proveedor</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-blue-200 uppercase tracking-wider text-center">Factura</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-blue-200 uppercase tracking-wider text-center">Subtotal</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-blue-200 uppercase tracking-wider text-center">Total Factura</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-blue-200 uppercase tracking-wider text-center">Descuentos</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-blue-200 uppercase tracking-wider text-center">Saldo Pendiente</th>
+                        <th class="px-6 py-4 text-xs font-semibold text-blue-200 uppercase tracking-wider text-center">Acciones</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-white/10">
                     @forelse($compras as $compra)
-                        <tr class="hover:bg-white/5 transition-colors group" 
+                        @php
+                            $totalDescuentos = $compra->monto_descuento + $compra->monto_descuento_extra + $compra->monto_descuento_interno + $compra->monto_pronto_pago;
+                            $pctDescuentoEfectivo = $compra->subtotal > 0 ? ($totalDescuentos / $compra->subtotal) * 100 : 0;
+                        @endphp
+                        <tr class="hover:bg-white/5 transition-colors group"
                             data-compra="{{ json_encode([
                                 'id' => $compra->id,
                                 'folio' => $compra->folio ?? '---',
                                 'fecha' => \Carbon\Carbon::parse($compra->fecha_compra)->translatedFormat('d M, Y'),
                                 'proveedor' => $compra->proveedor->nombre,
                                 'factura' => $compra->factura ?? 'SIN FACTURA',
+                                'subtotal' => number_format($compra->subtotal, 2),
+                                'porcentaje_descuento' => number_format($compra->porcentaje_descuento, 2),
+                                'monto_descuento' => number_format($compra->monto_descuento, 2),
+                                'monto_descuento_extra' => number_format($compra->monto_descuento_extra, 2),
+                                'monto_descuento_interno' => number_format($compra->monto_descuento_interno, 2),
+                                'porcentaje_pronto_pago' => number_format($compra->porcentaje_pronto_pago ?? 0, 2),
+                                'monto_pronto_pago' => number_format($compra->monto_pronto_pago ?? 0, 2),
+                                'total_descuentos' => number_format($totalDescuentos, 2),
+                                'iva' => number_format($compra->iva, 2),
                                 'total' => number_format($compra->total, 2),
+                                'saldo_pendiente' => number_format($compra->saldo_pendiente, 2),
                                 'detalles' => $compra->detalles->map(fn($d) => [
                                     'cantidad' => $d->cantidad,
                                     'producto' => $d->producto?->nombre ?? 'N/A',
@@ -88,23 +105,39 @@
                                 ])
                             ]) }}">
                              <td class="px-6 py-4 whitespace-nowrap text-center">
-                                <span class="text-white font-bold font-medium uppercase">{{ $compra->folio ?? '---' }}</span>
+                                <span class="text-white font-semibold uppercase">{{ $compra->folio ?? '---' }}</span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 <span class="text-white font-medium uppercase">{{ \Carbon\Carbon::parse($compra->fecha_compra)->translatedFormat('d M, Y') }}</span>
                             </td>
                             <td class="px-6 py-4 text-center">
                                 <div class="flex items-center justify-center gap-2">
-                                    <span class="text-white font-bold uppercase font-medium">{{ $compra->proveedor->nombre }}</span>
+                                    <span class="text-white font-semibold uppercase">{{ $compra->proveedor->nombre }}</span>
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 <div class="flex flex-col items-center">
-                                    <span class="text-white font-bold font-medium uppercase">{{ $compra->factura ?? 'SIN FACTURA' }}</span>
+                                    <span class="text-white font-semibold uppercase">{{ $compra->factura ?? 'SIN FACTURA' }}</span>
                                 </div>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
-                                <span class="text-white font-bold font-medium text-lg">${{ number_format($compra->total, 2) }}</span>
+                                <span class="text-blue-100 font-medium">${{ number_format($compra->subtotal, 2) }}</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                <span class="text-blue-100 font-medium">${{ number_format($compra->total, 2) }}</span>
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                @if($totalDescuentos > 0)
+                                    <div class="flex flex-col items-center">
+                                        <span class="text-amber-300 font-bold text-sm">{{ number_format($pctDescuentoEfectivo, 2) }}%</span>
+                                        <span class="text-amber-400 font-bold">-${{ number_format($totalDescuentos, 2) }}</span>
+                                    </div>
+                                @else
+                                    <span class="text-blue-200/40">---</span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 whitespace-nowrap text-center">
+                                <span class="text-white font-bold text-lg">${{ number_format($compra->saldo_pendiente, 2) }}</span>
                             </td>
                             <td class="px-6 py-4 whitespace-nowrap text-center">
                                 <div class="flex justify-center items-center gap-2">
@@ -138,7 +171,7 @@
                         </tr>
                     @empty
                         <tr>
-                            <td colspan="6" class="px-6 py-20 text-center">
+                            <td colspan="9" class="px-6 py-20 text-center">
                                 <div class="flex flex-col items-center">
                                     <div class="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-4">
                                         <svg class="w-10 h-10 text-blue-300/30" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -230,47 +263,85 @@
                 color: '#fff',
                 width: '850px',
                 html: `
-                    <div style="text-align:left; margin-top:6px;">
+                    <div style="text-align:left; margin-top:6px; font-size:13px;">
                         <div style="display:grid; grid-template-cols:1fr 1fr; gap:15px; margin-bottom:15px; border-bottom:1px solid rgba(255,255,255,0.1); padding-bottom:15px;">
                             <div>
-                                <p class="text-md" style="color:#93c5fd; text-transform:uppercase; font-weight:900; margin-bottom:4px;">Proveedor</p>
-                                <p class="text-md" style="font-weight:700; color:#fff;">${c.proveedor}</p>
+                                <p style="font-size:11px; color:#93c5fd; text-transform:uppercase; font-weight:700; letter-spacing:0.05em; margin-bottom:4px;">Proveedor</p>
+                                <p style="font-size:14px; font-weight:600; color:#fff;">${c.proveedor}</p>
                             </div>
                             <div style="text-align:right;">
-                                <p class="text-md" style="color:#93c5fd; text-transform:uppercase; font-weight:900; margin-bottom:4px;">Fecha</p>
-                                <p class="text-md" style="color:#fff;">${c.fecha}</p>
+                                <p style="font-size:11px; color:#93c5fd; text-transform:uppercase; font-weight:700; letter-spacing:0.05em; margin-bottom:4px;">Fecha</p>
+                                <p style="font-size:14px; font-weight:600; color:#fff;">${c.fecha}</p>
                             </div>
                             <div>
-                                <p class="text-md" style="color:#93c5fd; text-transform:uppercase; font-weight:900; margin-bottom:4px;">Factura</p>
-                                <p class="text-md" style="color:#fff; font-weight:700;">${c.factura}</p>
+                                <p style="font-size:11px; color:#93c5fd; text-transform:uppercase; font-weight:700; letter-spacing:0.05em; margin-bottom:4px;">Factura</p>
+                                <p style="font-size:14px; font-weight:600; color:#fff;">${c.factura}</p>
                             </div>
                         </div>
 
-                        <p class="text-md" style="color:#93c5fd; text-transform:uppercase; font-weight:900; margin-bottom:8px;">Detalle de Artículos</p>
-                        <table style="width:100%; border-collapse:collapse; margin-bottom:15px;">
+                        <p style="font-size:11px; color:#93c5fd; text-transform:uppercase; font-weight:700; letter-spacing:0.05em; margin-bottom:8px;">Detalle de Artículos</p>
+                        <table style="width:100%; border-collapse:collapse; margin-bottom:15px; font-size:13px;">
                             <thead>
                                 <tr style="color:#93c5fd; text-align:center;">
-                                    <th class="text-md" style="padding:8px 4px; border-bottom:1px solid rgba(255,255,255,0.1); width:15%;">CANTIDAD</th>
-                                    <th class="text-md" style="padding:8px 4px; border-bottom:1px solid rgba(255,255,255,0.1); text-align:left; width:25%;">PRODUCTO</th>
-                                    <th class="text-md" style="padding:8px 4px; border-bottom:1px solid rgba(255,255,255,0.1); text-align:left;">DESCRIPCIÓN</th>
-                                    <th class="text-md" style="padding:8px 4px; border-bottom:1px solid rgba(255,255,255,0.1); text-align:right; width:20%;">IMPORTE</th>
+                                    <th style="font-size:11px; font-weight:700; padding:8px 4px; border-bottom:1px solid rgba(255,255,255,0.1); width:15%;">CANTIDAD</th>
+                                    <th style="font-size:11px; font-weight:700; padding:8px 4px; border-bottom:1px solid rgba(255,255,255,0.1); text-align:left; width:25%;">PRODUCTO</th>
+                                    <th style="font-size:11px; font-weight:700; padding:8px 4px; border-bottom:1px solid rgba(255,255,255,0.1); text-align:left;">DESCRIPCIÓN</th>
+                                    <th style="font-size:11px; font-weight:700; padding:8px 4px; border-bottom:1px solid rgba(255,255,255,0.1); text-align:right; width:20%;">IMPORTE</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 ${c.detalles.map(d => `
                                     <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
-                                        <td class="text-md" style="padding:10px 4px; text-align:center; font-weight:700; color:#fff;">${d.cantidad}</td>
-                                        <td class="text-md" style="padding:10px 4px; text-transform:uppercase; font-weight:700; color:#fff;">${d.producto}</td>
-                                        <td class="text-md" style="padding:10px 4px; text-transform:uppercase; font-weight:700; color:#fff;">${d.descripcion}</td>
-                                        <td class="text-md" style="padding:10px 4px; text-align:right; font-weight:700; color:#fff;">$${d.importe}</td>
+                                        <td style="padding:10px 4px; text-align:center; font-weight:500; color:#fff;">${d.cantidad}</td>
+                                        <td style="padding:10px 4px; text-transform:uppercase; font-weight:600; color:#fff;">${d.producto}</td>
+                                        <td style="padding:10px 4px; text-transform:uppercase; font-weight:500; color:#fff;">${d.descripcion}</td>
+                                        <td style="padding:10px 4px; text-align:right; font-weight:600; color:#fff;">$${d.importe}</td>
                                     </tr>
                                 `).join('')}
                             </tbody>
                         </table>
 
-                        <div style="display:flex; justify-content:flex-end; align-items:center; gap:20px; padding-top:10px; border-top:1px solid rgba(255,255,255,0.1);">
-                            <span class="text-md" style="color:#93c5fd; text-transform:uppercase; font-weight:900;">Total Compra:</span>
-                            <span style="font-size:24px; font-weight:900; color:#4ade80;">$${c.total}</span>
+                        <p style="font-size:11px; color:#93c5fd; text-transform:uppercase; font-weight:700; letter-spacing:0.05em; margin-bottom:8px;">Desglose de Totales</p>
+                        <table style="width:100%; border-collapse:collapse; font-size:13px;">
+                            <tbody>
+                                <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                                    <td style="padding:8px 4px; color:#93c5fd; text-transform:uppercase; font-weight:500;">Subtotal</td>
+                                    <td style="padding:8px 4px; text-align:right; font-weight:600; color:#fff;">$${c.subtotal}</td>
+                                </tr>
+                                ${parseFloat(c.monto_descuento) > 0 ? `
+                                <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                                    <td style="padding:8px 4px; color:#fbbf24; text-transform:uppercase; font-weight:500;">Descuento Global (${c.porcentaje_descuento}%)</td>
+                                    <td style="padding:8px 4px; text-align:right; font-weight:600; color:#fbbf24;">-$${c.monto_descuento}</td>
+                                </tr>` : ''}
+                                ${parseFloat(c.monto_descuento_extra) > 0 ? `
+                                <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                                    <td style="padding:8px 4px; color:#fbbf24; text-transform:uppercase; font-weight:500;">Descuento Extra</td>
+                                    <td style="padding:8px 4px; text-align:right; font-weight:600; color:#fbbf24;">-$${c.monto_descuento_extra}</td>
+                                </tr>` : ''}
+                                ${parseFloat(c.monto_descuento_interno) > 0 ? `
+                                <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                                    <td style="padding:8px 4px; color:#fbbf24; text-transform:uppercase; font-weight:500;">Descuento Interno</td>
+                                    <td style="padding:8px 4px; text-align:right; font-weight:600; color:#fbbf24;">-$${c.monto_descuento_interno}</td>
+                                </tr>` : ''}
+                                <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+                                    <td style="padding:8px 4px; color:#93c5fd; text-transform:uppercase; font-weight:500;">IVA (16%)</td>
+                                    <td style="padding:8px 4px; text-align:right; font-weight:600; color:#fff;">$${c.iva}</td>
+                                </tr>
+                                <tr style="border-bottom:1px solid rgba(255,255,255,0.1);">
+                                    <td style="padding:8px 4px; color:#93c5fd; text-transform:uppercase; font-weight:700; font-size:14px;">Total de Factura</td>
+                                    <td style="padding:8px 4px; text-align:right; font-weight:700; font-size:14px; color:#fff;">$${c.total}</td>
+                                </tr>
+                                ${parseFloat(c.monto_pronto_pago) > 0 ? `
+                                <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                                    <td style="padding:8px 4px; color:#4ade80; text-transform:uppercase; font-weight:500;">Desc. Financiero / Pronto Pago (${c.porcentaje_pronto_pago}%)</td>
+                                    <td style="padding:8px 4px; text-align:right; font-weight:600; color:#4ade80;">-$${c.monto_pronto_pago}</td>
+                                </tr>` : ''}
+                            </tbody>
+                        </table>
+
+                        <div style="display:flex; justify-content:flex-end; align-items:center; gap:20px; padding-top:14px; margin-top:6px; border-top:1px solid rgba(255,255,255,0.1);">
+                            <span style="font-size:13px; color:#93c5fd; text-transform:uppercase; font-weight:700; letter-spacing:0.05em;">Saldo Pendiente:</span>
+                            <span style="font-size:24px; font-weight:900; color:#4ade80;">$${c.saldo_pendiente}</span>
                         </div>
                     </div>
                 `,

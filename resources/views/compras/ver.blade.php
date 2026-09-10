@@ -31,11 +31,11 @@
                 <div>
                     <div class="flex items-center gap-3 mb-1">
                         <h1 class="text-3xl font-black text-white uppercase tracking-tighter">{{ $compra->folio ?? 'OC-XXXXX' }}</h1>
-                        <span class="px-4 py-1 rounded-full text-md font-black border bg-green-500/20 text-green-300 border-green-500/30 tracking-widest uppercase">
+                        <span class="px-4 py-1 rounded-full text-xs font-bold border bg-green-500/20 text-green-300 border-green-500/30 tracking-widest uppercase">
                             REGISTRADA
                         </span>
                     </div>
-                    <p class="text-blue-200/60 text-md font-bold uppercase tracking-widest">
+                    <p class="text-blue-200/60 text-xs font-semibold uppercase tracking-widest">
                         FECHA DE COMPRA: {{ \Carbon\Carbon::parse($compra->fecha_compra)->translatedFormat('d M, Y') }}
                     </p>
                 </div>
@@ -43,8 +43,8 @@
 
             <div class="flex items-center gap-4">
                  <div class="bg-white/10 backdrop-blur-xl rounded-2xl px-8 py-3 border border-white/20 shadow-xl">
-                    <span class="text-[10px] text-blue-200 uppercase font-black tracking-[0.2em] block mb-1 text-right">Total Factura</span>
-                    <span class="text-3xl font-black text-white leading-none">${{ number_format($compra->total, 2) }}</span>
+                    <span class="text-[10px] text-blue-200 uppercase font-black tracking-[0.2em] block mb-1 text-right">Saldo Pendiente</span>
+                    <span class="text-3xl font-black text-white leading-none">${{ number_format($compra->saldo_pendiente, 2) }}</span>
                 </div>
             </div>
         </div>
@@ -53,7 +53,7 @@
             <!-- Bloque Izquierdo: Info Proveedor -->
             <div class="bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl overflow-hidden h-full relative">
                 <div class="p-6 border-b border-white/10 bg-white/5 relative z-10">
-                    <h3 class="text-md font-black text-blue-200 uppercase tracking-[0.2em]">Información del Proveedor</h3>
+                    <h3 class="text-sm font-bold text-blue-200 uppercase tracking-[0.2em]">Información del Proveedor</h3>
                 </div>
                 <div class="p-8 space-y-6 relative z-10">
                     <div class="flex items-center gap-6">
@@ -62,7 +62,7 @@
                         </div>
                         <div>
                             <p class="text-2xl font-black text-white uppercase leading-tight">{{ $compra->proveedor->nombre }}</p>
-                            <p class="text-md text-blue-200/60 uppercase font-bold tracking-widest mt-1">{{ $compra->proveedor->email ?? 'SIN EMAIL' }}</p>
+                            <p class="text-xs text-blue-200/60 uppercase font-semibold tracking-widest mt-1">{{ $compra->proveedor->email ?? 'SIN EMAIL' }}</p>
                         </div>
                     </div>
                 </div>
@@ -71,27 +71,27 @@
             <!-- Bloque Derecho: Datos de Registro -->
             <div class="bg-white/10 backdrop-blur-xl rounded-3xl border border-white/20 shadow-2xl overflow-hidden h-full">
                 <div class="p-6 border-b border-white/10 bg-white/5">
-                    <h3 class="text-md font-black text-blue-200 uppercase tracking-[0.2em]">Datos de la Compra</h3>
+                    <h3 class="text-sm font-bold text-blue-200 uppercase tracking-[0.2em]">Datos de la Compra</h3>
                 </div>
                 <div class="p-8 grid grid-cols-1 md:grid-cols-2 gap-8">
                     <div class="space-y-6">
                         <div>
-                            <p class="text-md text-blue-200/40 font-black uppercase tracking-widest mb-1">Folio OC</p>
-                            <p class="text-lg text-white font-black uppercase">{{ $compra->folio ?? '---' }}</p>
+                            <p class="text-xs text-blue-200/50 font-semibold uppercase tracking-widest mb-1">Folio OC</p>
+                            <p class="text-base text-white font-bold uppercase">{{ $compra->folio ?? '---' }}</p>
                         </div>
                         <div>
-                            <p class="text-md text-blue-200/40 font-black uppercase tracking-widest mb-1">Número de Factura</p>
-                            <p class="text-lg text-white font-black uppercase">{{ $compra->factura ?? 'SIN FACTURA' }}</p>
+                            <p class="text-xs text-blue-200/50 font-semibold uppercase tracking-widest mb-1">Número de Factura</p>
+                            <p class="text-base text-white font-bold uppercase">{{ $compra->factura ?? 'SIN FACTURA' }}</p>
                         </div>
                     </div>
                     <div class="space-y-6">
                         <div>
-                            <p class="text-md text-blue-200/40 font-black uppercase tracking-widest mb-1">Fecha de Compra</p>
-                            <p class="text-lg text-white font-black uppercase">{{ \Carbon\Carbon::parse($compra->fecha_compra)->translatedFormat('d F, Y') }}</p>
+                            <p class="text-xs text-blue-200/50 font-semibold uppercase tracking-widest mb-1">Fecha de Compra</p>
+                            <p class="text-base text-white font-bold uppercase">{{ \Carbon\Carbon::parse($compra->fecha_compra)->translatedFormat('d F, Y') }}</p>
                         </div>
                         <div>
-                            <p class="text-md text-blue-200/40 font-black uppercase tracking-widest mb-1">Registrado en Sistema</p>
-                            <p class="text-lg text-white font-black uppercase">{{ $compra->created_at->translatedFormat('d F, Y H:i') }}</p>
+                            <p class="text-xs text-blue-200/50 font-semibold uppercase tracking-widest mb-1">Registrado en Sistema</p>
+                            <p class="text-base text-white font-bold uppercase">{{ $compra->created_at->translatedFormat('d F, Y H:i') }}</p>
                         </div>
                     </div>
                 </div>
@@ -107,40 +107,40 @@
                 <table class="w-full text-center">
                     <thead class="bg-white/5 border-b border-white/10">
                         <tr>
-                            <th class="px-4 py-5 text-md font-bold text-blue-200 uppercase tracking-widest text-center">Cant.</th>
-                            <th class="px-4 py-5 text-md font-bold text-blue-200 uppercase tracking-widest text-left">Producto</th>
-                            <th class="px-4 py-5 text-md font-bold text-blue-200 uppercase tracking-widest text-center">P. Unitario</th>
-                            <th class="px-4 py-5 text-md font-bold text-blue-200 uppercase tracking-widest text-center">% Global</th>
-                            <th class="px-4 py-5 text-md font-bold text-blue-200 uppercase tracking-widest text-center">% Extra</th>
-                            <th class="px-4 py-5 text-md font-bold text-blue-200 uppercase tracking-widest text-center">% Int.</th>
-                            <th class="px-4 py-5 text-md font-bold text-blue-200 uppercase tracking-widest text-right">Subtotal</th>
+                            <th class="px-4 py-5 text-xs font-semibold text-blue-200 uppercase tracking-widest text-center">Cant.</th>
+                            <th class="px-4 py-5 text-xs font-semibold text-blue-200 uppercase tracking-widest text-left">Producto</th>
+                            <th class="px-4 py-5 text-xs font-semibold text-blue-200 uppercase tracking-widest text-center">P. Unitario</th>
+                            <th class="px-4 py-5 text-xs font-semibold text-blue-200 uppercase tracking-widest text-center">% Global</th>
+                            <th class="px-4 py-5 text-xs font-semibold text-blue-200 uppercase tracking-widest text-center">% Extra</th>
+                            <th class="px-4 py-5 text-xs font-semibold text-blue-200 uppercase tracking-widest text-center">% Int.</th>
+                            <th class="px-4 py-5 text-xs font-semibold text-blue-200 uppercase tracking-widest text-right">Subtotal</th>
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-white/10">
                         @foreach($compra->detalles as $detalle)
                             <tr class="hover:bg-white/5 transition-colors group">
                                 <td class="px-4 py-5 text-center">
-                                    <span class="text-white font-mono font-bold text-lg">
+                                    <span class="text-white font-mono font-semibold text-sm">
                                         {{ $detalle->cantidad }}
                                     </span>
                                 </td>
                                 <td class="px-4 py-5 text-left">
-                                    <span class="text-white font-black uppercase text-lg leading-tight">{{ $detalle->producto->nombre }}</span>
+                                    <span class="text-white font-semibold uppercase text-sm leading-tight">{{ $detalle->producto->nombre }}</span>
                                 </td>
                                 <td class="px-4 py-5 text-center">
-                                    <span class="text-blue-100 font-mono text-lg font-bold">${{ number_format($detalle->precio_compra, 2) }}</span>
+                                    <span class="text-blue-100 font-mono text-sm font-medium">${{ number_format($detalle->precio_compra, 2) }}</span>
                                 </td>
                                 <td class="px-4 py-5 text-center">
-                                    <span class="text-amber-200/80 font-bold text-md">{{ number_format($detalle->descuento_porcentaje, 2) }}%</span>
+                                    <span class="text-amber-200/80 font-medium text-sm">{{ number_format($detalle->descuento_porcentaje, 2) }}%</span>
                                 </td>
                                 <td class="px-4 py-5 text-center">
-                                    <span class="text-amber-200/80 font-bold text-md">{{ number_format($detalle->descuento_extra_porcentaje, 2) }}%</span>
+                                    <span class="text-amber-200/80 font-medium text-sm">{{ number_format($detalle->descuento_extra_porcentaje, 2) }}%</span>
                                 </td>
                                 <td class="px-4 py-5 text-center">
-                                    <span class="text-amber-300 font-bold text-lg">{{ number_format($detalle->descuento_interno_porcentaje, 2) }}%</span>
+                                    <span class="text-amber-300 font-medium text-sm">{{ number_format($detalle->descuento_interno_porcentaje, 2) }}%</span>
                                 </td>
                                 <td class="px-4 py-5 text-right">
-                                    <span class="text-white font-black font-mono text-xl tracking-tighter">${{ number_format($detalle->cantidad * $detalle->precio_compra, 2) }}</span>
+                                    <span class="text-white font-bold font-mono text-base tracking-tighter">${{ number_format($detalle->cantidad * $detalle->precio_compra, 2) }}</span>
                                 </td>
                             </tr>
                         @endforeach
@@ -154,7 +154,7 @@
                                     <span class="ml-2 text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/30 font-black">CON DESCUENTO</span>
                                 @endif
                             </td>
-                            <td class="px-8 py-2 text-right text-white font-bold text-md">
+                            <td class="px-8 py-2 text-right text-white font-semibold text-sm">
                                 ${{ number_format($compra->monto_maniobra, 2) }}
                             </td>
                         </tr>
@@ -167,14 +167,22 @@
                                     <span class="ml-2 text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded-full border border-amber-500/30 font-black">CON DESCUENTO</span>
                                 @endif
                             </td>
-                            <td class="px-8 py-2 text-right text-white font-bold text-md">
+                            <td class="px-8 py-2 text-right text-white font-semibold text-sm">
                                 ${{ number_format($compra->monto_seguro, 2) }}
                             </td>
                         </tr>
                         @endif
                         <tr class="border-b border-white/5">
+                            <td colspan="6" class="px-8 py-4 text-right">
+                                <span class="text-blue-200 text-sm uppercase font-semibold tracking-widest">Subtotal</span>
+                            </td>
+                            <td class="px-8 py-4 text-right">
+                                <span class="text-xl font-bold text-white tracking-tighter">${{ number_format($compra->subtotal, 2) }}</span>
+                            </td>
+                        </tr>
+                        <tr class="border-b border-white/5">
                             <td colspan="6" class="px-8 py-3 text-right">
-                                <span class="text-amber-400 text-sm uppercase font-black tracking-widest">1. Descuento Global ({{ number_format($compra->porcentaje_descuento, 2) }}%)</span>
+                                <span class="text-amber-400 text-sm uppercase font-semibold tracking-widest">1. Descuento Global ({{ number_format($compra->porcentaje_descuento, 2) }}%)</span>
                             </td>
                             <td class="px-8 py-3 text-right">
                                 <span class="text-lg font-bold text-amber-400 tracking-tighter">-${{ number_format($compra->monto_descuento, 2) }}</span>
@@ -182,7 +190,7 @@
                         </tr>
                         <tr class="border-b border-white/5">
                             <td colspan="6" class="px-8 py-3 text-right">
-                                <span class="text-amber-400 text-sm uppercase font-black tracking-widest">2. Descuento Extra Global ({{ number_format($compra->porcentaje_descuento_extra, 2) }}%)</span>
+                                <span class="text-amber-400 text-sm uppercase font-semibold tracking-widest">2. Descuento Extra</span>
                             </td>
                             <td class="px-8 py-3 text-right">
                                 <span class="text-lg font-bold text-amber-400 tracking-tighter">-${{ number_format($compra->monto_descuento_extra, 2) }}</span>
@@ -190,7 +198,7 @@
                         </tr>
                         <tr class="border-b border-white/10">
                             <td colspan="6" class="px-8 py-3 text-right">
-                                <span class="text-amber-400 text-sm uppercase font-black tracking-widest">3. Descuento Interno</span>
+                                <span class="text-amber-400 text-sm uppercase font-semibold tracking-widest">3. Descuento Interno</span>
                             </td>
                             <td class="px-8 py-3 text-right">
                                 <span class="text-lg font-bold text-amber-400 tracking-tighter">-${{ number_format($compra->monto_descuento_interno, 2) }}</span>
@@ -198,15 +206,7 @@
                         </tr>
                         <tr class="border-b border-white/5">
                             <td colspan="6" class="px-8 py-4 text-right">
-                                <span class="text-blue-200 text-sm uppercase font-black tracking-widest">Subtotal (Base Gravable)</span>
-                            </td>
-                            <td class="px-8 py-4 text-right">
-                                <span class="text-xl font-bold text-white tracking-tighter">${{ number_format($compra->total - $compra->iva, 2) }}</span>
-                            </td>
-                        </tr>
-                        <tr class="border-b border-white/5">
-                            <td colspan="6" class="px-8 py-4 text-right">
-                                <span class="text-blue-200 text-sm uppercase font-black tracking-widest">IVA (16%)</span>
+                                <span class="text-blue-200 text-sm uppercase font-semibold tracking-widest">IVA (16%)</span>
                             </td>
                             <td class="px-8 py-4 text-right">
                                 <span class="text-xl font-bold text-white tracking-tighter">${{ number_format($compra->iva, 2) }}</span>
@@ -214,7 +214,7 @@
                         </tr>
                         <tr class="bg-white/10 border-b border-white/10">
                             <td colspan="6" class="px-8 py-6 text-right">
-                                <span class="text-blue-100 text-md uppercase font-black tracking-[0.2em]">Total Factura</span>
+                                <span class="text-blue-100 text-sm uppercase font-bold tracking-[0.2em]">Total de Factura</span>
                             </td>
                             <td class="px-8 py-6 text-right">
                                 <span class="text-3xl font-black text-white tracking-tighter">${{ number_format($compra->total, 2) }}</span>
@@ -232,7 +232,7 @@
                         @endif
                         <tr class="bg-blue-600/20">
                             <td colspan="6" class="px-8 py-8 text-right">
-                                <span class="text-blue-200 text-xl uppercase font-black tracking-[0.2em]">Saldo Pendiente (Final)</span>
+                                <span class="text-blue-200 text-base uppercase font-bold tracking-[0.2em]">Saldo Pendiente (Final)</span>
                             </td>
                             <td class="px-8 py-8 text-right">
                                 <span class="text-4xl font-black text-white tracking-tighter">${{ number_format($compra->saldo_pendiente, 2) }}</span>
@@ -252,7 +252,7 @@
             </div>
             <div>
                 <p class="text-blue-300 text-xs font-black uppercase tracking-[0.3em] mb-1">Nota del Sistema</p>
-                <div class="text-md text-blue-100 uppercase font-bold leading-relaxed">
+                <div class="text-sm text-blue-100 uppercase font-medium leading-relaxed">
                     Esta compra ha sido procesada exitosamente. Se han actualizado automáticamente las existencias y los precios de costo en el inventario maestro. 
                     El historial permanece inalterable para fines de auditoría.
                 </div>
